@@ -77,9 +77,11 @@ WSGI_APPLICATION = 'dublin_bus.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': '/etc/mysql/my.cnf',
-        },
+	'NAME': 'sbsw',
+	'USER': 'root',
+	'PASSWORD': 'sbsw',
+	'HOST': 'localhost',
+	'PORT': '',
     }
 }
 
