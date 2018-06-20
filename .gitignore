@@ -1,2 +1,5 @@
 map_reduce/*
 django_env/*
+dublin_bus/dbus/__pycache__/*
+dublin_bus/dublin_bus/__pycache__/*
+dublin_bus/dbus/migrations/__pycache__/*
