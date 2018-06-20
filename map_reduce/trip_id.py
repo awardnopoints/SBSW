@@ -1,6 +1,6 @@
 def main():
 
-    fh = open("rt_trips_2017_I_DB.txt", 'r')
+    fh = open("/home/student/files/rt_trips_2017_I_DB.txt", 'r')
 
     for line in fh:
 
@@ -11,7 +11,7 @@ def main():
             fh2 = open("trips_id.txt", 'a')
 
             fh2.write(route)
-            fh3 = open("trips/" + route + "txt", 'w+')
+            fh3 = open("trips_route/" + route + ".txt", 'a+')
 
             fh3.write(line)
 
@@ -20,7 +20,7 @@ def main():
 
         else:
 
-            fh3 = open("trips/" + route + "txt", 'a')
+            fh3 = open("trips_route/" + route + ".txt", 'a+')
 
             fh3.write(line)
             fh3.close()
