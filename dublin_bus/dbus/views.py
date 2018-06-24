@@ -13,21 +13,15 @@ def home(request):
 	stop_long = Stopsv2.objects.values('longitude')
 	stop_all = Stopsv2.objects.all()	
 
+	json = {}
 
-	context = {'test' : "test"}
+	for item in stop_all:
 
-	"""
-	json = {}	
+		json[item.stop_name] = {'lat' : item.latitude, 'long' : item.longitude}
 
-	i = 0
-	while i < len(stop_names):
-		json[stop_names[i]['stop_name']] = {"lat" : stop_lat[i]['latitude'], "long" : stop_long[i]['longitude']}
-		i+=1
-	
-	test = {"hello": 1 , "world" : 2}
-"""
+	#args = {}
+	#args.update(csrf(request))
+	#response = requests.post('https://137.43.49.47', data=json)
+	#args['contents'] = response.json()
 
-	return render(request, "dbus/index.html", context)
-
-class Home(TemplateView):
-	template_name = 'index.html'
+	return render(request, 'dbus/index.html', {"contents" : stop_all})

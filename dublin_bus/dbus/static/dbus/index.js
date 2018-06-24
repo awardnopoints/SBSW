@@ -1,18 +1,13 @@
-var map = new GMaps({
+/*var map = new GMaps({
     div: '#map',
     lat: 53.350140,
     lng: -6.266155,
-    zoom: 13,
+    zoom: 10,
 });
 
-map.addMarker({
-    lat:53.349432, 
-    lng:-6.260506,
-    title:'GPO',
-    infoWindow: {
-        content: '<div id="busInfo"><p>Bus Information</p><button id="busButton">Click Here</button></div>'
-    }
-})
+var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      }
 
 GMaps.geolocate({
   success: function(position) {
@@ -20,15 +15,34 @@ GMaps.geolocate({
   },
 });
 
-map.drawRoute({
-    origin: [53.345557, -6.255142],
-    destination: [53.352711, -6.264208],
-    travelMode: 'driving',
-    strokeColor: '#131540',
-    strokeOpacity: 0.6,
-    strokeWeight: 6
-})
-
 $(document).ready(function(){    
     $('#busButton').html('it works');
 })
+
+function initMap() {
+
+var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 10,
+          center: {lat: 53.3498, lng: -6.2603}
+        });
+
+markers = [];
+
+ {% for item in contents %}
+                var name = "{{item.stop_name}}"
+                var latitude = "{{item.latitude}}"
+                var longitude = "{{item.longitude}}"
+                
+                var marker = new google.maps.Marker({
+                        position: {lat: Number(latitude), lng: Number(longitude)},
+                        map: map,
+                        title: name
+                });
+		markers.push(marker);
+        {% endfor %}
+
+
+	var markerCluster = new MarkerClusterer(map, markers,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      };
+};*\
