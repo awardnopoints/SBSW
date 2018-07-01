@@ -69,7 +69,7 @@ def connect():
     """Function to connect to database on Amazon Web Services"""
     try:
         engine = create_engine(
-            'mysql+mysqlconnector://root@localhost/sbsw')
+            'mysql+mysqlconnector://root:sbsw@127.0.0.1:1024/sbsw')
         #port = 3306
         connection = engine.connect()
         Session.configure(bind=engine)
