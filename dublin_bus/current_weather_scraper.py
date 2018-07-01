@@ -92,7 +92,7 @@ def connect():
     """Function to connect to database on Amazon Web Services"""
     try:
         engine = create_engine(
-            'mysql+mysqlconnector://root@localhost/sbsw')
+            'mysql+mysqlconnector://root:sbsw@127.0.0.1:1024/sbsw')
         #port = 3306
         connection = engine.connect()
         Session.configure(bind=engine)
@@ -116,7 +116,7 @@ def delete_current():
 def delete_forecast():
     try:
         connection = engine.connect()
-        connection.execute("TRUNCATE TABLE dbus_forecast_weather;")
+        connection.execute("TRUNCATE TABLE dbus_forecast;")
         return
 
     except Exception as e:
@@ -137,7 +137,7 @@ def insert_forecast(temp, temp_min, temp_max, description, mainDescription, spee
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast_weather (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+            "INSERT INTO dbus_forecast (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
             (temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity))
     except Exception as e:
         print("An error occurred inserting data into forecast_weather table: ", e)
@@ -157,8 +157,5 @@ run = weather()
 delete_forecast();
 run.forecast_weather()
 run.current_weather()
-#run.current_weather()
-#parsed = weather.forecast_weather(json_parsed)
 
 
- 
