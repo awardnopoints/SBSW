@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -34,36 +35,62 @@
         </div><!--/.nav-collapse -->
     </nav>
 
-
+   <!--var bus_stops = [
+        {% for item in contents %}
+            {{item.stop_name}}
+        {% endfor %}] -->
+        
+      
     <div class="container">
 
     <div class="jumbotron text-center col-md-6">
         <form class="form-horizontal">
+
+  <div class="form-group">
+    <label for="exampleFormControlSelect1">From</label>
+    <select class="form-control" id="exampleFormControlSelect1">
+        {% for item in contents %}
+      <option> {{item.stop_name}}</option>
+  {% endfor %}
+    </select>
+  </div>
         <div class="form-group">
-            <label class="control-label col-sm-2" for="from"> From:</label>
-            <div class="col-sm-10">
-            <input type="email" class="form-control" id="from" placeholder="Enter bus stop">
-            </div>
-            </div>
-              <div class="form-group">
-    <label class="control-label col-sm-2" for="to">To:</label>
-    <div class="col-sm-10"> 
-      <input type="to" class="form-control" id="to" placeholder="Enter destination">
-    </div>
+    <label for="exampleFormControlSelect1">To</label>
+    <select class="form-control" id="exampleFormControlSelect1">
+         {% for item in contents %}
+  <option> {{item.stop_name}}</option>
+ {% endfor %}
+    </select>
   </div>
+            <div class='col-sm-6'>
             <div class="form-group">
-    <label class="control-label col-sm-2" for="When">When:</label>
-    <div class="col-sm-10"> 
-      <input type="when" class="form-control" id="when" placeholder="Leave now">
-    </div>
-  </div>
+    <div class='input-group date' id='datetimepicker1'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div></div>
+            
+  </div> 
+            <!-- https://eonasdan.github.io/bootstrap-datetimepicker/ -->
               <div class="form-group"> 
     <div class="col-sm-offset-2 col-sm-10">
-      <button type="go" class="btn btn-default">Go</button>
+      <button type="go" class="btn btn-default" onclick="Go()">Go</button>
     </div>
   </div>
         </form>
+
+        
+        
+      <!--     <div id='test'><p>The bus stops are: </p>
+            <ul> {% for item in contents %}
+                <li>{{item.stop_name}} </li>
+                {% endfor %}
+            </ul></div>  -->
+        <div id="results"><p> </p></div>
         </div>
+        
+        
       <!-- Main component for a primary marketing message or call to action -->
       <div id='map' class="jumbotron text-center col-md-6">
         
@@ -86,6 +113,34 @@
 		});
 	{% endfor %}
 	*/
+        
+        
+/*An array containing all the country names in the world:
+var countries = [{% for item in contents %}
+                 ""{{item.stop_name}}"
+                {% endfor %}]; 
+   */
+
+      
+$(function () {
+                $('#datetimepicker1').datetimepicker();
+            });
+        
+function Go(){
+    document.getElementById('results').innerHTML= " "
+    var start_stop;
+    var end_stop;
+    GetRoutes(start_stop, end_stop);
+}
+    // 1. takes name of start bus stop and end bus stop and translates to bus stop number. Finds routes that pass through each bus stop and selects only those common to both. 2. Determines how many stops between start and end //
+
+    //next take time of day, day of week, weather and input into predictor?//
+        
+        
+function GetRoutes(start, end) {
+    
+}
+        
 function initMap(){
 var map = new google.maps.Map(document.getElementById('map'), {
           zoom: 10,
@@ -116,4 +171,3 @@ markers = [];
     
   </body>
 </html>
-
