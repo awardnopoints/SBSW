@@ -44,7 +44,6 @@ class current_weather (models.Model):
     temp=models.FloatField()
     min_temp=models.FloatField()
     max_temp=models.FloatField()    
-#    rain=models.FloatField()
     description=models.TextField()
     mainDescription=models.TextField()
     wind_speed=models.FloatField()

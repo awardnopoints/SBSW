@@ -24,7 +24,7 @@ def call_api(url):
     return req
 
 def write_file (data):
-    """Retrieves information from Dublin Bikes API and stores as JSON"""
+    """Retrieves information from Dublin Bes API and stores as JSON"""
 
     req_text= data.text
     json_parsed=json.loads(req_text)
@@ -55,37 +55,7 @@ class weather:
 
         delete_current();
         insert_current(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness)
-        
-    def forecast_weather(self):
-        """Selects and creates variables that will be stored in dynamic forecast weather table"""
-
-        list=json_parsed1['list']
-        
-        i=0
-        length=len(list)
-        while i < length:
-
-       	    first = list[i]
-            main=first['main']
-            temp = main['temp']
-            temp_min = main['temp_min']
-            temp_max = main['temp_max']
-            humidity = main['humidity']
-            pressure = main['pressure']
-            weather = first['weather']
-            weather_desc = weather[0]
-            description = weather_desc['description']
-            mainDescription = weather_desc['main']
-            wind = first['wind']
-            speed = wind['speed']
-            deg = wind['deg']
-            cloud=first['clouds']
-            cloudiness=cloud['all']
-            dt_txt = first['dt_txt']
-            i+=1
-            
-            
-            insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity)
+         
     #http://pythonda.com/collecting-storing-tweets-python-mysql
 
 def connect():
@@ -143,19 +113,13 @@ def insert_forecast(temp, temp_min, temp_max, description, mainDescription, spee
         print("An error occurred inserting data into forecast_weather table: ", e)
     return
 
-url1="http://api.openweathermap.org/data/2.5/forecast?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
 url2="http://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
 
 engine = connect()
-
-data1 = call_api(url1)
 data2 = call_api(url2)
-json_parsed1=write_file(data1)
 json_parsed2=write_file(data2)
 
 run = weather()
-delete_forecast();
-run.forecast_weather()
 run.current_weather()
 
 

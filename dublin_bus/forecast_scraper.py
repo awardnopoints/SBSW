@@ -5,11 +5,12 @@ from mysql.connector import errorcode
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import *
 import datetime
 import pytz
-from current_weather_scraper import weather
+
 
 # http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
 Base = declarative_base()
@@ -29,6 +30,63 @@ def write_file (data):
     json_parsed=json.loads(req_text)
     return json_parsed
 
+class weather:
+    def current_weather(self):
+
+#        list1=json_parsed['list']
+#        first = list1[0]
+        main=json_parsed2['main']
+        temp = main['temp']
+        temp_min = main['temp_min']
+        temp_max = main['temp_max']
+        humidity = main['humidity']
+        pressure = main['pressure']
+        weather = json_parsed2['weather']
+        weather_desc = weather[0]
+        description = weather_desc['description']
+        mainDescription = weather_desc['main']
+        wind = json_parsed2['wind']
+        speed = wind['speed']
+        deg = wind['deg']
+        cloud=json_parsed2['clouds']
+        cloudiness=cloud['all']
+        dt = json_parsed2['dt']
+        timestamp=datetime.datetime.fromtimestamp(dt, pytz.timezone('Europe/Dublin'))
+
+#        delete_current();
+#       insert_current(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness)
+        
+    def forecast_weather(self):
+        """Selects and creates variables that will be stored in dynamic forecast weather table"""
+
+        list=json_parsed1['list']
+        
+        i=0
+        length=len(list)
+        while i < length:
+
+       	    first = list[i]
+            main=first['main']
+            temp = main['temp']
+            temp_min = main['temp_min']
+            temp_max = main['temp_max']
+            humidity = main['humidity']
+            pressure = main['pressure']
+            weather = first['weather']
+            weather_desc = weather[0]
+            description = weather_desc['description']
+            mainDescription = weather_desc['main']
+            wind = first['wind']
+            speed = wind['speed']
+            deg = wind['deg']
+            cloud=first['clouds']
+            cloudiness=cloud['all']
+            dt_txt = first['dt_txt']
+            i+=1
+            
+            
+            insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity)
+    #http://pythonda.com/collecting-storing-tweets-python-mysql
 
 def connect():
     """Function to connect to database on Amazon Web Services"""
@@ -65,6 +123,15 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
+def insert_current(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness):
+    try:
+        connection = engine.connect()
+        connection.execute(
+            "INSERT INTO dbus_current_weather (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, dt, timestamp, humidity, pressure, cloudiness) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+            (temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness))
+    except Exception as e:
+        print("An error occurred inserting data into current_weather table: ", e)
+    return
 
 def insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity):
     try:
@@ -77,13 +144,15 @@ def insert_forecast(temp, temp_min, temp_max, description, mainDescription, spee
     return
 
 url1="http://api.openweathermap.org/data/2.5/forecast?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
-
 engine = connect()
+
 data1 = call_api(url1)
 json_parsed1=write_file(data1)
+
 run = weather()
 delete_forecast();
 run.forecast_weather()
+
 
 
 

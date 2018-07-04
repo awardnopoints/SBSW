@@ -16,7 +16,13 @@
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'dbus/index.css' %}">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.standalone.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+     <!-- moment.js must be loaded first -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js"></script>
+
+<!-- bootstrap-datetimepicker -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
       
     </head>
 
@@ -30,7 +36,7 @@
           <a class="navbar-brand" href="#">Bus App</a>
         </div>
           <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="./">get there on time<span class="sr-only">(current)</span></a></li>
+            <li class="active"><a href="./">here's where the catchy slogan goes<span class="sr-only">(current)</span></a></li>
           </ul>
         </div><!--/.nav-collapse -->
     </nav>
@@ -62,16 +68,52 @@
  {% endfor %}
     </select>
   </div>
-            <div class='col-sm-6'>
+
+        <div class="form-group">
+    <label for="exampleFormControlSelect1">Day</label>
+    <select class="form-control" id="exampleFormControlSelect1Day">
+         <option value=" "> </option>
+      <option value="Monday">Monday</option>
+      <option value="Tuesday">Tuesday</option>
+      <option value="Wednesday">Wednesday</option>
+      <option value="Thursday">Thursday</option>
+      <option value="Friday">Friday</option>
+        <option value="Saturday">Saturday</option>
+        <option value="Sunday">Sunday</option>
+    </select>
+  </div>
             <div class="form-group">
-    <div class='input-group date' id='datetimepicker1'>
-                    <input type='text' class="form-control" />
-                    <span class="input-group-addon">
-                        <span class="glyphicon glyphicon-calendar"></span>
-                    </span>
-                </div></div>
+    <label for="exampleFormControlSelect1">Time</label>
+    <select class="form-control" id="exampleFormControlSelect1Time">
+      <option value=" "> </option>
+        <option value="00:00">00:00</option>
+      <option value="01:00">01:00</option>
+      <option value="02:00">02:00</option>
+      <option value="03:00">03:00</option>
+      <option value="04:00">04:00</option>
+        <option value="05:00">05:00</option>
+        <option value="06:00">06:00</option>
+              <option value="07:00">07:00</option>
+      <option value="08:00">08:00</option>
+      <option value="09:00">09:00</option>
+      <option value="10:00">10:00</option>
+      <option value="11:00">11:00</option>
+        <option value="12:00">12:00</option>
+        <option value="13:00">13:00</option>
+        <option value="14:00">14:00</option>
+        <option value="15:00">15:00</option>
+        <option value="16:00">16:00</option>
+        <option value="17:00">17:00</option>
+        <option value="18:00">18:00</option>
+        <option value="19:00">19:00</option>
+        <option value="20:00">20:00</option>
+        <option value="21:00">21:00</option>
+        <option value="22:00">22:00</option>
+        <option value="23:00">23:00</option>
+    </select>
+  </div>
             
-  </div> 
+            
             <!-- https://eonasdan.github.io/bootstrap-datetimepicker/ -->
               <div class="form-group"> 
     <div class="col-sm-offset-2 col-sm-10">
@@ -121,25 +163,41 @@ var countries = [{% for item in contents %}
                 {% endfor %}]; 
    */
 
-      
-$(function () {
-                $('#datetimepicker1').datetimepicker();
-            });
         
 function Go(){
     document.getElementById('results').innerHTML= " "
     var start_stop;
     var end_stop;
     GetRoutes(start_stop, end_stop);
+    
 }
-    // 1. takes name of start bus stop and end bus stop and translates to bus stop number. Finds routes that pass through each bus stop and selects only those common to both. 2. Determines how many stops between start and end //
+    // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. Finds routes that pass through each bus stop and selects only those common to both. 2. Determines how many stops between start and end // returns routes and stops between each
 
     //next take time of day, day of week, weather and input into predictor?//
         
         
 function GetRoutes(start, end) {
-    
+   // GetPrediction(start, end, route);
+    //match the start and end bus to start and end bus 
+    //get routes
+    //get stops between
 }
+        
+function GetPrediction(start, end, route) {
+    var dayInput = document.getElementById("exampleFormControlSelect1Day");
+    var day = selectTime.options[selectTime.selectedIndex].text;
+    var timeInput = document.getElementById("exampleFormControlSelect1Time");
+    var time = selectDay.options[selectDay.selectedIndex].text;
+    
+    if (day == " " || time == " ") {
+        var dt = new Date();
+        var time = dt.getHours() + ":" + dt.getMinutes();
+        //var day =
+            
+        // new Date($.now());
+    //
+}}
+
         
 function initMap(){
 var map = new google.maps.Map(document.getElementById('map'), {
