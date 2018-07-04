@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dbus',
+    'aldjemy',
 ]
 
 MIDDLEWARE = [
@@ -78,7 +79,7 @@ DATABASES = {
     'default': {
     'ENGINE': 'django.db.backends.mysql',
 	'NAME': 'sbsw',
-	'USER': 'student',
+	'USER': 'root',
 	'PASSWORD': 'sbsw',
 	'HOST': 'localhost',
 	'PORT': '1024',

@@ -1,16 +1,36 @@
+body {
+  min-height: 2000px;
+}
+
+.navbar-static-top {
+  margin-bottom: 25px;
+}
+
 #map {
-	height: 50%;
-	width: 50%;
+    height: 500px;
+    
+}
+
+.jumbotron  {
+    padding-top: 50px;
+  padding-bottom: 20px;
+    height: 500px;
+    
+}
+.jumbotron text-center col-md-6 {
+    padding-top: 50px;
+  padding-bottom: 20px;
+    height: 500px;
 
 }
 
-html, body {
-    height: 100%;
-    margin: 0;
-    padding:0;
+
+.form-group {
+    padding-top: 10px;
+    width: 300px;
+    
 }
 
-#menu {
-    padding: 50px;
-    display: None;
+.form-horizontal {
+    width: 600px;
 }
