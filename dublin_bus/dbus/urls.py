@@ -6,7 +6,3 @@ urlpatterns = [
         path('', views.home, name = 'home')
 ]
 
-urlpatters += [
-	path('/results/', views.results, name='results)
-]
-
