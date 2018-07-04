@@ -4,29 +4,40 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
-import json
-from django.utils.safestring import SafeString
+from dbus.forms import Predictions
 
 def home(request):
 	
-	#stop_names = Stopsv2.objects.values('stop_name')
-	#stop_lat = Stopsv2.objects.values('latitude')
-	#stop_long = Stopsv2.objects.values('longitude')
-	stop_all = Stopsv2.objects.all()	
+	if request.method == "POST":
 
-	#json = {}
+		form = Predictions(request.POST)
+		if form.isValid():
+			stops = Stopsv2.objects.all()
+			start = Predictions.cleaned_data['start']
+			end = Predictions.cleaned_data['end']
+			form = Predictons()
 
-	#for item in stop_all:
+			result = predictions(start, end #etc )
 
-		#json[item.stop_name] = {'lat' : item.latitude, 'long' : item.longitude}
+			context = {
+				"stops" = stops
+				"result" = result
+				"form" = form
+				}
 
-	#args = {}
-	#args.update(csrf(request))
-	#response = requests.post('https://137.43.49.47', data=json)
-	#args['contents'] = response.json()
+			return render(request, 'dbus/result.html', context)
 
-	return render(request, 'dbus/index.html', {"contents" : stop_all})
+	else:
 
+		stops = Stopsv2.objects.all()
+		form = Predictions()	
+		context = {
+			"stops" = stops
+			"form" = form
+			}
+
+
+		return render(request, 'dbus/index.html', context)
 
 
 def prediction(start, end, route, hour, day, minute):
