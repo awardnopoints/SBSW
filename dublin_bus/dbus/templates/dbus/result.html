@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -51,15 +50,32 @@
 
     <div class="jumbotron text-center col-md-6">
         
+        
       <form method = "POST" class = "post-form">{% csrf_token %}
         {{ form.as_p }}
         <button type = "submit" class = "save btn btn-default">Submit</button>
         </form>
 
-        <div id="results"><p> </p></div>
-        </div> 
+      
+        <div test><p>You have a result</p></div>
+            
+            <!-- https://eonasdan.github.io/bootstrap-datetimepicker/ -->
+              <div class="form-group"> 
+    <div class="col-sm-offset-2 col-sm-10">
+    </div>
+  </div>
+       
+
         
-  
+        
+        
+      <!--     <div id='test'><p>The bus stops are: </p>
+            <ul> {% for item in contents %}
+                <li>{{item.stop_name}} </li>
+                {% endfor %}
+            </ul></div>  -->
+        <div id="results"></div>
+        </div>
         
         
       <!-- Main component for a primary marketing message or call to action -->
@@ -162,3 +178,4 @@ markers = [];
     
   </body>
 </html>
+

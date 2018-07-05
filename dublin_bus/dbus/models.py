@@ -36,6 +36,17 @@ class Stopsv2 (models.Model):
         return self.longitude
 
 
+class Trip_avg(models.Model):
+
+        index_id=models.IntegerField(primary_key=True)
+        start_stop=models.TextField()
+        end_stop=models.TextField()
+        hour=models.FloatField()
+        minute=models.FloatField()
+        day_of_week=models.FloatField()
+        avg_time_taken=models.FloatField()
+        avg_hang=models.FloatField()
+
 
 class current_weather (models.Model):
  
