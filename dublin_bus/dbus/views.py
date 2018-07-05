@@ -57,7 +57,7 @@ def predictions(start, end, route, hour, day, minute):
         else:
                 minute = 15
 
-        fh = open("/Users/aoifeosullivan/Desktop/SBSW/analytics/%s.txt"  % route)
+        fh = open("/home/student/analytics/routes/%s.txt"  % route)
 
         start_stop = False
 
