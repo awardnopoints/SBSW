@@ -5,7 +5,6 @@ from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.forms import Predictions
-from dbus.forms import BusForm
 
 def home(request):
 
@@ -58,7 +57,7 @@ def predictions(start, end, route, hour, day, minute):
         else:
                 minute = 15
 
-        fh = open("/home/student/analytics/routes/%s.txt"  % route)
+        fh = open("/Users/aoifeosullivan/Desktop/SBSW/analytics/%s.txt"  % route)
 
         start_stop = False
 

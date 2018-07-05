@@ -1,4 +1,3 @@
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -33,10 +32,10 @@
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">Bus App</a>
+          <h1>Bus App</h1>
         </div>
           <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="./">here's where the catchy slogan goes<span class="sr-only">(current)</span></a></li>
+            <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
           </ul>
         </div><!--/.nav-collapse -->
     </nav>
@@ -53,7 +52,7 @@
         
       <form method = "POST" class = "post-form">{% csrf_token %}
         {{ form.as_p }}
-        <button type = "submit" class = "save btn btn-default">Submit</button>
+        <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
 
         <div id="results"><p> </p></div>

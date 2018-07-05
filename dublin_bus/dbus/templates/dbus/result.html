@@ -29,13 +29,13 @@
   <body>
 
     <!-- Static navbar -->
-    <nav class="navbar navbar-default navbar-static-top">
+   <nav class="navbar navbar-default navbar-static-top">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">Bus App</a>
+          <h1>Bus App</h1>
         </div>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="active"><a href="./">here's where the catchy slogan goes<span class="sr-only">(current)</span></a></li>
+     <ul class="nav navbar-nav navbar-right">
+         <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
           </ul>
         </div><!--/.nav-collapse -->
     </nav>
@@ -53,17 +53,15 @@
         
       <form method = "POST" class = "post-form">{% csrf_token %}
         {{ form.as_p }}
-        <button type = "submit" class = "save btn btn-default">Submit</button>
+        <button type = "submit" class = "save btn btn-default">Go</button>
+        
         </form>
 
       
-        <div test><p>result: {{ result }}</p></div>
-            
+       
+            <div class="results"><div test><p>Your estimated journey time is: {{ result }} seconds </p> </div></div>
             <!-- https://eonasdan.github.io/bootstrap-datetimepicker/ -->
-              <div class="form-group"> 
-    <div class="col-sm-offset-2 col-sm-10">
-    </div>
-  </div>
+        </div>
        
 
         
@@ -74,8 +72,7 @@
                 <li>{{item.stop_name}} </li>
                 {% endfor %}
             </ul></div>  -->
-        <div id="results"></div>
-        </div>
+       
         
         
       <!-- Main component for a primary marketing message or call to action -->
@@ -178,4 +175,3 @@ markers = [];
     
   </body>
 </html>
-
