@@ -17,12 +17,16 @@ def home(request):
                         start = form.cleaned_data['start']
                         end = form.cleaned_data['end']
                         form = Predictions()
+                        day = 0
+                        hour = 10.0
+                        minute = 15
+                        route = "46A"
 
-                        #result = predictions(start, end) #etc )
+                        result = predictions(start, end, route, hour, day, minute) #etc )
 
                         context = {
                                 "stops": stops,
-                                #"result" = result
+                                "result": result,
                                 "form": form
                                 }
 
@@ -44,35 +48,48 @@ def home(request):
 
 
 
-def prediction(start, end, route, hour, day, minute):
+def predictions(start, end, route, hour, day, minute):
+	
+        total = 0
+
 
         if minute >= 30:
                 minute = 45
         else:
                 minute = 15
 
-        fh = open("/home/student/files/routes/%s.txt"  % route)
+        fh = open("/home/student/analytics/routes/%s.txt"  % route)
 
         start_stop = False
 
-        end_stretch = 0
+        start_stretch = 0
 
         for line in fh:
+		
+                line = str(int(line))
 
-                if line == start:
+                if int(line) == int(start):
 
                         start_stop = True
-                        end_stretch = line
+                        start_stretch = line
 
-                elif start_stop == True and line != end:
+                elif start_stop == True and int(line) != int(end):
+                      
+                        
+                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=str(line), start_stop = start_stretch)
 
-                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day)
+                        print(att)
+
+                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
+
+                        start_stretch = line
 
 
-                        total += (int(att.avg_time_taken) + int(att.avg_hang))
 
-                elif line == end:
-
+                elif start_stop == True and int(line) == int(end):
+			
+                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=end, start_stop=start_stretch)
+                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
                         break
 
         return total
