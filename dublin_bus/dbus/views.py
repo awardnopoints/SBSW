@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.forms import Predictions
+import datetime
 
 def home(request):
 
@@ -15,11 +16,12 @@ def home(request):
                         stops = Stopsv2.objects.all()
                         start = form.cleaned_data['start']
                         end = form.cleaned_data['end']
-                        form = Predictions()
+                        dt = datetime.datetime.now()
                         day = 0
-                        hour = 10.0
-                        minute = 15
-                        route = "46A"
+                        hour = dt.hour
+                        minute = dt.minute
+                        route = form.cleaned_data['route']
+                        form = Predictions()
 
                         result = predictions(start, end, route, hour, day, minute) #etc )
 

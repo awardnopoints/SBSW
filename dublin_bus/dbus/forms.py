@@ -7,5 +7,5 @@ class Predictions(forms.Form):
 
         start = forms.CharField()
         end = forms.CharField()
- 
+        route = forms.CharField() 
 
