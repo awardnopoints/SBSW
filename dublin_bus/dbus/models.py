@@ -230,7 +230,7 @@ class Dweather(models.Model):
 
 
 class RealtimeBus(models.Model):
-    arrival_time = models.CharField(primary_key=True, max_length=300)
+    arrival_time = models.CharField(primary_key=True, max_length=100)
     departure_time = models.CharField(max_length=300, blank=True, null=True)
     departing_in = models.CharField(max_length=30, blank=True, null=True)
     destination = models.CharField(max_length=300, blank=True, null=True)
