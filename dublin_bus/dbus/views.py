@@ -2,7 +2,6 @@ from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import HttpResponse
 from django.views.generic import TemplateView
-#from django.db.models import Q
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequence
@@ -75,13 +74,17 @@ def home(request):
 
 
 def predictions_model(start, end, route, day, hour):
+
+        """
+        Takes the route, stop, and time information and returns
+        a travel time prediction based on that.
+        """
         total = 0
-        # stop_id, route_number, route_direction, sequence
-        stops = BusStopsSequence.objects.filter(route_number=route)
+        stops = BusStopsSequence.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
-        #print(len(start_stop),len(end_stop))
 
+        # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
                 return False
         if len(start_stop) > 1 or len(end_stop) > 1:
@@ -96,30 +99,26 @@ def predictions_model(start, end, route, day, hour):
                                         break
                 if not resolved:
                         return False
-        
-        input_list = []
         start_stop = start_stop.first()
         end_stop = end_stop.first()
-        #print('Start stop sequence is', start_stop.sequence)
-        #print('End stop sequence is', end_stop.sequence)
-        #print('Number of stops before query:', len(stops))
+        if start_stop.route_direction != end_stop.route_direction:
+                return False
+
+        # Creates a list of tuples to pass into the model
+        input_list = []
         stops = stops.filter(route_direction=start_stop.route_direction
                                 ).filter(sequence__gte=start_stop.sequence
                                 ).filter(sequence__lt=end_stop.sequence
                                 )
-        #print('Number of stops after query:',len(stops))
-        #print('Iteration begins')
         for stop in stops:
-                #print(stop.stop_id)
                 input_list.append((hour, day, stop.stop_id))
-        #print(input_list)
+
+        # Passes tuples into the model, sums up the results, and returns them
         t_predictions = t_model.predict(input_list)
-        print('traveltimes:', t_predictions)
         total += t_predictions.sum()
         input_list.append((hour, day, end_stop.stop_id))
         h_predictions = h_model.predict(input_list)
         total += h_predictions.sum()
-        print(total)
         return total
         
         
