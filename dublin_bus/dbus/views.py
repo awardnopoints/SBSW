@@ -51,6 +51,10 @@ def home(request):
 
                         #result = predictions(start, end, route, hour, day, minute) #etc )
                         result = predictions_model(start, end, route, day, hour)
+                        if result:
+                                mins = int(result/60)
+                                secs = int(result%60)
+                                result = str(mins) + ':' + str(secs)
 
                         context = {
                                 "stops": stops,
