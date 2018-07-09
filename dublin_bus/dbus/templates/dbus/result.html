@@ -29,13 +29,13 @@
   <body>
 
     <!-- Static navbar -->
-    <nav class="navbar navbar-default navbar-static-top">
+   <nav class="navbar navbar-default navbar-static-top">
       <div class="container">
         <div class="navbar-header">
           <h1>Bus App</h1>
         </div>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
+     <ul class="nav navbar-nav navbar-right">
+         <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
           </ul>
         </div><!--/.nav-collapse -->
     </nav>
@@ -50,15 +50,29 @@
 
     <div class="jumbotron text-center col-md-6">
         
+        
       <form method = "POST" class = "post-form">{% csrf_token %}
         {{ form.as_p }}
         <button type = "submit" class = "save btn btn-default">Go</button>
+        
         </form>
 
-        <div id="results"><p> </p></div>
-        </div> 
+      
+       
+            <div class="results"><div test><p>Your estimated journey time is: {{ result }}</p> </div></div>
+            <!-- https://eonasdan.github.io/bootstrap-datetimepicker/ -->
+        </div>
+       
+
         
-  
+        
+        
+      <!--     <div id='test'><p>The bus stops are: </p>
+            <ul> {% for item in contents %}
+                <li>{{item.stop_name}} </li>
+                {% endfor %}
+            </ul></div>  -->
+       
         
         
       <!-- Main component for a primary marketing message or call to action -->

@@ -1,11 +1,47 @@
-body {
+html body {
   min-height: 2000px;
+    background-color: #74B9E0;
 }
+
 
 .navbar-static-top {
   margin-bottom: 25px;
+   
+    
 }
 
+
+
+
+.active img {
+    width: 90px;
+    height: 90px;
+    margin-left: 15px;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+
+.container {
+    padding-top: 15px;
+    border-radius: 10px;
+padding-left: 15px;
+    padding-right: 15px;
+    color: #403F63;
+    background-color: white;
+    
+}
+
+ .active h3 {
+     color: #C36891;
+     font-size: 24px;
+     margin-right: 25px;
+}
+
+.navbar-header h1 {
+    color: #C36891;
+    margin-left: 60px;
+}
 #map {
     height: 500px;
     
@@ -15,22 +51,40 @@ body {
     padding-top: 50px;
   padding-bottom: 20px;
     height: 500px;
-    
+
 }
 .jumbotron text-center col-md-6 {
     padding-top: 50px;
   padding-bottom: 20px;
     height: 500px;
+     color: #403F63;
+    
+     
 
 }
 
 
 .form-group {
     padding-top: 10px;
+    
+     
+        
+}
+
+.post-form {
+    padding-top: 80px;
     width: 300px;
+    margin-left: -25px;
     
 }
 
 .form-horizontal {
     width: 600px;
+}
+
+.results {
+   padding-top: 60px;
+    width: 300px;
+    margin-left: -10px;
+
 }
