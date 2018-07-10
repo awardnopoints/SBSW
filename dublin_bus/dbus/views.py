@@ -97,14 +97,16 @@ def predictions_model(start, end, route, day, hour):
                         if resolved:
                                 break
                         for e in end_stop:
+                                print(s, '\n', e)
                                 if s.sequence < e.sequence and s.route_direction == e.route_direction:
                                         start_stop, end_stop = s, e
                                         resolved = True
                                         break
                 if not resolved:
                         return False
-        start_stop = start_stop.first()
-        end_stop = end_stop.first()
+        else:
+                start_stop = start_stop.first()
+                end_stop = end_stop.first()
         if start_stop.route_direction != end_stop.route_direction:
                 return False
 
