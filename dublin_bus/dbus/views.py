@@ -175,3 +175,7 @@ def predictions(start, end, route, hour, day, minute):
 
         return total
 
+def ajax_view(request):
+        if request.method=='GET':
+                message = request.GET['message']
+                return HttpResponse('Message: ' + message)

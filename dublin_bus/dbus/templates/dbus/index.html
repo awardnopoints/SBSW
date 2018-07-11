@@ -38,13 +38,7 @@
             <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
           </ul>
         </div><!--/.nav-collapse -->
-    </nav>
-
-   <!--var bus_stops = [
-        {% for item in contents %}
-            {{item.stop_name}}
-        {% endfor %}] -->
-        
+    </nav>        
       
     <div class="container">
 
@@ -57,6 +51,9 @@
 
         <div id="results"><p> </p></div>
         </div> 
+        <div id='output'>
+          <p>This is where the output ought to go.</p>
+        </div>
         
   
         
@@ -103,7 +100,9 @@ function Go(){
         
         
         
-    // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. Finds routes that pass through each bus stop and selects only those common to both. 2. Determines how many stops between start and end // returns routes and stops between each
+    // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
+    // Finds routes that pass through each bus stop and selects only those common to both. 
+    // 2. Determines how many stops between start and end // returns routes and stops between each
 
     //next take time of day, day of week, weather and input into predictor?//
         
@@ -128,7 +127,10 @@ function GetPrediction(start, end, route) {
             
         // new Date($.now());
     //
-}}
+    }
+}
+
+
 
         
 function initMap(){
@@ -151,6 +153,15 @@ markers = [];
         var markerCluster = new MarkerClusterer(map, markers,
             {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
 }
+
+$(document).ready(function(){
+  $('#output').text('jQuery Works!!')
+  $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
+    console.log('success')
+    $('#output').text(data);
+  });
+});
+
 	</script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
 	<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
