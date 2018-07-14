@@ -10,6 +10,11 @@ from sklearn.externals import joblib
 import os
 import zipfile
 import sys
+from dbus.bus_realtime import *
+import requests
+import json
+
+
 
 def unzip_files(route):
         for aspect in ('hangtime','traveltime'):
@@ -77,6 +82,42 @@ def home(request):
                 return render(request, 'dbus/index.html', context)
 
 
+
+def get_times(json_parsed, user_route):
+        
+    list=json_parsed['results']
+    i=0
+    length=len(list)
+    while i < length:
+
+        each = list[i]
+        additional_info=each['additionalinformation']
+        arrival_time = each['arrivaldatetime']
+        departure_time = each['departuredatetime']
+        departing_in = each['departureduetime']
+        destination = each['destination']
+        destination_local=each['destinationlocalized']
+        direction = each['direction']
+        arriving_in = each['duetime']
+        low_floor=each['lowfloorstatus']
+        monitored=each['monitored']
+        operator=each['operator']
+        origin = each['origin']
+        origin_local=each['originlocalized']
+        route=each['route']
+        scheduled_arrival = each['scheduledarrivaldatetime']
+        scheduled_departure = each['scheduleddeparturedatetime']
+        timestamp = each['sourcetimestamp']
+        i+=1
+
+        times=""
+        if (route==user_route):
+            times+=departing_in
+        return times
+        
+
+
+
 def predictions_model(start, end, route, day, hour):
 
         """
@@ -97,16 +138,15 @@ def predictions_model(start, end, route, day, hour):
                         if resolved:
                                 break
                         for e in end_stop:
-                                print(s, '\n', e)
                                 if s.sequence < e.sequence and s.route_direction == e.route_direction:
                                         start_stop, end_stop = s, e
                                         resolved = True
                                         break
                 if not resolved:
                         return False
-        else:
-                start_stop = start_stop.first()
-                end_stop = end_stop.first()
+        start_stop = start_stop.first()
+        end_stop = end_stop.first()
+        argument =str(start_stop.stop_id)
         if start_stop.route_direction != end_stop.route_direction:
                 return False
 
@@ -125,9 +165,27 @@ def predictions_model(start, end, route, day, hour):
         input_list.append((hour, day, end_stop.stop_id))
         h_predictions = h_model.predict(input_list)
         total += h_predictions.sum()
+
+        # returns real time info from api based on user selected stop id - refers to function in bus_realtime file
+        stop_id=argument
+        url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
+        delete_current_rtpi()
+        data = call_api(url)
+        json_parsed=write_file(data)
+        user_route="46A"
+        next_bus=get_times(json_parsed, user_route)
+        realtime=next_bus
+
+        if (realtime == "Due"):
+            total += 0
+        else:
+            realtime_int=int(realtime)
+            total += realtime_int*60
+
+       
         return total
-        
-        
+
+
 
 def predictions(start, end, route, hour, day, minute):
 	
