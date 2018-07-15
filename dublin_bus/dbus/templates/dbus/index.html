@@ -23,7 +23,7 @@
 <!-- bootstrap-datetimepicker -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
       
-    </head>
+  </head>
 
 
   <body>
@@ -41,134 +41,134 @@
     </nav>        
       
     <div class="container">
-
-    <div class="jumbotron text-center col-md-6">
-        
-      <form method = "POST" class = "post-form">{% csrf_token %}
-        {{ form.as_p }}
-        <button type = "submit" class = "save btn btn-default">Go</button>
+      <div class="jumbotron text-center col-md-6">
+        <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
+          Route:<br>
+          <input type="text" name="route">
+          <br>
+          Start Stop:<br>
+          <input type="text" name="start">
+          <br>
+          End Stop:<br>
+          <input type="text" name="end">
+          <br>
+          <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
-
         <div id="results"><p> </p></div>
-        </div> 
-        <div id='output'>
-          <p>This is where the output ought to go.</p>
-        </div>
-        
-  
-        
-        
+      </div> 
       <!-- Main component for a primary marketing message or call to action -->
-      <div id='map' class="jumbotron text-center col-md-6">
-        
-        
-	<script src="{% static 'dbus/markerclusterer.js' %}"></script>
-        <!--<script src="{% static 'dbus/gmaps.js' %}" type='text/javascript'></script>-->
-        <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
-	<!--<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>-->
-        <!--<script src="{% static 'dbus/index.js' %}" type='text/javascript'></script>-->
-	<script type = "text/javascript">
-	/*{% for item in contents %}
-		var name = "{{item.stop_name}}"
-		var latitude = "{{item.latitude}}"
-		var longitude = "{{item.longitude}}"
-		
-		var marker = new google.maps.Marker({
-			position: {lat: Number(latitude), lng: Number(longitude)},
-			map: map,
-			title: name
-		});
-	{% endfor %}
-	*/
-        
-        
-/*An array containing all the country names in the world:
-var countries = [{% for item in contents %}
-                 ""{{item.stop_name}}"
-                {% endfor %}]; 
-   */
-
-        
-function Go(){
-    document.getElementById('results').innerHTML= " "
-    var start_stop;
-    var end_stop;
-    GetStopID(start_stop, end_stop);
-    
-}
-        
-        
-        
-        
-    // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
-    // Finds routes that pass through each bus stop and selects only those common to both. 
-    // 2. Determines how many stops between start and end // returns routes and stops between each
-
-    //next take time of day, day of week, weather and input into predictor?//
-        
-        
-function GetRoutes(start, end) {
-   // GetPrediction(start, end, route);
-    //match the start and end bus to start and end bus 
-    //get routes
-    //get stops between
-}
-        
-function GetPrediction(start, end, route) {
-    var dayInput = document.getElementById("exampleFormControlSelect1Day");
-    var day = selectTime.options[selectTime.selectedIndex].text;
-    var timeInput = document.getElementById("exampleFormControlSelect1Time");
-    var time = selectDay.options[selectDay.selectedIndex].text;
-    
-    if (day == " " || time == " ") {
-        var dt = new Date();
-        var time = dt.getHours() + ":" + dt.getMinutes();
-        //var day =
-            
-        // new Date($.now());
-    //
-    }
-}
-
-
-
-        
-function initMap(){
-var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 10,
-          center: {lat: 53.3498, lng: -6.2603}
-        });
-markers = [];
- {% for item in stops %}
-                var name = "{{item.stop_name}}"
-                var latitude = "{{item.latitude}}"
-                var longitude = "{{item.longitude}}"
-                var marker = new google.maps.Marker({
-                        position: {lat: Number(latitude), lng: Number(longitude)},
-                        map: map,
-                        title: name
-                });
-                markers.push(marker);
-        {% endfor %}
-        var markerCluster = new MarkerClusterer(map, markers,
-            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-}
-
-$(document).ready(function(){
-  $('#output').text('jQuery Works!!')
-  $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
-    console.log('success')
-    $('#output').text(data);
-  });
-});
-
-	</script>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
-	<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
-    </script>   
-
-      </div>
+      <div id='map' class="jumbotron text-center col-md-6"></div>
     </div> <!-- /container -->
+
+    <script src="{% static 'dbus/markerclusterer.js' %}"></script>
+    <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
+    <script type = "text/javascript">
+
+      $(document).ready(function(){
+
+        //$('#output').text('jQuery Works!!')
+        $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
+          console.log('success')
+          $('#output').text(data);
+        });
+
+        $('#post-form').on('submit', function(event){
+          event.preventDefault();
+          console.log("form submitted!");
+          $('#results > p').text('waiting...');
+          getPredictions()
+        });
+
+        function getPredictions(){
+          route = $('input[name="route"]').val();
+          start_stop = $('input[name="start"]').val();
+          end_stop = $('input[name="end"]').val();
+          date = new Date();
+          day = date.getDay();
+          day = (day+6)%7; // Changing to Python values
+          hour = date.getHours();
+          console.log("Route =", route)
+          console.log("Start Stop =", start_stop)
+          console.log("End Stop =", end_stop)
+          console.log("Day =", day)
+          console.log("Hour =", hour)
+          $.get('/predict_request/', {route: route, start_stop: start_stop, 
+            end_stop: end_stop, day: day, 
+            hour: hour}, function(data){
+              $('#results > p').html("Estimated Journey Time:<br>" + data);
+          });
+        };
+      });
+ 
+      function Go(){
+          document.getElementById('results').innerHTML= " "
+          var start_stop;
+          var end_stop;
+          GetStopID(start_stop, end_stop);
+          
+      }
+          
+          
+          
+          
+      // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
+      // Finds routes that pass through each bus stop and selects only those common to both. 
+      // 2. Determines how many stops between start and end // returns routes and stops between each
+
+      //next take time of day, day of week, weather and input into predictor?//
+          
+          
+      function GetRoutes(start, end) {
+        // GetPrediction(start, end, route);
+          //match the start and end bus to start and end bus 
+          //get routes
+          //get stops between
+      }
+              
+//      function GetPrediction(start, end, route) {
+//          var dayInput = document.getElementById("exampleFormControlSelect1Day");
+//          var day = selectTime.options[selectTime.selectedIndex].text;
+//          var timeInput = document.getElementById("exampleFormControlSelect1Time");
+//          var time = selectDay.options[selectDay.selectedIndex].text;
+//          
+//          if (day == " " || time == " ") {
+//              var dt = new Date();
+//              var time = dt.getHours() + ":" + dt.getMinutes();
+//              //var day =
+//                  
+//              // new Date($.now());
+//          //
+//          }
+//      }
+
+
+
+          
+      function initMap(){
+      var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 10,
+                center: {lat: 53.3498, lng: -6.2603}
+              });
+      markers = [];
+      {% for item in stops %}
+                      var name = "{{item.stop_name}}"
+                      var latitude = "{{item.latitude}}"
+                      var longitude = "{{item.longitude}}"
+                      var marker = new google.maps.Marker({
+                              position: {lat: Number(latitude), lng: Number(longitude)},
+                              map: map,
+                              title: name
+                      });
+                      markers.push(marker);
+              {% endfor %}
+              var markerCluster = new MarkerClusterer(map, markers,
+                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+      }
+
+
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>   
     
   </body>
 </html>

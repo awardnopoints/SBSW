@@ -179,3 +179,12 @@ def ajax_view(request):
         if request.method=='GET':
                 message = request.GET['message']
                 return HttpResponse('Message: ' + message)
+
+def predict_request(request):
+        if request.method=='GET':
+                print("is get")
+                g = request.GET
+                start_stop, end_stop, route, day, hour = g['start_stop'],g['end_stop'],g['route'],g['day'],g['hour']
+                prediction = predictions_model(start_stop, end_stop, route, day, hour)
+                print("Predicted wait time is", prediction)
+                return HttpResponse(prediction)
