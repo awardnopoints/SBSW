@@ -44,7 +44,11 @@
       <div class="jumbotron text-center col-md-6">
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
-          <input type="text" name="route">
+            <select name="routes" class ="form-control" id="exampleFormControlSelect1"> 
+                {% for item in routes %} 
+                <option>{{item.route_number}}</option>
+            {% endfor %}
+            </select>
           <br>
           Start Stop:<br>
           <input type="text" name="start">
@@ -95,7 +99,7 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, day: day, 
             hour: hour}, function(data){
-              $('#results > p').html("Estimated Journey Time:<br>" + data);
+              $('#results > p').html("Estimated Journey Time:<br>" + data + " minutes");
           });
         };
       });
