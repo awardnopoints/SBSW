@@ -88,6 +88,35 @@ class weather:
             insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity)
     #http://pythonda.com/collecting-storing-tweets-python-mysql
 
+
+    def current_weather(self):
+
+    #        list1=json_parsed['list']
+    #        first = list1[0]
+        main1_current=json_parsed2['main']
+        temp_current = main1_current['temp']
+        temp_min_current = main1_current['temp_min']
+        temp_max_current = main1_current['temp_max']
+        humidity_current = main1_current['humidity']
+        pressure_current = main1_current['pressure']
+        weather_current = json_parsed2['weather']
+        weather_desc_current = weather_current[0]
+        description_current = weather_desc_current['description']
+        mainDescription_current = weather_desc_current['main']
+        wind_current = json_parsed2['wind']
+        speed_current = wind_current['speed']
+        deg_current = wind_current['deg']
+        cloud_current=json_parsed2['clouds']
+        cloudiness_current=cloud_current['all']
+        dt_current = json_parsed2['dt']
+        timestamp_current=datetime.datetime.fromtimestamp(dt_current, pytz.timezone('Europe/Dublin'))
+
+  
+        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current)
+
+
+        #http://pythonda.com/collecting-storing-tweets-python-mysql
+
 def connect():
     """Function to connect to database on Amazon Web Services"""
     try:
@@ -123,12 +152,12 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
-def insert_current(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness):
+def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_current_weather (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, dt, timestamp, humidity, pressure, cloudiness) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness))
+            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
+            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current))
     except Exception as e:
         print("An error occurred inserting data into current_weather table: ", e)
     return
@@ -144,17 +173,16 @@ def insert_forecast(temp, temp_min, temp_max, description, mainDescription, spee
     return
 
 url1="http://api.openweathermap.org/data/2.5/forecast?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
+url2="http://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
 engine = connect()
 
 data1 = call_api(url1)
+data2 = call_api(url2)
 json_parsed1=write_file(data1)
+json_parsed2=write_file(data2)
 
 run = weather()
-delete_forecast();
+delete_forecast()
+run.current_weather()
 run.forecast_weather()
 
-
-
-
-
- 
