@@ -42,6 +42,20 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
+        <!--<div id="weather">
+            <div id="leftbox">
+            <img src="http://openweathermap.org/img/w/10d.png">
+            </div>
+            <div id="rightbox">
+                <p>20C</p>
+            </div>
+        </div>-->
+          <!--<div id="boxes" style="width:100%;border:1px;">-->
+            <div id="box1" style="float:left;width:49%;border:1px solid black;background: #64BAE3;"><img src="http://openweathermap.org/img/w/10d.png"><br>{{ weather.temp }} C</div>
+            <!--<div id="box2" style="float:right;width:49%;border:1px solid black;background: #FD3AB7">BOX2 CONTEXT</div>-->
+        <!--</div>-->
+
+
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
           <input type="text" name="route">
@@ -165,7 +179,7 @@
                   {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
       }
 
-
+       console.log("Temperature: {{ weather.temp }}")
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>   

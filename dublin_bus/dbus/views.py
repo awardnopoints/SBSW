@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequence
+from dbus.models import forecast
 from dbus.forms import Predictions
 from sklearn.externals import joblib
 import os
@@ -67,10 +68,12 @@ def home(request):
         else:
 
                 stops = Stopsv2.objects.all()
+                weather = forecast.objects.all().first()
                 form = Predictions()
                 context = {
                         "stops": stops,
-                        "form": form
+                        "form": form,
+                        "weather": weather
                         }
 
 
