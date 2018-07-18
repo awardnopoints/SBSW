@@ -1,16 +1,14 @@
 import requests
 import json
-import mysql.connector
+from sqlalchemy import *
 from mysql.connector import errorcode
-import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import *
-import datetime
-import pytz
-import sys
+from datetime import datetime
+from pandas import to_datetime
+import time
 
 # http://docs.sqlalchemy.org/en/latest/orm/tutorial.html
 Base = declarative_base()
@@ -32,38 +30,74 @@ def write_file (data):
 
       
 class rtpi:
-    def bus_realtime (self):
+    def bus_realtime (self, json_parsed, stop_id):
         """Selects and creates variables that will be stored in dynamic forecast weather table"""
 
         list=json_parsed['results']
-        
+        stop = json_parsed['stopid']
+        last_order = getLastOrder(stop_id)
+        recorded = set()
         i=0
+        j=0
         length=len(list)
+        
         while i < length:
 
             each = list[i]
-            additional_info=each['additionalinformation']
-            arrival_time = each['arrivaldatetime']
-            departure_time = each['departuredatetime']
-            departing_in = each['departureduetime']
-            destination = each['destination']
-            destination_local=each['destinationlocalized']
-            direction = each['direction']
-            arriving_in = each['duetime']
-            low_floor=each['lowfloorstatus']
-            monitored=each['monitored']
-            operator=each['operator']
-            origin = each['origin']
-            origin_local=each['originlocalized']
-            route=each['route']
-            scheduled_arrival = each['scheduledarrivaldatetime']
-            scheduled_departure = each['scheduleddeparturedatetime']
-            timestamp = each['sourcetimestamp']
+
+            if each['route'] not in recorded:
+		#if the order of the current API call is different from the last then a bus has been and gone from the stop       
+                #check that j is less than number of buses in last_order so avoid out of index error         
+                if j < len(last_order) and last_order[j][0] < each['departureduetime']:
+
+                    insertInDeparted(last_order[j][1], stop)
+
+                recorded.add(each['route'])
+                departing_in = each['departureduetime']
+                route=each['route']
+                timestamp = each['sourcetimestamp']
+                print("route:",route,"stop:",stop)
+                insert_rtpi(departing_in, route, timestamp, stop)
+                #must use a seperate counter to keep track of how many different routes have been recorded at the particular stop
+                #so that the current pull can be compared to the last pull
+                j+=1
+
             i+=1
-            
-            
-            insert_rtpi(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp)
+
+        print("executed")
         #http://pythonda.com/collecting-storing-tweets-python-mysql
+
+def getLastOrder(stop_id):
+    
+    connection = engine.connect()
+    result = connection.execute("select * from realtime_bus where stopid = '%s' order by departing_in" % stop_id)
+    return result.fetchall()
+
+def insertInDeparted(route, stop):
+    
+    connection = engine.connect()
+    connection.execute("update departed set time = '%s' where route = '%s' and stopid = %s" % (str(datetime.now()), str(route), str(stop)))
+    
+    previous_stop = connection.execute("select previous from departed where route = '%s' and stopid = %s" % (str(route), str(stop))).fetchall()[0]
+
+    updateTimeTaken(route, stop, previous_stop[0])
+
+def updateTimeTaken(route, stop, previous):
+    
+    try:
+        connection = engine.connect()
+        current_stop = connection.execute("select time from departed where route = '%s' and stopid = %s" % (str(route), str(stop))).fetchall()[0]
+        current_stop = current_stop[0]
+        previous_stop = connection.execute("select time from departed where route = '%s' and stopid = %s" % (str(route), str(previous))).fetchall()[0]
+        previous_stop = previous_stop[0]
+
+        time_taken = to_datetime(current_stop) - to_datetime(previous_stop)
+
+        connection.execute("update times_taken set time = %d where current_stop = %s and previous_stop = %s" % (time_taken.seconds, stop, previous))
+
+    except Exception as e:
+
+        print("An error occured while trying to query database", e)
 
 def connect():
     """Function to connect to database on Amazon Web Services"""
@@ -80,59 +114,38 @@ def connect():
         print("An error occurred when connecting to the database: ", e)
         # https://dev.mysql.com/doc/connector-python/en/connector-python-api-errors-error.html
     # https://campus.datacamp.com/courses/introduction-to-relational-databases-in-python/advanced-sqlalchemy-queries?ex=2#skiponboarding
-
-def create_table(databasename):
-    """Function to create new tables for static, dynamic and latest station info in database"""
-
-    metadata=MetaData()
-
-    realtime_bus = Table('realtime_bus', metadata,                                Column ('arrival_time', String (60)),
-        Column ('arrival_time', String (300), primary_key=True),
-        Column('departure_time', String (300)),
-        Column('departing_in', String (30)),
-        Column('destination', String (300)),
-        Column('direction', String (100)),
-        Column('arriving_in', String (30)),
-        Column('origin', String (100)),
-        Column('route', String (40), primary_key=True),
-        Column('scheduled_arrival', String (300)),
-        Column('scheduled_departure', String(300)),
-        Column('timestamp', String(300), primary_key=True))
-
-    metadata.create_all(engine, checkfirst=True)
-
-    #http://docs.sqlalchemy.org/en/latest/core/metadata.html
-    
-def delete_current_rtpi():
-    try:
-        connection = engine.connect()
-        connection.execute("TRUNCATE TABLE realtime_bus;")
-        return
-
-    except Exception as e:
-        print("An error occurred when deleting current rows: ", e)
         
         
-def insert_rtpi(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp):
+def insert_rtpi(departing_in, route, timestamp, stop):
     try:
         connection = engine.connect()
+        if departing_in == "Due":
+            departing_in = 0
         connection.execute(
-            "INSERT INTO realtime_bus(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp))
+            "update realtime_bus set departing_in=%d, timestamp='%s' where stopid = %s and route = '%s'" % (int(departing_in), timestamp, stop, route))
     except Exception as e:
         print("An error occurred inserting data into rtpi table: ", e)
-    return
 
-
-stop_id=sys.argv[1]
-url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
 engine = connect()
-#create_table(engine)
-delete_current_rtpi()
-data = call_api(url)
-json_parsed=write_file(data)
-go=rtpi()
-go.bus_realtime()
+
+def main():
+
+    while True:
+
+        stops = engine.execute("select stop_id from bus_stops_sequence where route_number = '46A'").fetchall()
 
 
+        for i in stops:
 
+            url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(i[0]) + "&format=json"
+            data = call_api(url)
+            json_parsed = write_file(data)
+
+            go=rtpi()
+            go.bus_realtime(json_parsed, i[0])
+
+    
+
+if __name__ == "__main__":
+
+    main()
