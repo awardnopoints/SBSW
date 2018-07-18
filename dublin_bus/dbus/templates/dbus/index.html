@@ -22,6 +22,7 @@
 
 <!-- bootstrap-datetimepicker -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       
   </head>
 
@@ -44,18 +45,29 @@
       <div class="jumbotron text-center col-md-6">
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
-            <select name="routes" class ="form-control" id="exampleFormControlSelect1"> 
-                {% for item in routes %} 
-                <option>{{item.route_number}}</option>
-            {% endfor %}
+            <select id="routes" >
+                  {% for item in routes %} 
+                <option value="">{{item.route_number}} </option>
+                {% endfor %}
             </select>
+
+      <!--          <a id="routes" data-toggle="dropdown" class="dropdown-toggle"> 
+                {% for item in routes %} 
+                <i class="whatever">{{item.route_number}}</i>
+            <span class="options">{{item.route_number}}</span> 
+{% endfor %} </a>-->   
           <br>
           Start Stop:<br>
-          <input type="text" name="start">
-          <br>
+            <select id="start" >
+                
+            <option value=""> </option>
+
+            </select><br>
           End Stop:<br>
-          <input type="text" name="end">
-          <br>
+            <select id="end" >
+            <option value=""> </option>
+            </select>
+            <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
         <div id="results"><p> </p></div>
@@ -75,28 +87,42 @@
           console.log('success')
           $('#output').text(data);
         });
-
+          
+        $("#routes").change(function(){
+            route=$("#routes option:selected").text();
+            $.get('/bus_stops/', {route_number: route}, 
+                  
+                  function(key){
+    
+    
+              $('#results > p').text(key)
+        })});
+          
+      
+            
+          
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
           $('#results > p').text('waiting...');
           getPredictions()
         });
-
+         
+    
         function getPredictions(){
-          route = $('input[name="route"]').val();
+          routes=$("#routes option:selected").text();
           start_stop = $('input[name="start"]').val();
           end_stop = $('input[name="end"]').val();
           date = new Date();
           day = date.getDay();
           day = (day+6)%7; // Changing to Python values
           hour = date.getHours();
-          console.log("Route =", route)
+          console.log("Route =", routes)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
           console.log("Day =", day)
           console.log("Hour =", hour)
-          $.get('/predict_request/', {route: route, start_stop: start_stop, 
+          $.get('/predict_request/', {route: routes, start_stop: start_stop, 
             end_stop: end_stop, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data + " minutes");

@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequence
+from dbus.models import DbusStopsv4
 from dbus.forms import Predictions
 from sklearn.externals import joblib
 import os
@@ -38,60 +39,19 @@ unzip_files('46A')
 h_model, t_model = load_models('46A')
 
 def home(request):
-
-        if request.method == "POST":         
-                routes=BusStopsSequence.distinct()
-                form = Predictions(request.POST)
-                if form.is_valid():
-                        routes=BusStopsSequence.objects.values('route_number').distinct() 
-                        stops = Stopsv2.objects.all()
-                        start = form.cleaned_data['start']
-                        end = form.cleaned_data['end']
-                        form = Predictions()
-                        day = 0
-                        hour = 10.0
-                        minute = 15
-                        route = "46A"
-
-                        #result = predictions(start, end, route, hour, day, minute) #etc )
-                        result = predictions_model(start, end, route, day, hour)
-                        if result:
-                                mins = int(result/60)
-                                secs = int(result%60)
-                                result = str(mins) + ':' + str(secs)
-
-                        context = {
-                                "routes": routes,
-                                "stops": stops,
-                                "result": result,
-                                "form": form
-                                }
-
-                return render(request, 'dbus/result.html', context)
-
-        else:
-                
-                routes=BusStopsSequence.objects.values('route_number').distinct()
-                stops = Stopsv2.objects.all()
-                form = Predictions()
-                context = {
-                        "routes": routes,
-                        "stops": stops,
-                        "form": form
-                        }
+  
+    routes=BusStopsSequence.objects.values('route_number').distinct()
+    stops = Stopsv2.objects.all()
+    form = Predictions()
+    context = {
+        "routes": routes,
+        "stops": stops,
+        "form": form
+        }
 
 
-                return render(request, 'dbus/index.html', context)
+    return render(request, 'dbus/index.html', context)
 
-
-def stops_by_route (route):
-
-    routes=BusStopsSequence.route_number.distinct()
-    return routes
-
-#    stops = BusStopsSequence.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
-#    start_stop = stops.filter(stop_id=start)
-#    end_stop = stops.filter(stop_id=end)
 
 def get_times(json_parsed, user_route):
         
@@ -132,6 +92,7 @@ def predictions_model(start, end, route, day, hour):
         a travel time prediction based on that.
         """
         total = 0
+ #       routes=BusStopsSequence.objects.values('route_number').distinct()
         stops = BusStopsSequence.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
@@ -264,3 +225,27 @@ def predict_request(request):
                 prediction = predictions_model(start_stop, end_stop, route, day, hour)
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)
+
+def bus_stops(request):
+        if request.method=='GET':
+            print ("bus_stops")
+            g=request.GET
+            routes=BusStopsSequence.objects.values('route_number').distinct()
+            route_no=g['route_number']
+            stops2 = BusStopsSequence.objects.filter(route_number=route_no)
+            #inbound=stops2.values_list('stop_id').filter(route_direction="I")
+            #outbound=stops2.values_list('stop_id').filter(route_direction="O")
+            #o_list=list(outbound)
+            #print (o_list)
+            #print (type(outbound))
+
+            stop_list = {
+                                stops2: BusStopsSequence.objects.filter(route_number=route_no),
+                                "inbound": stops2.values_list('stop_id').filter(route_direction="I"),
+                                "outbound": stops2.values_list('stop_id').filter(route_direction="O")
+                                }
+
+            print (type(stop_list))
+            print (stop_list)
+            return HttpResponse(stop_list)
+ 
