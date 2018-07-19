@@ -145,9 +145,10 @@
 //          }
 //      }
 
-         
+var map; 
+        
       function initMap(){
-      var map = new google.maps.Map(document.getElementById('map'), {
+      map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: {lat: 53.3498, lng: -6.2603}
               });/*
@@ -169,18 +170,24 @@
       }
 
      function popStops(context){
-
-
-      for (i=0; i<context.length; i++){
-
+      markers = []
+      for (var key in context) {
+              
           var marker = new google.maps.Marker({
-                              position: {lat: Number(context[i]['lat']), lng: Number(context[i]['lon'])},
+                              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
                               map: map,
-                              title: name
-                      });
-          
+                              title: context[key]["stop"],
+                              icon :  "/static/images/bus-station.svg"
+                              
+});
 
-};
+          markers.push(marker)
+                              
+                      };
+          
+var markerCluster = new MarkerClusterer(map, markers,
+                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
 };
 
     </script>

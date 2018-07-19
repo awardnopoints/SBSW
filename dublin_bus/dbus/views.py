@@ -193,24 +193,29 @@ def predict_request(request):
 def popStop(request):
         if request.method=='GET':
                 g = request.GET
-                start_stop, end_stop, route = g['start_stop'], g['end_stop'], g['route']
-                stops = BusStopsSequence.all().filter(route_number = route)
+                start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
+                stops = BusStopsSequence.objects.all().filter(route_number = route)
                 first = False
                 last = False
                 response = {}
                 i = 0
                 for stop in stops:
+
+                        stop = str(stop.stop_id)
+                        
                         if not first and stop == start_stop:
                                 first = True
-                                latlong = Stopsv3.all().filter(stopid = stop)
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
                                 lat = latlong[0].lat
                                 lon = latlong[0].longitude
                                 response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
                                 i += 1
                         
-                        elif first and not last:
+                        elif first and not last and stop != end_stop:
 
-                                latlong = Stopsv3.all().filter(stopid = stop)
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
                                 lat = latlong[0].lat
                                 lon = latlong[0].longitude
                                 response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
@@ -218,11 +223,13 @@ def popStop(request):
 
 
                         elif first and not last and stop == end_stop:
-
-                                latlong = Stopsv3.all().filter(stopid = stop)
+ 
+                                last = True
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
                                 lat = latlong[0].lat
                                 lon = latlong[0].longitude
                                 response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
                                 break
-
+  
+        print(response)
         return JsonResponse(response)
