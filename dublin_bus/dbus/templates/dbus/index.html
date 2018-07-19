@@ -78,6 +78,7 @@
           $('#results > p').text('waiting...');
           getPredictions()
         });
+});
 
         function getPredictions(){
           route = $('input[name="route"]').val();
@@ -96,9 +97,12 @@
             end_stop: end_stop, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
-          });
-        };
-      });
+});
+	  $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+          	popStops(data);
+               });
+
+};
  
       function Go(){
           document.getElementById('results').innerHTML= " "
@@ -141,14 +145,12 @@
 //          }
 //      }
 
-
-
-          
+         
       function initMap(){
       var map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 10,
                 center: {lat: 53.3498, lng: -6.2603}
-              });
+              });/*
       markers = [];
       {% for item in stops %}
                       var name = "{{item.stop_name}}"
@@ -163,8 +165,23 @@
               {% endfor %}
               var markerCluster = new MarkerClusterer(map, markers,
                   {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+*/
       }
 
+     function popStops(context){
+
+
+      for (i=0; i<context.length; i++){
+
+          var marker = new google.maps.Marker({
+                              position: {lat: Number(context[i]['lat']), lng: Number(context[i]['lon'])},
+                              map: map,
+                              title: name
+                      });
+          
+
+};
+};
 
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
