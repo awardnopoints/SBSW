@@ -100,6 +100,7 @@
 });
 	  $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
           	popStops(data);
+                drawRoute(data);
                });
 
 };
@@ -111,6 +112,42 @@
           GetStopID(start_stop, end_stop);
           
       }
+
+      function drawRoute(data){
+
+	var directionsService = new google.maps.DirectionsService();
+        var directionsDisplay = new google.maps.DirectionsRenderer();
+
+	directionsDisplay.setMap(map);
+
+	var len = Object.keys(data).length
+        console.log(Number(data[len - 1]["lat"]))
+        var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
+        var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
+	console.log(start)
+	console.log(end)
+        var request = {
+		origin: start,
+		destination: end,
+		travelMode: 'TRANSIT',
+		transitOptions: {
+			modes : ['BUS'],
+			routingPreference : 'FEWER_TRANSFERS'
+			}
+
+
+		}
+	directionsService.route(request, function(result, status){
+                
+		if (status == 'OK') {
+                        
+			directionsDisplay.setDirections(result);
+		}
+	});
+}
+
+
+              
           
           
           
@@ -146,12 +183,20 @@
 //      }
 
 var map; 
+var markers = []
         
       function initMap(){
+	var directionsService = new google.maps.DirectionsService();
+	var directionsDisplay = new google.maps.DirectionsRenderer();
       map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
+                zoom: 12,
                 center: {lat: 53.3498, lng: -6.2603}
-              });/*
+              });
+               
+		
+//             var trafficLayer = new google.maps.TrafficLayer();
+//             trafficLayer.setMap(map);
+/*
       markers = [];
       {% for item in stops %}
                       var name = "{{item.stop_name}}"
@@ -170,6 +215,8 @@ var map;
       }
 
      function popStops(context){
+      
+      removeMarkers();
       markers = []
       for (var key in context) {
               
@@ -177,17 +224,22 @@ var map;
                               position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
                               map: map,
                               title: context[key]["stop"],
-                              icon :  "/static/images/bus-station.svg"
+                              //icon :  "/static/images/bus-station.svg"
                               
 });
 
           markers.push(marker)
-                              
-                      };
-          
-var markerCluster = new MarkerClusterer(map, markers,
-                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+                           
+                    };
+         
+	map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+};
 
+function removeMarkers(){
+
+	for (var i = 0; i < markers.length; i++){
+		markers[i].setMap(null);
+	};
 };
 
     </script>
