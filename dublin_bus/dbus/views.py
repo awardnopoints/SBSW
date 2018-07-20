@@ -41,16 +41,32 @@ h_model, t_model = load_models('46A')
 def home(request):
   
     routes=BusStopsSequence.objects.values('route_number').distinct()
+
+    stops2 = BusStopsSequence.objects.all()
+    inbound=stops2.values_list('stop_id').filter(route_direction="I")
+    outbound=stops2.values_list('stop_id').filter(route_direction="O")
+    
     stops = Stopsv2.objects.all()
     form = Predictions()
     context = {
         "routes": routes,
         "stops": stops,
-        "form": form
+        "form": form,
+        "stops2":stops2,
+        "inbound1": inbound,
+        "outbound1": outbound
         }
+    bingo = {
+            "route_n": stops2,
+            "route_distinct": BusStopsSequence.objects.values('route_number').distinct(),
+            "stops3":BusStopsSequence.objects.all(),
+            "inbound": stops2.values_list('stop_id'),
+            "outbound": stops2.values_list('stop_id'),
+            "stops":stops
+            }
 
 
-    return render(request, 'dbus/index.html', context)
+    return render(request, 'dbus/index.html', bingo)
 
 
 def get_times(json_parsed, user_route):
@@ -228,24 +244,34 @@ def predict_request(request):
 
 def bus_stops(request):
         if request.method=='GET':
-            print ("bus_stops")
             g=request.GET
             routes=BusStopsSequence.objects.values('route_number').distinct()
             route_no=g['route_number']
             stops2 = BusStopsSequence.objects.filter(route_number=route_no)
-            #inbound=stops2.values_list('stop_id').filter(route_direction="I")
-            #outbound=stops2.values_list('stop_id').filter(route_direction="O")
-            #o_list=list(outbound)
-            #print (o_list)
-            #print (type(outbound))
+            stops3=list(stops2.values_list('stop_id'))
+            return HttpResponse(stops3)
 
-            stop_list = {
-                                stops2: BusStopsSequence.objects.filter(route_number=route_no),
-                                "inbound": stops2.values_list('stop_id').filter(route_direction="I"),
-                                "outbound": stops2.values_list('stop_id').filter(route_direction="O")
-                                }
+def outbound (request):
+        if request.method=='GET':
+            g=request.GET
+            routes=BusStopsSequence.objects.values('route_number').distinct()
+            route_no=g['route_number']
+            stop=g['start_stop']
+            stops2 = BusStopsSequence.objects.filter(route_number=route_no)
+            inbound=stops2.values_list('stop_id').filter(route_direction="I")
+            outbound=stops2.values_list('stop_id').filter(route_direction="O")
+            if stop in inbound:
+                    print ("hey")
+                    return HttpResponse(inbound)
+            else:
+                    return HttpResponse(outbound)
 
-            print (type(stop_list))
-            print (stop_list)
-            return HttpResponse(stop_list)
+     
+
+
+
+
+
+
+
  

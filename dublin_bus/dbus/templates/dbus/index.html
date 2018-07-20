@@ -46,7 +46,8 @@
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
             <select id="routes" >
-                  {% for item in routes %} 
+               
+                  {% for item in route_distinct %} 
                 <option value="">{{item.route_number}} </option>
                 {% endfor %}
             </select>
@@ -58,14 +59,15 @@
 {% endfor %} </a>-->   
           <br>
           Start Stop:<br>
-            <select id="start" >
-                
-            <option value=""> </option>
-
+            <select id="start" >{% for item in stops3 %} 
+            <option value=""> {{item.stop_id}} </option>
+  {% endfor %}
             </select><br>
           End Stop:<br>
             <select id="end" >
-            <option value=""> </option>
+            {% for item in stops3 %} 
+            <option value=""> {{item.stop_id}}</option>
+                 {% endfor %}
             </select>
             <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
@@ -91,10 +93,18 @@
         $("#routes").change(function(){
             route=$("#routes option:selected").text();
             $.get('/bus_stops/', {route_number: route}, 
+
+            //      function(key){
+            
+         //     $('#start > option').text(key)
+        )});
+          
+        $("#start").change(function(){
+            start=$("#start option:selected").text();
+            $.get('/outbound/', {route_number: route, start_stop: start}, 
                   
                   function(key){
-    
-    
+            
               $('#results > p').text(key)
         })});
           
