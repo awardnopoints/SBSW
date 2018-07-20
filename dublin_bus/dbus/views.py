@@ -64,7 +64,7 @@ def home(request):
             "outbound": stops2.values_list('stop_id'),
             "stops":stops
             }
-
+    routes2=BusStopsSequence.objects.values('stop_id', 'route_number', 'route_direction', 'sequence')
 
     return render(request, 'dbus/index.html', bingo)
 
@@ -248,8 +248,11 @@ def bus_stops(request):
             routes=BusStopsSequence.objects.values('route_number').distinct()
             route_no=g['route_number']
             stops2 = BusStopsSequence.objects.filter(route_number=route_no)
-            stops3=list(stops2.values_list('stop_id'))
-            return HttpResponse(stops3)
+ 
+  
+            return HttpResponse(stops2)
+        
+      
 
 def outbound (request):
         if request.method=='GET':

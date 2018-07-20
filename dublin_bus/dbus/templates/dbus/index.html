@@ -59,9 +59,12 @@
 {% endfor %} </a>-->   
           <br>
           Start Stop:<br>
-            <select id="start" >{% for item in stops3 %} 
-            <option value=""> {{item.stop_id}} </option>
-  {% endfor %}
+            <select id="start" >  
+                
+            <option value=""> 
+               
+                </option>
+ 
             </select><br>
           End Stop:<br>
             <select id="end" >
@@ -94,10 +97,11 @@
             route=$("#routes option:selected").text();
             $.get('/bus_stops/', {route_number: route}, 
 
-            //      function(key){
-            
-         //     $('#start > option').text(key)
-        )});
+                  function(key){
+                console.log(typeof(key))
+              $('#start > option').text(key)
+                 $('#end > option').text(key)
+            })});
           
         $("#start").change(function(){
             start=$("#start option:selected").text();
