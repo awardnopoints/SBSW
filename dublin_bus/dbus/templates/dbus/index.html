@@ -194,8 +194,8 @@ var markers = []
               });
                
 		
-//             var trafficLayer = new google.maps.TrafficLayer();
-//             trafficLayer.setMap(map);
+             var trafficLayer = new google.maps.TrafficLayer();
+             trafficLayer.setMap(map);
 /*
       markers = [];
       {% for item in stops %}
@@ -215,7 +215,7 @@ var markers = []
       }
 
      function popStops(context){
-      
+      console.log(context[0]["rtpi"])      
       removeMarkers();
       markers = []
       for (var key in context) {
@@ -232,7 +232,13 @@ var markers = []
                            
                     };
          
-	map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+	
+//		var infowindow = new google.maps.InfoWindow({
+//			content:
+
+//		});
+
+		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
 };
 
 function removeMarkers(){

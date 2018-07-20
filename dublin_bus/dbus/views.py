@@ -11,6 +11,7 @@ import os
 import zipfile
 import sys
 import json
+import requests
 
 def unzip_files(route):
         for aspect in ('hangtime','traveltime'):
@@ -202,14 +203,19 @@ def popStop(request):
                 for stop in stops:
 
                         stop = str(stop.stop_id)
+
                         
                         if not first and stop == start_stop:
+                                url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
+                                req = requests.get(url)
+                                req_text = req.text
+                                json_parsed = json.loads(req_text)
                                 first = True
                                 latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
                                 
                                 lat = latlong[0].lat
                                 lon = latlong[0].longitude
-                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
+                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
                                 i += 1
                         
                         elif first and not last and stop != end_stop:
