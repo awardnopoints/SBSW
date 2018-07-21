@@ -121,11 +121,10 @@
 	directionsDisplay.setMap(map);
 
 	var len = Object.keys(data).length
-        console.log(Number(data[len - 1]["lat"]))
+        
         var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
         var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
-	console.log(start)
-	console.log(end)
+	
         var request = {
 		origin: start,
 		destination: end,
@@ -219,7 +218,7 @@ var markers = []
       removeMarkers();
       markers = []
       for (var key in context) {
-              
+           
           var marker = new google.maps.Marker({
                               position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
                               map: map,
@@ -231,15 +230,26 @@ var markers = []
           markers.push(marker)
                            
                     };
-         
+		var content = "<table> <tr> <th> Route </th> <th> ETA </th> </tr> " 
+		
+		for (i in context[0]["rtpi"]["results"]){
+			
+			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + " minutes</td> </tr>"
+		};
+        
 	
-//		var infowindow = new google.maps.InfoWindow({
-//			content:
+		var infowindow = new google.maps.InfoWindow({
+			content: content
 
-//		});
+		});
+
+
+		infowindow.open(map, markers[0]);
+
 
 		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
 };
+
 
 function removeMarkers(){
 
