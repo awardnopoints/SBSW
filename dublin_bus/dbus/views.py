@@ -16,10 +16,10 @@ import sys
 import datetime
 
 routes = ('46A','31')
-stop_cats = sllz.object.values_list('stop_id', flat=True).distinct()
+stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
 day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
-zone_cats = sllz.object.values_list('zone', flat=True).distinct()
+zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
 
 
@@ -47,7 +47,7 @@ def load_models():
         return models
 
 unzip_models()
-models = load_models('46A')
+models = load_models()
 
 def home(request):
 
@@ -99,8 +99,8 @@ def predictions_model(start, end, route, year, month, day, hour):
         a travel time prediction based on that.
         """
         total = 0
-        stops = BusStopsSequenceDistance.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
-        zones = StopsLatLngZone.objects.all()
+        stops = bssd.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        zones = sllz.objects.all()
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
 
@@ -112,17 +112,16 @@ def predictions_model(start, end, route, year, month, day, hour):
 
         # Creates a list of tuples to pass into the model
         input_list = []
-        stops = stops.filter(route_direction=start_stop.route_direction
-                                ).filter(sequence__gte=start_stop.sequence
-                                ).filter(sequence__lt=end_stop.sequence
+        stops = stops.filter(route_direction=start_stop.route_direction,
+                                sequence__gte=start_stop.sequence,
+                                sequence__lt=end_stop.sequence
                                 )
         for stop in stops:
-                input_list.append((hour, day, stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
+                input_list.append((stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
         date = datetime.datetime(year, month, day, hour)
-        weather = forecast.objects.filter(date__year=year,
-                                        date__month=month,
-                                        date__day=day,
-                                        date__hour__lte=hour+1.5).last()
+        weather = forecast.objects.filter(datetime__date=datetime.date(year, month, day),
+                                        datetime__hour__lte=hour+1.5
+                                        ).last()
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
         df['day'] = date.weekday()
         df['weather_main'] = weather.mainDescription
@@ -131,7 +130,7 @@ def predictions_model(start, end, route, year, month, day, hour):
 
         hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
                         (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
-        df['before_7am'], df['7am_9am'], df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
+        df['before_7am'], df['7am_9am'], df['9am_11am'],df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
         
         df['stop_id'] = df['stop_id'].astype('category', categories=stop_cats)
         df['day'] = df['day'].astype('category', categories=day_cats)
@@ -139,11 +138,12 @@ def predictions_model(start, end, route, year, month, day, hour):
         df['zone'] = df['zone'].astype('category', categories=zone_cats)
 
         df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
+        df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
         t_predictions = models[route+'_t'].predict(df)
         total += t_predictions.sum()
         del df['distance']
-        h_predictions = models[route+'_h'].predict(input_list)
+        h_predictions = models[route+'_h'].predict(df)
         total += h_predictions.sum()
         return total
 
@@ -228,6 +228,6 @@ def predict_request(request):
                 print("is get")
                 g = request.GET
                 start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
-                prediction = predictions_model(start_stop, end_stop, route, year, month, day, hour)
+                prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)

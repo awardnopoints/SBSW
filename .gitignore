@@ -1,7 +1,7 @@
-map_reduce/
-django_env/
-dublin_bus/dbus/__pycache__/
-dublin_bus/dbus/migrations/__pycache__/
-dublin_bus/dublin_bus/__pycache__/
+map_reduce/*
+django_env/*
+dublin_bus/dbus/__pycache__/*
+dublin_bus/dbus/migrations/__pycache__/*
+dublin_bus/dublin_bus/__pycache__/*
 dublin_bus/dbus/predictive_models/*.sav
 dublin_bus/dbus/predictive_models/*.sav
