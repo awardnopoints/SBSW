@@ -4,12 +4,16 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
-from dbus.models import BusStopsSequence
+from dbus.models import BusStopsSequenceDistance
+from dbus.models import StopsLatlngZone
+from dbus.models import forecast
 from dbus.forms import Predictions
 from sklearn.externals import joblib
+import pandas as pd
 import os
 import zipfile
 import sys
+import datetime
 
 routes = ('46A','31')
 
@@ -30,8 +34,8 @@ def unzip_models():
                                 	sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
 
 def load_models():
-	models = {}
-	for route in routes:
+        models = {}
+        for route in routes:
         	models[route + '_h'] = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
         	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
         return models
@@ -82,17 +86,52 @@ def home(request):
                 return render(request, 'dbus/index.html', context)
 
 
-def predictions_model(start, end, route, day, hour):
+def predictions_model(start, end, route, year, month, day, hour):
 
         """
         Takes the route, stop, and time information and returns
         a travel time prediction based on that.
         """
         total = 0
-        stops = BusStopsSequence.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        stops = BusStopsSequenceDistance.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        zones = StopsLatLngZone.objects.all()
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
 
+        r = inputValidator(start_stop, end_stop)
+        if r:
+                start_stop, end_stop = r[0], r[1]
+        else:
+                return False
+
+        # Creates a list of tuples to pass into the model
+        input_list = []
+        stops = stops.filter(route_direction=start_stop.route_direction
+                                ).filter(sequence__gte=start_stop.sequence
+                                ).filter(sequence__lt=end_stop.sequence
+                                )
+        for stop in stops:
+                input_list.append((hour, day, stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
+        date = datetime.datetime(year, month, day, hour)
+        weather = forecast.objects.filter(date__year=year,
+                                        date__month=month,
+                                        date__day=day,
+                                        date__hour__lt=hour).last()
+        df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
+        df['hour'] = hour
+        df['day'] = day
+        df['weather_main'] = weather.weather_main
+        df['temp'] = weather.temp
+        df['wind_speed'] = weather.wind_speed
+
+        # Passes tuples into the model, sums up the results, and returns them
+        t_predictions = models[route+'_t'].predict(df)
+        total += t_predictions.sum()
+        h_predictions = models[route+'_h'].predict(input_list)
+        total += h_predictions.sum()
+        return total
+
+def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
                 return False
@@ -114,24 +153,7 @@ def predictions_model(start, end, route, day, hour):
                 end_stop = end_stop.first()
         if start_stop.route_direction != end_stop.route_direction:
                 return False
-
-        # Creates a list of tuples to pass into the model
-        input_list = []
-        stops = stops.filter(route_direction=start_stop.route_direction
-                                ).filter(sequence__gte=start_stop.sequence
-                                ).filter(sequence__lt=end_stop.sequence
-                                )
-        for stop in stops:
-                input_list.append((hour, day, stop.stop_id))
-
-        # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = t_model.predict(input_list)
-        total += t_predictions.sum()
-        input_list.append((hour, day, end_stop.stop_id))
-        h_predictions = h_model.predict(input_list)
-        total += h_predictions.sum()
-        return total
-        
+        return(start_stop, end_stop)        
         
 
 def predictions(start, end, route, hour, day, minute):

@@ -107,6 +107,25 @@ class BusStopsSequence(models.Model):
     def __str__(self):
         return str(self.stop_id) + ", " + str(self.route_number) + ", " + str(self.route_direction)
 
+class BusStopsSequenceDistance(models.Model):
+    stop_id = models.BigIntegerField(blank=True, null=True)
+    route_number = models.TextField(blank=True, null=True)
+    route_direction = models.TextField(blank=True, null=True)
+    sequence = models.BigIntegerField(blank=True, null=True)
+    distance = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        unique_together = ('stop_id','route_number','route_direction')
+        db_table = 'bus_stops_sequence_distance'
+
+class StopsLatlngZone(models.Model):
+    stop_id = models.BigIntegerField(primary_key=True)
+    lat = models.FloatField()
+    lng = models.FloatField()
+    stop_name = models.TextField()
+    stop_address = models.TextField()
+    zone = models.TextField()
 
 class DbusCurrentWeather(models.Model):
     datetime = models.DateTimeField(primary_key=True)
