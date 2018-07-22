@@ -11,28 +11,33 @@ import os
 import zipfile
 import sys
 
-def unzip_files(route):
-        for aspect in ('hangtime','traveltime'):
-                if os.path.exists('dbus/predictive_models/{}_{}_rfr.sav'.format(route, aspect)):
-                        print('Model {}, {} found'.format(route, aspect))
-                else:
-                        print('Model {}, {} not found'.format(route, aspect))
-                        if os.path.exists('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect)) :
-                                print('Zip found, unzipping.')
-                                zip_ref = zipfile.ZipFile('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect))
-                                zip_ref.extractall('dbus/predictive_models')
-                                zip_ref.close()
-                                print('Unzipped')
-                        else:
-                                sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
+routes = ('46A','31')
 
-def load_models(route):
-        h_model = joblib.load('dbus/predictive_models/{}_hangtime_rfr.sav'.format(route))
-        t_model = joblib.load('dbus/predictive_models/{}_traveltime_rfr.sav'.format(route))
-        return (h_model, t_model)
+def unzip_models():
+	for route in routes:
+        	for aspect in ('hangtime','traveltime'):
+                	if os.path.exists('dbus/predictive_models/{}_{}_model'.format(route, aspect)):
+                        	print('Model {}, {} found'.format(route, aspect))
+                	else:
+                        	print('Model {}, {} not found'.format(route, aspect))
+                        	if os.path.exists('dbus/predictive_models/{}_{}_model.zip'.format(route, aspect)) :
+                                	print('Zip found, unzipping.')
+                                	zip_ref = zipfile.ZipFile('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect))
+                                	zip_ref.extractall('dbus/predictive_models')
+                                	zip_ref.close()
+                                	print('Unzipped')
+                        	else:
+                                	sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
 
-unzip_files('46A')
-h_model, t_model = load_models('46A')
+def load_models():
+	models = {}
+	for route in routes:
+        	models[route + '_h'] = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
+        	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
+        return models
+
+unzip_models()
+models = load_models('46A')
 
 def home(request):
 
