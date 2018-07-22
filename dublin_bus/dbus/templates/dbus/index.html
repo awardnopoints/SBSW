@@ -84,8 +84,9 @@
           start_stop = $('input[name="start"]').val();
           end_stop = $('input[name="end"]').val();
           date = new Date();
-          day = date.getDay();
-          day = (day+6)%7; // Changing to Python values
+          year = date.getFullYear();
+          month = date.getMonth() + 1;
+          day = date.getDate();
           hour = date.getHours();
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
@@ -93,7 +94,7 @@
           console.log("Day =", day)
           console.log("Hour =", hour)
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
-            end_stop: end_stop, day: day, 
+            end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
           });

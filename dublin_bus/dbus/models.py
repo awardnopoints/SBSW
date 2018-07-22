@@ -122,10 +122,14 @@ class BusStopsSequenceDistance(models.Model):
 class StopsLatlngZone(models.Model):
     stop_id = models.BigIntegerField(primary_key=True)
     lat = models.FloatField()
-    lng = models.FloatField()
+    long = models.FloatField()
     stop_name = models.TextField()
     stop_address = models.TextField()
     zone = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = 'stops_latlng_zone'
 
 class DbusCurrentWeather(models.Model):
     datetime = models.DateTimeField(primary_key=True)

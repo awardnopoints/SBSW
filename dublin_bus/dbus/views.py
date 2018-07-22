@@ -4,8 +4,8 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from dbus.models import Stopsv2
 from dbus.models import Trip_avg
-from dbus.models import BusStopsSequenceDistance
-from dbus.models import StopsLatlngZone
+from dbus.models import BusStopsSequenceDistance as bssd
+from dbus.models import StopsLatlngZone as sllz
 from dbus.models import forecast
 from dbus.forms import Predictions
 from sklearn.externals import joblib
@@ -16,6 +16,12 @@ import sys
 import datetime
 
 routes = ('46A','31')
+stop_cats = sllz.object.values_list('stop_id', flat=True).distinct()
+day_cats = [i for i in range(7)]
+weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
+zone_cats = sllz.object.values_list('zone', flat=True).distinct()
+
+
 
 def unzip_models():
 	for route in routes:
@@ -116,17 +122,27 @@ def predictions_model(start, end, route, year, month, day, hour):
         weather = forecast.objects.filter(date__year=year,
                                         date__month=month,
                                         date__day=day,
-                                        date__hour__lt=hour).last()
+                                        date__hour__lte=hour+1.5).last()
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
-        df['hour'] = hour
-        df['day'] = day
-        df['weather_main'] = weather.weather_main
+        df['day'] = date.weekday()
+        df['weather_main'] = weather.mainDescription
         df['temp'] = weather.temp
         df['wind_speed'] = weather.wind_speed
 
+        hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
+                        (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
+        df['before_7am'], df['7am_9am'], df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
+        
+        df['stop_id'] = df['stop_id'].astype('category', categories=stop_cats)
+        df['day'] = df['day'].astype('category', categories=day_cats)
+        df['weather_main'] = df['weather_main'].astype('category', categories=weather_cats)
+        df['zone'] = df['zone'].astype('category', categories=zone_cats)
+
+        df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
         # Passes tuples into the model, sums up the results, and returns them
         t_predictions = models[route+'_t'].predict(df)
         total += t_predictions.sum()
+        del df['distance']
         h_predictions = models[route+'_h'].predict(input_list)
         total += h_predictions.sum()
         return total
@@ -211,7 +227,7 @@ def predict_request(request):
         if request.method=='GET':
                 print("is get")
                 g = request.GET
-                start_stop, end_stop, route, day, hour = g['start_stop'],g['end_stop'],g['route'],g['day'],g['hour']
-                prediction = predictions_model(start_stop, end_stop, route, day, hour)
+                start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+                prediction = predictions_model(start_stop, end_stop, route, year, month, day, hour)
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)
