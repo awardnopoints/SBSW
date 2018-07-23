@@ -51,11 +51,11 @@
 
           <br>
           Start Stop:<br>
-            <select id="start" disabled>  
+            <select id="start">  
               <option>Select Route</option>
             </select><br>
           End Stop:<br>
-            <select id="end" disabled>
+            <select id="end">
               <option>Select Start Stop</option>
             </select>
             <br>
@@ -70,6 +70,7 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
+      $('#routes').prop('disabled', true)
       $('#end').prop('disabled', true);
       $('#start').prop('disabled', true);
       var map; 
@@ -87,6 +88,7 @@
         var trafficLayer = new google.maps.TrafficLayer();
         trafficLayer.setMap(map);
       }
+
       
       var stops = {};
       {% for stop in stops %}
@@ -110,7 +112,7 @@
         mystop['sequence'] = "{{stop.sequence}}";
         mystop['distance'] = "{{stop.distance}}";
         routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
-      {% endfor %}
+      {% endfor %} 
 
 
       //console.log(stops)
@@ -121,12 +123,46 @@
       //console.log(routes['46A']['I'])
       //console.log(routes['46A']['I'][0])
 
+      var stops;
+      var routes;
+
       $(document).ready(function(){
+
+        /*$.when(
+          $.get('/get_routes/', function(data){
+            routes=JSON.parse(data);
+          }),
+          $.get('/get_stops', function(data){
+            stops=data;
+          })
+        ).done( function(){
+          stops=JSON.parse(stops);
+          routes=JSON.parse(routes);
+        });*/
+
+        /*$.ajax({
+          url: 'get_routes/',
+          success: function (data) {
+              routes=data;
+          },
+          async: false
+        });
+
+        $.ajax({
+          url: 'get_stops/',
+          success: function (data) {
+              stops=data;
+          },
+          async: false
+        });
+
+        route=JSON.parse(routes)
+        stops=JSON.parse(stops)*/
 
         Object.keys(routes).forEach(function(element){
           $('#routes').append('<option>' + element + '</option>');
-        })
-        
+          $('#routes').prop('disabled', false)
+        })        
           
         $("#routes").change(function(){
           var route = $("#routes option:selected").text();
@@ -137,10 +173,10 @@
           $('#start').prop('disabled', true);
           var options = "";
           routes[route]['I'].forEach(function(element){
-            options += '<option val="Incoming">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Incoming)</option>";
+            options += '<option value="Incoming">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Incoming)</option>";
           });
           routes[route]['O'].forEach(function(element){
-            options += '<option val="Outgoing">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Outgoing)</option>";
+            options += '<option value="Outgoing">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Outgoing)</option>";
           });
           $('#start').html('<option>Select Start Stop</option>');
           $('#start').append(options);
@@ -149,7 +185,7 @@
           
         $("#start").change(function(){
           var route = $("#routes option:selected").text();
-          var start = $("#start option:selected").text();
+          var start = $("#start option:selected").text().split(',')[0];
           if (start == "Select Start Stop"){
             return;
           }
@@ -159,11 +195,9 @@
           $('#end').prop('disabled', true);
           var options = "";
           var found = false;
-          console.log(routes);
-          console.log(route);
-          console.log(direction);
-          console.log(d);
+
           routes[route][d].forEach(function(element){
+            //console.log(start, element.stop_id, found)
             if (found){
               options += '<option>' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (" + direction + ")</option>";
             };
@@ -171,12 +205,11 @@
               found = true;
             };
           });
-          $('#start').html('<option>Select Start Stop</option>');
-          $('#start').append(options);
-          $('#start').prop('disabled', false);  
+          //console.log(options);
+          $('#end').html('<option>Select End Stop</option>');
+          $('#end').append(options);
+          $('#end').prop('disabled', false);  
         });
-          
-      
             
           
         $('#post-form').on('submit', function(event){
@@ -187,15 +220,15 @@
         });
 
         function getPredictions(){
-          routes=$("#routes option:selected").text();
-          start_stop = $('input[name="start"]').val();
-          end_stop = $('input[name="end"]').val();
+          route = $("#routes option:selected").text();
+          start_stop = $('#start option:selected').text().split(',')[0];
+          end_stop = $('#end option:selected').text().split(',')[0];
           date = new Date();
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
-          console.log("Route =", routes)
+          console.log("Route =", route)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
           console.log("Day =", day)

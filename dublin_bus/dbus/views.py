@@ -50,48 +50,56 @@ def load_models():
         	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
         return models
 
+def stop_and_routes_info():
+        print('building stops json')
+        mystops = {}
+        stops = sllz.objects.all()
+        for stop in stops:
+                mystop = {}
+                mystop["lat"] = stop.lat
+                mystop["long"] = stop.long
+                mystop["stop_name"] = stop.stop_name
+                mystop["stop_address"] = stop.stop_address
+                mystop["zone"] = stop.zone
+                mystops[stop.stop_id] = mystop
+
+        print('building routes json')
+        myroutes = {}
+        route_numbers = bssd.objects.values_list('route_number',flat=True).distinct()
+        for rn in route_numbers:
+                myroutes[rn] = {'I':[],'O':[]}
+        
+        routes = bssd.objects.all()
+        for stop in routes:
+                mystop = {}
+                mystop['stop_id'] = stop.stop_id
+                mystop['sequence'] = stop.sequence
+                mystop['distance'] = stop.distance
+                myroutes[stop.route_number][stop.route_direction].append(mystop)
+        
+
+        mystops = json.dumps(mystops)
+        myroutes = json.dumps(myroutes)
+        
+        print('json files complete')
+
+        return(mystops, myroutes)
+
+
 unzip_models()
 models = load_models()
-
+#stops, routes = stop_and_routes_info()
 
 def home(request):
-  
-    #routes=BusStopsSequence.objects.values('route_number').distinct()
-
-    #stops2 = BusStopsSequence.objects.all()
-    #inbound=stops2.values_list('stop_id').filter(route_direction="I")
-    #outbound=stops2.values_list('stop_id').filter(route_direction="O")
-    
-    #stops = Stopsv2.objects.all()
-    #form = Predictions()
-
-    stops = sllz.objects.all()
-    routes = bssd.objects.all()
-    route_numbers = bssd.objects.values_list('route_number',flat=True).distinct()
-
-    context = {
-        "stops":stops,
-        "routes":routes,
-        "route_numbers":route_numbers
-        # "routes": routes,
-        # "stops": stops,
-        # "form": form,
-        # "stops2":stops2,
-        # "inbound1": inbound,
-        # "outbound1": outbound
+        stops = sllz.objects.all()
+        routes = bssd.objects.all()
+        route_numbers = routes.values_list('route_number', flat=True).distinct()
+        context = {
+                'route_numbers':route_numbers,
+                'stops':stops,
+                'routes':routes
         }
-#     bingo = {
-#             "route_n": stops2,
-#             "route_distinct": BusStopsSequence.objects.values('route_number').distinct(),
-#             "stops3":BusStopsSequence.objects.all(),
-#             "inbound": stops2.values_list('stop_id'),
-#             "outbound": stops2.values_list('stop_id'),
-#             "stops":stops
-#             }
-    #routes2=BusStopsSequence.objects.values('stop_id', 'route_number', 'route_direction', 'sequence')
-
-    return render(request, 'dbus/index.html', context)
-
+        return render(request, 'dbus/index.html', context)
 
 def get_times(json_parsed, user_route):
         
@@ -184,7 +192,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         del df['distance']
         h_predictions = models[route+'_h'].predict(df)
         total += h_predictions.sum()
-        minutes = str(total//60)
+        minutes = str(int(total/60))
         seconds = int(total%60)
         if seconds < 10:
                 seconds = '0' + str(seconds)
@@ -227,13 +235,16 @@ def wait_time(route, stop_id):
         rt.delete_current_rtpi()
         data = rt.call_api(url)
         json_parsed = rt.write_file(data)
-        realtime = rt.get_times(json_parsed, route)
-        print (realtime)
+        realtime = get_times(json_parsed, route)
+        print ('Realtime:',realtime)
                 
         if (realtime == "Due"):
             wait = 'Due Now'
         else:
             wait = realtime + ':00'
+        
+        if realtime == "":
+                wait = "Unknown"
        
         return wait
         
@@ -247,6 +258,12 @@ def predict_request(request):
                 print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
                 return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p>')
+
+def getRoutes(request):
+        return HttpResponse(routes)
+
+def getStops(request):
+        return HttpResponse(stops)
 
 def bus_stops(request):
         if request.method=='GET':
