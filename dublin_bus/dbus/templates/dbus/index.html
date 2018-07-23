@@ -46,25 +46,17 @@
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
             <select id="routes" >
-               
-                  {% for item in route_distinct %} 
-                <option value="">{{item.route_number}} </option>
-                {% endfor %}
+
             </select>
 
-      <!--          <a id="routes" data-toggle="dropdown" class="dropdown-toggle"> 
-                {% for item in routes %} 
-                <i class="whatever">{{item.route_number}}</i>
-            <span class="options">{{item.route_number}}</span> 
-{% endfor %} </a>-->   
           <br>
           Start Stop:<br>
-            <select id="start" >  
+            <select id="start" disabled>  
                 <option></option>
  
             </select><br>
           End Stop:<br>
-            <select id="end" >
+            <select id="end" disabled>
 
             </select>
             <br>
@@ -82,25 +74,31 @@
 
       $(document).ready(function(){
 
-        //$('#output').text('jQuery Works!!')
+        var stops = {};
+
+        {% for stop in stops %}
+          console.log('{{stop.stop_id}}')
+        {% endfor %}
+        
+
         $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
           console.log('success')
           $('#output').text(data);
         });
           
         $("#routes").change(function(){
-            route=$("#routes option:selected").text();
-            $.get('/bus_stops/', {route_number: route}, 
-
-                  function(key){
-                console.log(typeof(key))
-                key = JSON.parse(key)
-                for (i=0; i<key.length; i++) {
-                    $('#start').append('<option>' + key[i] + '</option>')
-                }
-              //$('#start > option').text(key)
-                // $('#end > option').text(key)
-            })});
+          route=$("#routes option:selected").text();
+          $.get('/bus_stops/', {route_number: route}, 
+            function(key){
+              console.log(typeof(key))
+              key = JSON.parse(key)
+              for (i=0; i<key.length; i++) {
+                $('#start').append('<option>' + key[i] + '</option>')
+                $('#start').prop('disabled', false)
+              }
+            }
+          )
+        }); 
           
         $("#start").change(function(){
             start=$("#start option:selected").text();
@@ -186,26 +184,14 @@
 
 
 
-          
+      var map;
+      var markers;
       function initMap(){
-      var map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
-                center: {lat: 53.3498, lng: -6.2603}
-              });
+      map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 10,
+        center: {lat: 53.3498, lng: -6.2603}
+      });
       markers = [];
-      {% for item in stops %}
-                      var name = "{{item.stop_name}}"
-                      var latitude = "{{item.latitude}}"
-                      var longitude = "{{item.longitude}}"
-                      var marker = new google.maps.Marker({
-                              position: {lat: Number(latitude), lng: Number(longitude)},
-                              map: map,
-                              title: name
-                      });
-                      markers.push(marker);
-              {% endfor %}
-              var markerCluster = new MarkerClusterer(map, markers,
-                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
       }
 
 

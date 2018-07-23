@@ -6,6 +6,8 @@ from dbus.models import Stopsv2
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequence
 from dbus.models import DbusStopsv4
+from dbus.models import BusStopsSequenceDistance as bssd 
+from dbus.models import StopsLatlngZone as sllz 
 from dbus.forms import Predictions
 from sklearn.externals import joblib
 import os
@@ -40,21 +42,27 @@ h_model, t_model = load_models('46A')
 
 def home(request):
   
-    routes=BusStopsSequence.objects.values('route_number').distinct()
+    #routes=BusStopsSequence.objects.values('route_number').distinct()
 
-    stops2 = BusStopsSequence.objects.all()
-    inbound=stops2.values_list('stop_id').filter(route_direction="I")
-    outbound=stops2.values_list('stop_id').filter(route_direction="O")
+    #stops2 = BusStopsSequence.objects.all()
+    #inbound=stops2.values_list('stop_id').filter(route_direction="I")
+    #outbound=stops2.values_list('stop_id').filter(route_direction="O")
     
-    stops = Stopsv2.objects.all()
-    form = Predictions()
+    #stops = Stopsv2.objects.all()
+    #form = Predictions()
+
+    stops = sllz.objects.all()
+    routes = bssd.objects.all()
+
     context = {
-        "routes": routes,
-        "stops": stops,
-        "form": form,
-        "stops2":stops2,
-        "inbound1": inbound,
-        "outbound1": outbound
+        "stops":stops,
+        "routes":routes
+        # "routes": routes,
+        # "stops": stops,
+        # "form": form,
+        # "stops2":stops2,
+        # "inbound1": inbound,
+        # "outbound1": outbound
         }
     bingo = {
             "route_n": stops2,
@@ -64,9 +72,9 @@ def home(request):
             "outbound": stops2.values_list('stop_id'),
             "stops":stops
             }
-    routes2=BusStopsSequence.objects.values('stop_id', 'route_number', 'route_direction', 'sequence')
+    #routes2=BusStopsSequence.objects.values('stop_id', 'route_number', 'route_direction', 'sequence')
 
-    return render(request, 'dbus/index.html', bingo)
+    return render(request, 'dbus/index.html', context)
 
 
 def get_times(json_parsed, user_route):
