@@ -6,9 +6,9 @@ urlpatterns = [
         path('', views.home, name = 'home'),
         path('dbus/ajax_test/', views.ajax_view, name = 'ajax_view'),
         path('predict_request/', views.predict_request, name='predict_request'),
-        path('bus_stops/', views.bus_stops, name='bus_stops'),
-        path('outbound/', views.outbound, name='outbound')
-        
+        #path('bus_stops/', views.bus_stops, name='bus_stops'),
+        #path('outbound/', views.outbound, name='outbound'),
+        path('popStop/', views.popStop, name = 'popStop')
 ]
 
 

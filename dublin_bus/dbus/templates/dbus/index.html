@@ -88,26 +88,27 @@
           
         $("#routes").change(function(){
           route=$("#routes option:selected").text();
-          $.get('/bus_stops/', {route_number: route}, 
-            function(key){
-              console.log(typeof(key))
-              key = JSON.parse(key)
-              for (i=0; i<key.length; i++) {
-                $('#start').append('<option>' + key[i] + '</option>')
-                $('#start').prop('disabled', false)
-              }
-            }
-          )
+          //$.get('/bus_stops/', {route_number: route}, 
+          //  function(key){
+          //    console.log(typeof(key))
+          //    key = JSON.parse(key)
+          //    for (i=0; i<key.length; i++) {
+          //      $('#start').append('<option>' + key[i] + '</option>')
+          //      $('#start').prop('disabled', false)
+          //    }
+          //  }
+          //)
         }); 
           
         $("#start").change(function(){
             start=$("#start option:selected").text();
-            $.get('/outbound/', {route_number: route, start_stop: start}, 
+            //$.get('/outbound/', {route_number: route, start_stop: start}, 
                   
-                  function(key){
+            //      function(key){
             
-              $('#results > p').text(key)
-        })});
+            //  $('#results > p').text(key)
+        //})
+        });
           
       
             
@@ -118,28 +119,31 @@
           $('#results > p').text('waiting...');
           getPredictions()
         });
-         
-    
+
         function getPredictions(){
           routes=$("#routes option:selected").text();
           start_stop = $('input[name="start"]').val();
           end_stop = $('input[name="end"]').val();
           date = new Date();
-          day = date.getDay();
-          day = (day+6)%7; // Changing to Python values
+          year = date.getFullYear();
+          month = date.getMonth() + 1;
+          day = date.getDate();
           hour = date.getHours();
           console.log("Route =", routes)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
           console.log("Day =", day)
           console.log("Hour =", hour)
-          $.get('/predict_request/', {route: routes, start_stop: start_stop, 
-            end_stop: end_stop, day: day, 
+          $.get('/predict_request/', {route: route, start_stop: start_stop, 
+            end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data + " minutes");
           });
+	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+          	popStops(data);
+            drawRoute(data);
+          });
         };
-      });
  
       function Go(){
           document.getElementById('results').innerHTML= " "
@@ -148,6 +152,40 @@
           GetStopID(start_stop, end_stop);
           
       }
+
+
+      function drawRoute(data){
+	
+	directionsDisplay.setMap(map);
+
+	var len = Object.keys(data).length
+        
+        var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
+        var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
+	
+        var request = {
+		origin: start,
+		destination: end,
+		travelMode: 'TRANSIT',
+		transitOptions: {
+			modes : ['BUS'],
+			routingPreference : 'FEWER_TRANSFERS'
+			},
+		
+		}
+	directionsService.route(request, function(result, status){
+                
+		if (status == 'OK') {
+			
+			directionsDisplay.setDirections(result);
+			
+
+		}
+	});
+}
+
+
+              
           
           
           
@@ -182,18 +220,93 @@
 //          }
 //      }
 
-
-
-      var map;
-      var markers;
+var map; 
+var markers = []
+var directionsDisplay;
+var directionsService;
+        
       function initMap(){
+
+      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
+
+      directionsService = new google.maps.DirectionsService();
+
+   	
       map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 10,
-        center: {lat: 53.3498, lng: -6.2603}
-      });
+                zoom: 12,
+                center: {lat: 53.3498, lng: -6.2603}
+              });
+               
+		
+             var trafficLayer = new google.maps.TrafficLayer();
+             trafficLayer.setMap(map);
+/*
       markers = [];
+      {% for item in stops %}
+                      var name = "{{item.stop_name}}"
+                      var latitude = "{{item.latitude}}"
+                      var longitude = "{{item.longitude}}"
+                      var marker = new google.maps.Marker({
+                              position: {lat: Number(latitude), lng: Number(longitude)},
+                              map: map,
+                              title: name
+                      });
+                      markers.push(marker);
+              {% endfor %}
+              var markerCluster = new MarkerClusterer(map, markers,
+                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+*/
       }
 
+     function popStops(context){
+      console.log(context[0]["rtpi"])      
+      removeMarkers();
+      markers = []
+      for (var key in context) {
+           
+          var marker = new google.maps.Marker({
+                              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
+                              map: map,
+                              title: context[key]["stop"],
+                              //icon :  "/static/images/bus-station.svg"
+                              
+});
+
+          markers.push(marker)
+                           
+                    };
+		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
+		
+		for (i in context[0]["rtpi"]["results"]){
+			
+			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
+		};
+        
+	
+		var infowindow = new google.maps.InfoWindow({
+			content: content
+
+		});
+
+
+		infowindow.open(map, markers[0]);
+
+		google.maps.event.addListener(markers[0], 'click', function() {
+			console.log("hello");
+			infowindow.open(map, markers[0]);
+		});
+
+
+		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+};
+
+
+function removeMarkers(){
+
+	for (var i = 0; i < markers.length; i++){
+		markers[i].setMap(null);
+	};
+};
 
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>

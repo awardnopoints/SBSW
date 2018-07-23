@@ -1,44 +1,58 @@
 from django.shortcuts import render
 from django.template import RequestContext, loader
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
-from dbus.models import Stopsv2
+from dbus.models import DbusStopsv3
 from dbus.models import Trip_avg
-from dbus.models import BusStopsSequence
-from dbus.models import DbusStopsv4
-from dbus.models import BusStopsSequenceDistance as bssd 
-from dbus.models import StopsLatlngZone as sllz 
+from dbus.models import BusStopsSequenceDistance as bssd
+from dbus.models import StopsLatlngZone as sllz
+from dbus.models import forecast
 from dbus.forms import Predictions
 from sklearn.externals import joblib
+import pandas as pd
 import os
 import zipfile
 import sys
-from dbus.bus_realtime import *
-import requests
+from dbus.bus_realtime as rt
 import json
+import requests
+import datetime
 
-def unzip_files(route):
-        for aspect in ('hangtime','traveltime'):
-                if os.path.exists('dbus/predictive_models/{}_{}_rfr.sav'.format(route, aspect)):
-                        print('Model {}, {} found'.format(route, aspect))
-                else:
-                        print('Model {}, {} not found'.format(route, aspect))
-                        if os.path.exists('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect)) :
-                                print('Zip found, unzipping.')
-                                zip_ref = zipfile.ZipFile('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect))
-                                zip_ref.extractall('dbus/predictive_models')
-                                zip_ref.close()
-                                print('Unzipped')
-                        else:
-                                sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
 
-def load_models(route):
-        h_model = joblib.load('dbus/predictive_models/{}_hangtime_rfr.sav'.format(route))
-        t_model = joblib.load('dbus/predictive_models/{}_traveltime_rfr.sav'.format(route))
-        return (h_model, t_model)
+routes = ('46A','31')
+stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
+day_cats = [i for i in range(7)]
+weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
+zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
-unzip_files('46A')
-h_model, t_model = load_models('46A')
+
+
+def unzip_models():
+	for route in routes:
+        	for aspect in ('hangtime','traveltime'):
+                	if os.path.exists('dbus/predictive_models/{}_{}_model'.format(route, aspect)):
+                        	print('Model {}, {} found'.format(route, aspect))
+                	else:
+                        	print('Model {}, {} not found'.format(route, aspect))
+                        	if os.path.exists('dbus/predictive_models/{}_{}_model.zip'.format(route, aspect)) :
+                                	print('Zip found, unzipping.')
+                                	zip_ref = zipfile.ZipFile('dbus/predictive_models/{}_{}_rfr.zip'.format(route, aspect))
+                                	zip_ref.extractall('dbus/predictive_models')
+                                	zip_ref.close()
+                                	print('Unzipped')
+                        	else:
+                                	sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
+
+def load_models():
+        models = {}
+        for route in routes:
+        	models[route + '_h'] = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
+        	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
+        return models
+
+unzip_models()
+models = load_models()
+
 
 def home(request):
   
@@ -79,12 +93,12 @@ def home(request):
 
 def get_times(json_parsed, user_route):
         
-    list=json_parsed['results']
+    results=json_parsed['results']
     i=0
-    length=len(list)
+    length=len(results)
     while i < length:
 
-        each = list[i]
+        each = results[i]
         additional_info=each['additionalinformation']
         arrival_time = each['arrivaldatetime']
         departure_time = each['departuredatetime']
@@ -109,18 +123,75 @@ def get_times(json_parsed, user_route):
             times+=departing_in
         return times
 
-def predictions_model(start, end, route, day, hour):
+def predictions_model(start, end, route, year, month, day, hour):
 
         """
         Takes the route, stop, and time information and returns
         a travel time prediction based on that.
         """
         total = 0
- #       routes=BusStopsSequence.objects.values('route_number').distinct()
-        stops = BusStopsSequence.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        stops = bssd.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        zones = sllz.objects.all()
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
+
+        r = inputValidator(start_stop, end_stop)
+        if r:
+                start_stop, end_stop = r[0], r[1]
+        else:
+                return False
+
+        # Creates a list of tuples to pass into the model
+        input_list = []
+        stops = stops.filter(route_direction=start_stop.route_direction,
+                                sequence__gte=start_stop.sequence,
+                                sequence__lt=end_stop.sequence
+                                )
+        for stop in stops:
+                input_list.append((stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
+        date = datetime.datetime(year, month, day, hour)
+        weather = forecast.objects.filter(datetime__date=datetime.date(year, month, day),
+                                        datetime__hour__lte=hour+1.5
+                                        )
+        print(len(weather))
+        if len(weather) == 0:
+                weather = forecast.objects.all().first()
+        else:
+                weather = weather.last()
+        print(weather)
+        df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
+        df['day'] = date.weekday()
+        df['weather_main'] = weather.mainDescription
+        df['temp'] = weather.temp
+        df['wind_speed'] = weather.wind_speed
+
+        hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
+                        (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
+        df['before_7am'], df['7am_9am'], df['9am_11am'],df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
         
+        df['stop_id'] = df['stop_id'].astype('category', categories=stop_cats)
+        df['day'] = df['day'].astype('category', categories=day_cats)
+        df['weather_main'] = df['weather_main'].astype('category', categories=weather_cats)
+        df['zone'] = df['zone'].astype('category', categories=zone_cats)
+
+        df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
+        df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
+        # Passes tuples into the model, sums up the results, and returns them
+        t_predictions = models[route+'_t'].predict(df)
+        total += t_predictions.sum()
+        del df['distance']
+        h_predictions = models[route+'_h'].predict(df)
+        total += h_predictions.sum()
+        minutes = str(total//60)
+        seconds = int(total%60)
+        if seconds < 10:
+                seconds = '0' + str(seconds)
+        else:
+                seconds = str(seconds)
+        total = minutes + ':' + seconds
+        return total
+
+def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
                 return False
@@ -144,111 +215,36 @@ def predictions_model(start, end, route, day, hour):
         if start_stop.route_direction != end_stop.route_direction:
                 return False
 
+        return(start_stop, end_stop) 
 
-        argument =str(start_stop.stop_id)        
 
-        # Creates a list of tuples to pass into the model
-        input_list = []
-        stops = stops.filter(route_direction=start_stop.route_direction
-                                ).filter(sequence__gte=start_stop.sequence
-                                ).filter(sequence__lt=end_stop.sequence
-                                )
-        for stop in stops:
-                input_list.append((hour, day, stop.stop_id))
-
-        # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = t_model.predict(input_list)
-        total += t_predictions.sum()
-        input_list.append((hour, day, end_stop.stop_id))
-        h_predictions = h_model.predict(input_list)
-        total += h_predictions.sum()
+def wait_time(route, stop_id):
         
        # returns real time info from api based on user selected stop id - refers to function in bus_realtime file
-        stop_id=argument
         url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
-        delete_current_rtpi()
-        data = call_api(url)
-        json_parsed=write_file(data)
-        u_route="46A"
-        next_bus=get_times(json_parsed, u_route)
-        realtime=next_bus
+        rt.delete_current_rtpi()
+        data = rt.call_api(url)
+        json_parsed = rt.write_file(data)
+        realtime = rt.get_times(json_parsed, route)
         print (realtime)
-
                 
         if (realtime == "Due"):
-            total += 0
+            wait = 'Due Now'
         else:
-            realtime_int=int(realtime)
-            total += realtime_int*60
+            wait = realtime + ':00'
        
-        if total:
-            mins=int(total/60)
-            secs=int(total%60)
-            total=str(mins) + '.' + str(secs)
+        return wait
         
-        return total
-        
-        
-
-def predictions(start, end, route, hour, day, minute):
-	
-        total = 0
-
-
-        if minute >= 30:
-                minute = 45
-        else:
-                minute = 15
-
-        fh = open("/home/student/analytics/routes/%s.txt"  % route)
-
-        start_stop = False
-
-        start_stretch = 0
-
-        for line in fh:
-		
-                line = str(int(line))
-
-                if int(line) == int(start):
-
-                        start_stop = True
-                        start_stretch = line
-
-                elif start_stop == True and int(line) != int(end):
-                      
-                        
-                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=str(line), start_stop = start_stretch)
-
-                        print(att)
-
-                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
-
-                        start_stretch = line
-
-
-
-                elif start_stop == True and int(line) == int(end):
-			
-                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=end, start_stop=start_stretch)
-                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
-                        break
-
-        return total
-
-def ajax_view(request):
-        if request.method=='GET':
-                message = request.GET['message']
-                return HttpResponse('Message: ' + message)
 
 def predict_request(request):
         if request.method=='GET':
                 print("is get")
                 g = request.GET
-                start_stop, end_stop, route, day, hour = g['start_stop'],g['end_stop'],g['route'],g['day'],g['hour']
-                prediction = predictions_model(start_stop, end_stop, route, day, hour)
+                start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+                prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
-                return HttpResponse(prediction)
+                wait = wait_time(route, start_stop)
+                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p>')
 
 def bus_stops(request):
         if request.method=='GET':
@@ -276,13 +272,53 @@ def outbound (request):
                     return HttpResponse(inbound)
             else:
                     return HttpResponse(outbound)
-
-     
-
-
-
-
-
-
-
  
+
+def popStop(request):
+        if request.method=='GET':
+                g = request.GET
+                start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
+                stops = bssd.objects.all().filter(route_number = route)
+                first = False
+                last = False
+                response = {}
+                i = 0
+                for stop in stops:
+
+                        stop = str(stop.stop_id)
+
+                        
+                        if not first and stop == start_stop:
+                                url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
+                                req = requests.get(url)
+                                req_text = req.text
+                                json_parsed = json.loads(req_text)
+                                first = True
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
+                                i += 1
+                        
+                        elif first and not last and stop != end_stop:
+
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
+                                i += 1
+
+
+                        elif first and not last and stop == end_stop:
+ 
+                                last = True
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
+                                break
+  
+        
+        return JsonResponse(response)

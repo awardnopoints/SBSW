@@ -32,37 +32,27 @@ def write_file (data):
 
       
 class rtpi:
-    def bus_realtime (self):
+    def bus_realtime (self, json_parsed, stop):
         """Selects and creates variables that will be stored in dynamic forecast weather table"""
 
         list=json_parsed['results']
         
         i=0
         length=len(list)
+        recorded = set()
         while i < length:
 
             each = list[i]
-            additional_info=each['additionalinformation']
-            arrival_time = each['arrivaldatetime']
-            departure_time = each['departuredatetime']
-            departing_in = each['departureduetime']
-            destination = each['destination']
-            destination_local=each['destinationlocalized']
-            direction = each['direction']
-            arriving_in = each['duetime']
-            low_floor=each['lowfloorstatus']
-            monitored=each['monitored']
-            operator=each['operator']
-            origin = each['origin']
-            origin_local=each['originlocalized']
-            route=each['route']
-            scheduled_arrival = each['scheduledarrivaldatetime']
-            scheduled_departure = each['scheduleddeparturedatetime']
-            timestamp = each['sourcetimestamp']
+
+            if each['route'] not in recorded:
+                recorded.add(each['route'])
+                departing_in = each['departureduetime']
+                route=each['route']
+                timestamp = each['sourcetimestamp']
+                insert_rtpi(departing_in, route, timestamp, stop)                  
+
             i+=1
             
-            
-            insert_rtpi(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp)
         #http://pythonda.com/collecting-storing-tweets-python-mysql
 
 def connect():
@@ -113,26 +103,31 @@ def delete_current_rtpi():
         print("An error occurred when deleting current rows: ", e)
         
         
-def insert_rtpi(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp):
+def insert_rtpi(departing_in, route, timestamp, stop):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO realtime_bus(arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (arrival_time, departure_time, departing_in, destination, direction, arriving_in, origin, route,  scheduled_arrival, scheduled_departure, timestamp))
+            "INSERT INTO realtime_bus(departing_in, route, timestamp, stopid) VALUES (%s, %s, %s, %s);",
+            (departing_in, route, timestamp, stop))
     except Exception as e:
         print("An error occurred inserting data into rtpi table: ", e)
     return
 
 
-stop_id=sys.argv[1]
-url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
 engine = connect()
 #create_table(engine)
 delete_current_rtpi()
-data = call_api(url)
-json_parsed=write_file(data)
-go=rtpi()
-go.bus_realtime()
+
+stops = engine.execute("select stop_id from bus_stops_sequence where route_number = '46A'").fetchall()
+
+for i in stops:
+
+    url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(i[0]) + "&format=json"
+
+    data = call_api(url)
+    json_parsed=write_file(data)
+    go=rtpi()
+    go.bus_realtime(json_parsed, i[0])
 
 
 
