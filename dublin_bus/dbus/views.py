@@ -19,7 +19,14 @@ import requests
 import datetime
 
 
-routes = ('46A','31')
+routes_implemented = ('31')
+
+routes_to_be_implemented = ('1', '102', '104', '11', '111', '114', '116', '118', '120', '122', '123', '13', '130', '14', '140', '142', '145', '15', '150', '151', '15A', '15B', '16', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '39A', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9')
+
+routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
+
+routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '33N', '39X', '39N', '41N', '42N', '46N', '49N', '66N')
+
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
 day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
@@ -28,7 +35,7 @@ zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
 
 def unzip_models():
-	for route in routes:
+	for route in routes_implemented:
         	for aspect in ('hangtime','traveltime'):
                 	if os.path.exists('dbus/predictive_models/{}_{}_model'.format(route, aspect)):
                         	print('Model {}, {} found'.format(route, aspect))
