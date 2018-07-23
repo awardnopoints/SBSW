@@ -121,7 +121,13 @@ def predictions_model(start, end, route, year, month, day, hour):
         date = datetime.datetime(year, month, day, hour)
         weather = forecast.objects.filter(datetime__date=datetime.date(year, month, day),
                                         datetime__hour__lte=hour+1.5
-                                        ).last()
+                                        )
+        print(len(weather))
+        if len(weather) == 0:
+                weather = forecast.objects.all().first()
+        else:
+                weather = weather.last()
+        print(weather)
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
         df['day'] = date.weekday()
         df['weather_main'] = weather.mainDescription
