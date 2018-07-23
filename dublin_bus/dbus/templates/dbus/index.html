@@ -46,18 +46,17 @@
         <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
           Route:<br>
             <select id="routes" >
-
+              <option>Select Route</option>
             </select>
 
           <br>
           Start Stop:<br>
             <select id="start" disabled>  
-                <option></option>
- 
+              <option>Select Route</option>
             </select><br>
           End Stop:<br>
             <select id="end" disabled>
-
+              <option>Select Start Stop</option>
             </select>
             <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
@@ -71,43 +70,110 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
+      $('#end').prop('disabled', true);
+      $('#start').prop('disabled', true);
+      var map; 
+      var markers = []
+      var directionsDisplay;
+      var directionsService;
+      
+      function initMap(){
+        directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
+        directionsService = new google.maps.DirectionsService();
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 12,
+          center: {lat: 53.3498, lng: -6.2603}
+        });   
+        var trafficLayer = new google.maps.TrafficLayer();
+        trafficLayer.setMap(map);
+      }
+      
+      var stops = {};
+      {% for stop in stops %}
+        var mystop = {};
+        mystop["lat"] = "{{stop.lat}}";
+        mystop["long"] = "{{stop.long}}";
+        mystop["stop_name"] = "{{stop.stop_name}}";
+        mystop["stop_address"] = "{{stop.stop_address}}";
+        mystop["zone"] = "{{stop.zone}}";
+        stops['{{stop.stop_id}}'] = mystop;
+      {% endfor %}
+
+      var routes = {};
+      {% for rn in route_numbers %}
+        routes["{{rn}}"] = {'I':[],'O':[]};
+      {% endfor %}
+
+      {% for stop in routes %}
+        var mystop = {}
+        mystop['stop_id'] = "{{stop.stop_id}}";
+        mystop['sequence'] = "{{stop.sequence}}";
+        mystop['distance'] = "{{stop.distance}}";
+        routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
+      {% endfor %}
+
+
+      //console.log(stops)
+      //console.log(stops['2020'])
+      //console.log(stops['130'])
+      //console.log(routes)
+      //console.log(routes['46A'])
+      //console.log(routes['46A']['I'])
+      //console.log(routes['46A']['I'][0])
 
       $(document).ready(function(){
 
-        var stops = {};
-
-        {% for stop in stops %}
-          console.log('{{stop.stop_id}}')
-        {% endfor %}
+        Object.keys(routes).forEach(function(element){
+          $('#routes').append('<option>' + element + '</option>');
+        })
         
-
-        $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
-          console.log('success')
-          $('#output').text(data);
-        });
           
         $("#routes").change(function(){
-          route=$("#routes option:selected").text();
-          //$.get('/bus_stops/', {route_number: route}, 
-          //  function(key){
-          //    console.log(typeof(key))
-          //    key = JSON.parse(key)
-          //    for (i=0; i<key.length; i++) {
-          //      $('#start').append('<option>' + key[i] + '</option>')
-          //      $('#start').prop('disabled', false)
-          //    }
-          //  }
-          //)
+          var route = $("#routes option:selected").text();
+          if (route == "Select Route") {
+            return;
+          }
+          $('#start').html('<option>Loading...</option>');
+          $('#start').prop('disabled', true);
+          var options = "";
+          routes[route]['I'].forEach(function(element){
+            options += '<option val="Incoming">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Incoming)</option>";
+          });
+          routes[route]['O'].forEach(function(element){
+            options += '<option val="Outgoing">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Outgoing)</option>";
+          });
+          $('#start').html('<option>Select Start Stop</option>');
+          $('#start').append(options);
+          $('#start').prop('disabled', false);
         }); 
           
         $("#start").change(function(){
-            start=$("#start option:selected").text();
-            //$.get('/outbound/', {route_number: route, start_stop: start}, 
-                  
-            //      function(key){
-            
-            //  $('#results > p').text(key)
-        //})
+          var route = $("#routes option:selected").text();
+          var start = $("#start option:selected").text();
+          if (start == "Select Start Stop"){
+            return;
+          }
+          var direction = $('#start').val();
+          var d = direction.substr(0,1);
+          $('#end').html('<option>Loading...</option>');
+          $('#end').prop('disabled', true);
+          var options = "";
+          var found = false;
+          console.log(routes);
+          console.log(route);
+          console.log(direction);
+          console.log(d);
+          routes[route][d].forEach(function(element){
+            if (found){
+              options += '<option>' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (" + direction + ")</option>";
+            };
+            if (start == element.stop_id){
+              found = true;
+            };
+          });
+          $('#start').html('<option>Select Start Stop</option>');
+          $('#start').append(options);
+          $('#start').prop('disabled', false);  
         });
           
       
@@ -137,176 +203,78 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
-              $('#results > p').html("Estimated Journey Time:<br>" + data + " minutes");
+              $('#results').html(data);
           });
 	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
           	popStops(data);
-            drawRoute(data);
+            drawRoute(data);//https://docs.djangoproject.com/en/2.0/ref/request-response/
           });
         };
- 
-      function Go(){
+      
+
+        function Go(){
           document.getElementById('results').innerHTML= " "
           var start_stop;
           var end_stop;
           GetStopID(start_stop, end_stop);
-          
-      }
+        }
 
 
-      function drawRoute(data){
-	
-	directionsDisplay.setMap(map);
+        function drawRoute(data){
+	        directionsDisplay.setMap(map);
+	        var len = Object.keys(data).length
+          var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
+          var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
+          var request = {
+		        origin: start,
+		        destination: end,
+		        travelMode: 'TRANSIT',
+		        transitOptions: {
+			        modes : ['BUS'],
+			        routingPreference : 'FEWER_TRANSFERS'
+			      },
+		      }
+	        directionsService.route(request, function(result, status){      
+            if (status == 'OK') {
+				      directionsDisplay.setDirections(result);
+		        }
+	        });
+        }
 
-	var len = Object.keys(data).length
-        
-        var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
-        var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
-	
-        var request = {
-		origin: start,
-		destination: end,
-		travelMode: 'TRANSIT',
-		transitOptions: {
-			modes : ['BUS'],
-			routingPreference : 'FEWER_TRANSFERS'
-			},
-		
-		}
-	directionsService.route(request, function(result, status){
-                
-		if (status == 'OK') {
-			
-			directionsDisplay.setDirections(result);
-			
+        function popStops(context){
+          console.log(context[0]["rtpi"])      
+          removeMarkers();
+          markers = []
+          for (var key in context) { 
+            var marker = new google.maps.Marker({
+              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
+              map: map,
+              title: context[key]["stop"],
+              //icon :  "/static/images/bus-station.svg"                
+            });
+            markers.push(marker)         
+          };
+		      var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
+				  for (i in context[0]["rtpi"]["results"]){
+			      content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
+		      };
+          var infowindow = new google.maps.InfoWindow({
+			      content: content
+          });
+          infowindow.open(map, markers[0]);
+          google.maps.event.addListener(markers[0], 'click', function() {
+			      console.log("hello");
+			      infowindow.open(map, markers[0]);
+          });
+          map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+        };
 
-		}
-	});
-}
-
-
-              
-          
-          
-          
-          
-      // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
-      // Finds routes that pass through each bus stop and selects only those common to both. 
-      // 2. Determines how many stops between start and end // returns routes and stops between each
-
-      //next take time of day, day of week, weather and input into predictor?//
-          
-          
-      function GetRoutes(start, end) {
-        // GetPrediction(start, end, route);
-          //match the start and end bus to start and end bus 
-          //get routes
-          //get stops between
-      }
-              
-//      function GetPrediction(start, end, route) {
-//          var dayInput = document.getElementById("exampleFormControlSelect1Day");
-//          var day = selectTime.options[selectTime.selectedIndex].text;
-//          var timeInput = document.getElementById("exampleFormControlSelect1Time");
-//          var time = selectDay.options[selectDay.selectedIndex].text;
-//          
-//          if (day == " " || time == " ") {
-//              var dt = new Date();
-//              var time = dt.getHours() + ":" + dt.getMinutes();
-//              //var day =
-//                  
-//              // new Date($.now());
-//          //
-//          }
-//      }
-
-var map; 
-var markers = []
-var directionsDisplay;
-var directionsService;
-        
-      function initMap(){
-
-      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
-
-      directionsService = new google.maps.DirectionsService();
-
-   	
-      map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12,
-                center: {lat: 53.3498, lng: -6.2603}
-              });
-               
-		
-             var trafficLayer = new google.maps.TrafficLayer();
-             trafficLayer.setMap(map);
-/*
-      markers = [];
-      {% for item in stops %}
-                      var name = "{{item.stop_name}}"
-                      var latitude = "{{item.latitude}}"
-                      var longitude = "{{item.longitude}}"
-                      var marker = new google.maps.Marker({
-                              position: {lat: Number(latitude), lng: Number(longitude)},
-                              map: map,
-                              title: name
-                      });
-                      markers.push(marker);
-              {% endfor %}
-              var markerCluster = new MarkerClusterer(map, markers,
-                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-*/
-      }
-
-     function popStops(context){
-      console.log(context[0]["rtpi"])      
-      removeMarkers();
-      markers = []
-      for (var key in context) {
-           
-          var marker = new google.maps.Marker({
-                              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
-                              map: map,
-                              title: context[key]["stop"],
-                              //icon :  "/static/images/bus-station.svg"
-                              
-});
-
-          markers.push(marker)
-                           
-                    };
-		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-		
-		for (i in context[0]["rtpi"]["results"]){
-			
-			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
-		};
-        
-	
-		var infowindow = new google.maps.InfoWindow({
-			content: content
-
-		});
-
-
-		infowindow.open(map, markers[0]);
-
-		google.maps.event.addListener(markers[0], 'click', function() {
-			console.log("hello");
-			infowindow.open(map, markers[0]);
-		});
-
-
-		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
-};
-
-
-function removeMarkers(){
-
-	for (var i = 0; i < markers.length; i++){
-		markers[i].setMap(null);
-	};
-};
+        function removeMarkers(){
+	        for (var i = 0; i < markers.length; i++){
+		        markers[i].setMap(null);
+	        };
+        };
+      });
 
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>

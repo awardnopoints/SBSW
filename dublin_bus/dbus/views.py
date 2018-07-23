@@ -13,7 +13,7 @@ import pandas as pd
 import os
 import zipfile
 import sys
-from dbus.bus_realtime as rt
+import dbus.bus_realtime as rt
 import json
 import requests
 import datetime
@@ -67,10 +67,12 @@ def home(request):
 
     stops = sllz.objects.all()
     routes = bssd.objects.all()
+    route_numbers = bssd.objects.values_list('route_number',flat=True).distinct()
 
     context = {
         "stops":stops,
-        "routes":routes
+        "routes":routes,
+        "route_numbers":route_numbers
         # "routes": routes,
         # "stops": stops,
         # "form": form,
@@ -78,14 +80,14 @@ def home(request):
         # "inbound1": inbound,
         # "outbound1": outbound
         }
-    bingo = {
-            "route_n": stops2,
-            "route_distinct": BusStopsSequence.objects.values('route_number').distinct(),
-            "stops3":BusStopsSequence.objects.all(),
-            "inbound": stops2.values_list('stop_id'),
-            "outbound": stops2.values_list('stop_id'),
-            "stops":stops
-            }
+#     bingo = {
+#             "route_n": stops2,
+#             "route_distinct": BusStopsSequence.objects.values('route_number').distinct(),
+#             "stops3":BusStopsSequence.objects.all(),
+#             "inbound": stops2.values_list('stop_id'),
+#             "outbound": stops2.values_list('stop_id'),
+#             "stops":stops
+#             }
     #routes2=BusStopsSequence.objects.values('stop_id', 'route_number', 'route_direction', 'sequence')
 
     return render(request, 'dbus/index.html', context)
