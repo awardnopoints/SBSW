@@ -1,7 +1,7 @@
 import requests
 import json
-import mysql.connector
-from mysql.connector import errorcode
+#import mysql.connector
+#from mysql.connector import errorcode
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
