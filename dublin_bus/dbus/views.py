@@ -17,7 +17,6 @@ import json
 import requests
 import datetime
 
-<<<<<<< HEAD
 
 routes = ('46A','31')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
@@ -248,7 +247,7 @@ def popStop(request):
         if request.method=='GET':
                 g = request.GET
                 start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
-                stops = BusStopsSequence.objects.all().filter(route_number = route)
+                stops = bssd.objects.all().filter(route_number = route)
                 first = False
                 last = False
                 response = {}

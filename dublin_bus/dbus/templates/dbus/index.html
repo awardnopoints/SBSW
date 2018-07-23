@@ -92,13 +92,12 @@
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
-});
-	  $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+          });
+	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
           	popStops(data);
-                drawRoute(data);
-               });
-
-};
+            drawRoute(data);
+          });
+        };
  
       function Go(){
           document.getElementById('results').innerHTML= " "
