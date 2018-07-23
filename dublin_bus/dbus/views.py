@@ -90,10 +90,11 @@ unzip_models()
 models = load_models()
 #stops, routes = stop_and_routes_info()
 
+stops = sllz.objects.all()
+routes = bssd.objects.all()
+route_numbers = routes.values_list('route_number', flat=True).distinct()
+
 def home(request):
-        stops = sllz.objects.all()
-        routes = bssd.objects.all()
-        route_numbers = routes.values_list('route_number', flat=True).distinct()
         context = {
                 'route_numbers':route_numbers,
                 'stops':stops,

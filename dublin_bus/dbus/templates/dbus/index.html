@@ -70,7 +70,9 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
-      $('#routes').prop('disabled', true)
+
+      $('#routes').prop('disabled', true);
+      $('#routes').html('<option>Loading...</option>');
       $('#end').prop('disabled', true);
       $('#start').prop('disabled', true);
       var map; 
@@ -89,7 +91,6 @@
         trafficLayer.setMap(map);
       }
 
-      
       var stops = {};
       {% for stop in stops %}
         var mystop = {};
@@ -113,15 +114,6 @@
         mystop['distance'] = "{{stop.distance}}";
         routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
       {% endfor %} 
-
-
-      //console.log(stops)
-      //console.log(stops['2020'])
-      //console.log(stops['130'])
-      //console.log(routes)
-      //console.log(routes['46A'])
-      //console.log(routes['46A']['I'])
-      //console.log(routes['46A']['I'][0])
 
       var stops;
       var routes;
@@ -159,6 +151,7 @@
         route=JSON.parse(routes)
         stops=JSON.parse(stops)*/
 
+        $('#routes').html('<option>Select Route</option>');
         Object.keys(routes).forEach(function(element){
           $('#routes').append('<option>' + element + '</option>');
           $('#routes').prop('disabled', false)
