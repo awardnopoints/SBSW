@@ -247,10 +247,10 @@ def bus_stops(request):
             g=request.GET
             routes=BusStopsSequence.objects.values('route_number').distinct()
             route_no=g['route_number']
-            stops2 = BusStopsSequence.objects.filter(route_number=route_no)
- 
-  
-            return HttpResponse(stops2)
+            stops2 = BusStopsSequence.objects.filter(route_number=route_no).values_list('stop_id', flat=True)
+            #list_stops=[]
+          
+            return HttpResponse(json.dumps(list(stops2)))
         
       
 

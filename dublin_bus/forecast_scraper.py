@@ -105,14 +105,14 @@ class weather:
         mainDescription_current = weather_desc_current['main']
         wind_current = json_parsed2['wind']
         speed_current = wind_current['speed']
-        deg_current = wind_current['deg']
+#        deg_current = wind_current['deg']
         cloud_current=json_parsed2['clouds']
         cloudiness_current=cloud_current['all']
         dt_current = json_parsed2['dt']
         timestamp_current=datetime.datetime.fromtimestamp(dt_current, pytz.timezone('Europe/Dublin'))
 
   
-        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current)
+        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current)
 
 
         #http://pythonda.com/collecting-storing-tweets-python-mysql
@@ -152,12 +152,12 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
-def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current):
+def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current,  timestamp_current, humidity_current):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current))
+            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);",
+            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current))
     except Exception as e:
         print("An error occurred inserting data into current_weather table: ", e)
     return

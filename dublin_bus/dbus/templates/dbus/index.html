@@ -60,17 +60,12 @@
           <br>
           Start Stop:<br>
             <select id="start" >  
-                
-            <option value=""> 
-               
-                </option>
+                <option></option>
  
             </select><br>
           End Stop:<br>
             <select id="end" >
-            {% for item in stops3 %} 
-            <option value=""> {{item.stop_id}}</option>
-                 {% endfor %}
+
             </select>
             <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
@@ -99,8 +94,12 @@
 
                   function(key){
                 console.log(typeof(key))
-              $('#start > option').text(key)
-                 $('#end > option').text(key)
+                key = JSON.parse(key)
+                for (i=0; i<key.length; i++) {
+                    $('#start').append('<option>' + key[i] + '</option>')
+                }
+              //$('#start > option').text(key)
+                // $('#end > option').text(key)
             })});
           
         $("#start").change(function(){
