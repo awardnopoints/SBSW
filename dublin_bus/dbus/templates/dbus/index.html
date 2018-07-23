@@ -66,12 +66,6 @@
 
       $(document).ready(function(){
 
-        //$('#output').text('jQuery Works!!')
-        $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
-          console.log('success')
-          $('#output').text(data);
-        });
-
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
@@ -85,8 +79,9 @@
           start_stop = $('input[name="start"]').val();
           end_stop = $('input[name="end"]').val();
           date = new Date();
-          day = date.getDay();
-          day = (day+6)%7; // Changing to Python values
+          year = date.getFullYear();
+          month = date.getMonth() + 1;
+          day = date.getDate();
           hour = date.getHours();
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
@@ -94,16 +89,15 @@
           console.log("Day =", day)
           console.log("Hour =", hour)
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
-            end_stop: end_stop, day: day, 
+            end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
-});
-	  $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+          });
+	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
           	popStops(data);
-                drawRoute(data);
-               });
-
-};
+            drawRoute(data);
+          });
+        };
  
       function Go(){
           document.getElementById('results').innerHTML= " "
