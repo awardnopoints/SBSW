@@ -237,5 +237,5 @@ def popStop(request):
                                 response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
                                 break
   
-        print(response)
+        
         return JsonResponse(response)
