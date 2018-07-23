@@ -66,18 +66,13 @@
 
       $(document).ready(function(){
 
-        //$('#output').text('jQuery Works!!')
-        $.get('/dbus/ajax_test/', {message: 'AJAX works!'}, function(data){
-          console.log('success')
-          $('#output').text(data);
-        });
-
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
           $('#results > p').text('waiting...');
           getPredictions()
         });
+});
 
         function getPredictions(){
           route = $('input[name="route"]').val();
@@ -97,9 +92,13 @@
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
-          });
-        };
-      });
+});
+	  $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+          	popStops(data);
+                drawRoute(data);
+               });
+
+};
  
       function Go(){
           document.getElementById('results').innerHTML= " "
@@ -108,6 +107,40 @@
           GetStopID(start_stop, end_stop);
           
       }
+
+      function drawRoute(data){
+
+	var directionsService = new google.maps.DirectionsService();
+        var directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
+	
+	directionsDisplay.setMap(map);
+
+	var len = Object.keys(data).length
+        
+        var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
+        var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
+	
+        var request = {
+		origin: start,
+		destination: end,
+		travelMode: 'TRANSIT',
+		transitOptions: {
+			modes : ['BUS'],
+			routingPreference : 'FEWER_TRANSFERS'
+			},
+		
+		}
+	directionsService.route(request, function(result, status){
+                
+		if (status == 'OK') {
+                	   
+			directionsDisplay.setDirections(result);
+		}
+	});
+}
+
+
+              
           
           
           
@@ -142,14 +175,21 @@
 //          }
 //      }
 
-
-
-          
+var map; 
+var markers = []
+        
       function initMap(){
-      var map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 10,
+	var directionsService = new google.maps.DirectionsService();
+	var directionsDisplay = new google.maps.DirectionsRenderer();
+      map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
                 center: {lat: 53.3498, lng: -6.2603}
               });
+               
+		
+             var trafficLayer = new google.maps.TrafficLayer();
+             trafficLayer.setMap(map);
+/*
       markers = [];
       {% for item in stops %}
                       var name = "{{item.stop_name}}"
@@ -164,8 +204,58 @@
               {% endfor %}
               var markerCluster = new MarkerClusterer(map, markers,
                   {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+*/
       }
 
+     function popStops(context){
+      console.log(context[0]["rtpi"])      
+      removeMarkers();
+      markers = []
+      for (var key in context) {
+           
+          var marker = new google.maps.Marker({
+                              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
+                              map: map,
+                              title: context[key]["stop"],
+                              //icon :  "/static/images/bus-station.svg"
+                              
+});
+
+          markers.push(marker)
+                           
+                    };
+		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
+		
+		for (i in context[0]["rtpi"]["results"]){
+			
+			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
+		};
+        
+	
+		var infowindow = new google.maps.InfoWindow({
+			content: content
+
+		});
+
+
+		infowindow.open(map, markers[0]);
+
+		google.maps.event.addListener(markers[0], 'click', function() {
+			console.log("hello");
+			infowindow.open(map, markers[0]);
+		});
+
+
+		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+};
+
+
+function removeMarkers(){
+
+	for (var i = 0; i < markers.length; i++){
+		markers[i].setMap(null);
+	};
+};
 
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>

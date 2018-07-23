@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.template import RequestContext, loader
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
-from dbus.models import Stopsv2
+from dbus.models import DbusStopsv3
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequenceDistance as bssd
 from dbus.models import StopsLatlngZone as sllz
@@ -13,7 +13,11 @@ import pandas as pd
 import os
 import zipfile
 import sys
+import json
+import requests
 import datetime
+
+<<<<<<< HEAD
 
 routes = ('46A','31')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
@@ -49,13 +53,14 @@ def load_models():
 unzip_models()
 models = load_models()
 
+
 def home(request):
 
         if request.method == "POST":         
                 
                 form = Predictions(request.POST)
                 if form.is_valid():
-                        stops = Stopsv2.objects.all()
+                        stops = DbusStopsv3.objects.all()
                         start = form.cleaned_data['start']
                         end = form.cleaned_data['end']
                         form = Predictions()
@@ -81,7 +86,7 @@ def home(request):
 
         else:
 
-                stops = Stopsv2.objects.all()
+                stops = DbusStopsv3.objects.all()
                 form = Predictions()
                 context = {
                         "stops": stops,
@@ -237,3 +242,53 @@ def predict_request(request):
                 prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)
+
+
+def popStop(request):
+        if request.method=='GET':
+                g = request.GET
+                start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
+                stops = BusStopsSequence.objects.all().filter(route_number = route)
+                first = False
+                last = False
+                response = {}
+                i = 0
+                for stop in stops:
+
+                        stop = str(stop.stop_id)
+
+                        
+                        if not first and stop == start_stop:
+                                url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
+                                req = requests.get(url)
+                                req_text = req.text
+                                json_parsed = json.loads(req_text)
+                                first = True
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
+                                i += 1
+                        
+                        elif first and not last and stop != end_stop:
+
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
+                                i += 1
+
+
+                        elif first and not last and stop == end_stop:
+ 
+                                last = True
+                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+                                lat = latlong[0].lat
+                                lon = latlong[0].longitude
+                                response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
+                                break
+  
+        
+        return JsonResponse(response)
