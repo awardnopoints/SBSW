@@ -21,8 +21,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.js"></script>
 
 <!-- bootstrap-datetimepicker -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
-      
+        <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   </head>
 
 
@@ -52,6 +52,9 @@
           End Stop:<br>
           <input type="text" name="end">
           <br>
+         <br>
+            <p>leave now <input type="checkbox" id="checkbox"></p><p>or</p><div id="picker"> <input type="datetime-local" id="dateTime" data-date-inline-picker="true" /></div>
+          
           <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
         <div id="results"><p> </p></div>
@@ -66,7 +69,8 @@
 
       $(document).ready(function(){
 
-        $('#post-form').on('submit', function(event){
+          
+          $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
           $('#results > p').text('waiting...');
@@ -74,15 +78,33 @@
         });
 });
 
+      
         function getPredictions(){
+        var cBox=document.getElementById("checkbox").checked
+        var dTime=new Date(document.getElementById("dateTime").value);
+       
           route = $('input[name="route"]').val();
           start_stop = $('input[name="start"]').val();
           end_stop = $('input[name="end"]').val();
-          date = new Date();
+        if (cBox==true) {
+         date = new Date();
+            alert(date);
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
+        }
+            else {
+                
+          //  date = new Date();
+       var parsed=Date.parse(dTime);
+                var diff = dTime;
+
+                year=diff.getFullYear();
+  month = diff.getMonth() + 1;
+          day = diff.getDate();
+          hour = diff.getHours();
+}
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)

@@ -71,6 +71,13 @@ padding-left: 15px;
         
 }
 
+#picker {
+    display: none;
+}
+
+#datetime-local {
+    display: none;
+}
 .post-form {
     padding-top: 80px;
     width: 300px;
