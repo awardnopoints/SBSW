@@ -53,9 +53,9 @@
           <input type="text" name="end">
           <br>
          <br>
-            <p>leave now <input type="checkbox" id="checkbox" onclick="disappear()"></p>
+            <p>Leave Now <input type="checkbox" id="checkbox" onclick="disappear()"></p>
       <div id="new">
-         <input type="datetime-local" id="dateTime" data-date-inline-picker="true" /></div>
+         <input type="datetime-local" id="dateTime" data-date-inline-picker="true"/></div>
             <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
@@ -68,7 +68,7 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
-function disappear(){
+     function disappear(){
           var chBox=document.getElementById("checkbox");
     var box = document.getElementById("new")
         if (chBox.checked==true) {
@@ -135,42 +135,52 @@ function disappear(){
           c_day = current.getDate();
           c_hour = current.getHours();
         var max_day;
-            var max_hour;
+         
         if ((c_month == 9 || c_month == 4 || c_month == 6 ||  c_month == 11) && (c_day<=30 && c_day>=26))  {
            max_day=c_day-25;
+        
             }         
         else if ((c_month==2) && (c_day<=27 && c_day>=23)) {
             max_day=c_day-25;
+       
         }
         else if (c_day<=31 && c_day>=27){
             max_day=c_day-25;
+   
       
         }
             else {
             max_day=c_day+5;
-         max_hour=c_hour-3;
+    
             }
             
             
             
              //   alert(max_day);
                // alert(max_hour);
-            24 <29 & c_day 
+           
             if (day <=max_day && day>=c_day){
-                alert("all good");
+                alert("weather prediction available");
+                    $.get('/predict_request/', {route: route, start_stop: start_stop, 
+            end_stop: end_stop, year: year, month: month, day: day, 
+            hour: hour}, function(data){
+              $('#results > p').html("Estimated Journey Time:<br>" + data);
+          });
+                
             }else {
-                alert ("out of range for weather")
+                 alert ("out of range for weather");
+            $.get('/predict_request/', {route: route, start_stop: start_stop, 
+            end_stop: end_stop, year: year, month: month, day: day, 
+            hour: hour}, function(data){
+              $('#results > p').html("Estimated Journey Time:<br>" + data);
+          });
+               
             }
             
             
             
             
-          $.get('/predict_request/', {route: route, start_stop: start_stop, 
-            end_stop: end_stop, year: year, month: month, day: day, 
-            hour: hour}, function(data){
-              print (data)
-              $('#results > p').html("Estimated Journey Time:<br>" + data);
-          });
+      
 	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
           	popStops(data);
             drawRoute(data);
@@ -303,16 +313,28 @@ var directionsService;
                               //icon :  "/static/images/bus-station.svg"
                               
 });
-
+           
+            
+            
+          
           markers.push(marker)
                            
                     };
+         
+          var cBox=document.getElementById("checkbox").checked
+          
+          if (cBox==true) {
 		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
 		
 		for (i in context[0]["rtpi"]["results"]){
 			
 			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
-		};
+        }	
+          }else {
+              var content = "<table> <tr> <th style = 'padding : 5px'> No RTPI available </th> </tr> " 
+          }
+         
+         ;
         
 	
 		var infowindow = new google.maps.InfoWindow({

@@ -157,6 +157,54 @@ def predictions_model(start, end, route, year, month, day, hour):
         total += h_predictions.sum()
         return total
 
+def predictions_model_future (start, end, route, year, month, day, hour):
+
+        """
+        Takes the route, stop, and time information and returns
+        a travel time prediction based on that.
+        """
+        total = 0
+        stops = bssd.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        zones = sllz.objects.all()
+        start_stop = stops.filter(stop_id=start)
+        end_stop = stops.filter(stop_id=end)
+
+        r = inputValidator(start_stop, end_stop)
+        if r:
+                start_stop, end_stop = r[0], r[1]
+        else:
+                return False
+
+        # Creates a list of tuples to pass into the model
+        input_list = []
+        stops = stops.filter(route_direction=start_stop.route_direction,
+                                sequence__gte=start_stop.sequence,
+                                sequence__lt=end_stop.sequence
+                                )
+        for stop in stops:
+                input_list.append((stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
+        date = datetime.datetime(year, month, day, hour)
+        df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
+        df['day'] = date.weekday()
+        hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
+                        (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
+        df['before_7am'], df['7am_9am'], df['9am_11am'],df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
+        
+        df['stop_id'] = df['stop_id'].astype('category', categories=stop_cats)
+        df['day'] = df['day'].astype('category', categories=day_cats)
+        df['zone'] = df['zone'].astype('category', categories=zone_cats)
+
+        df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','zone','distance']]
+        df = pd.get_dummies(df, columns=['stop_id','day','zone'])
+        # Passes tuples into the model, sums up the results, and returns them
+        t_predictions = models[route+'_t'].predict(df)
+        total += t_predictions.sum()
+        del df['distance']
+        h_predictions = models[route+'_h'].predict(df)
+        total += h_predictions.sum()
+        return total
+
+
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
@@ -239,6 +287,15 @@ def predict_request(request):
                 g = request.GET
                 start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
                 prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
+                print("Predicted wait time is", prediction)
+                return HttpResponse(prediction)
+
+def predict_request_future(request):
+        if request.method=='GET':
+                print("is get")
+                g = request.GET
+                start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+                prediction = predictions_model_future(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)
 
