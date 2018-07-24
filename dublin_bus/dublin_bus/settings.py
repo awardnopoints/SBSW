@@ -82,7 +82,7 @@ DATABASES = {
 	'USER': 'student',
 	'PASSWORD': 'sbsw',
 	'HOST': '127.0.0.1',
-	'PORT': '1024',
+	'PORT': '1025',
     }
 }
 
