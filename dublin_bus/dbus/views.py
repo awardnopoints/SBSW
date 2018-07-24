@@ -19,7 +19,7 @@ import requests
 import datetime
 
 
-routes_implemented = ('31')
+routes_implemented = ('31',)
 
 routes_to_be_implemented = ('1', '102', '104', '11', '111', '114', '116', '118', '120', '122', '123', '13', '130', '14', '140', '142', '145', '15', '150', '151', '15A', '15B', '16', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '39A', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9')
 
@@ -52,7 +52,7 @@ def unzip_models():
 
 def load_models():
         models = {}
-        for route in routes:
+        for route in routes_implemented:
         	models[route + '_h'] = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
         	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
         return models
@@ -262,6 +262,15 @@ def predict_request(request):
                 print("is get")
                 g = request.GET
                 start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+                
+                if route in routes_to_be_implemented:
+                        return HttpResponse('<p>Predictions for route ' + route + ' have yet to be implemented.</p>')
+                elif route in routes_in_service_uncovered:
+                        return HttpResponse('<p>Unfortunately, our data does not allow to us to make predictions for Route ' + route + '</p>')
+                elif route in routes_no_longer_in_service:
+                        return HttpResponse('<p>Route ' + route + ' is no longer in service</p>')
+                elif route not in routes_implemented:
+                        return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
