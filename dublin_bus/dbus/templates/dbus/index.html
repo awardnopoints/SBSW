@@ -130,7 +130,8 @@
 	directionsService.route(request, function(result, status){
                 
 		if (status == 'OK') {
-			
+                        console.log(result.routes[0].legs[0].start_location.lat());
+                        console.log(result.routes[0].legs[0].start_location.lng());			
 			directionsDisplay.setDirections(result);
 			
 
