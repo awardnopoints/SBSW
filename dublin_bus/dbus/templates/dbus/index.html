@@ -53,8 +53,10 @@
           <input type="text" name="end">
           <br>
          <br>
-            <p>leave now <input type="checkbox" id="checkbox"></p><p>or</p><div id="picker"> <input type="datetime-local" id="dateTime" data-date-inline-picker="true" /></div>
-          
+            <p>leave now <input type="checkbox" id="checkbox" onclick="disappear()"></p>
+      <div id="new">
+         <input type="datetime-local" id="dateTime" data-date-inline-picker="true" /></div>
+            <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
         <div id="results"><p> </p></div>
@@ -66,7 +68,17 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
-
+function disappear(){
+          var chBox=document.getElementById("checkbox");
+    var box = document.getElementById("new")
+        if (chBox.checked==true) {
+            box.style.display="none";
+        }
+        else
+            {
+            box.style.display="block";
+        }
+}
       $(document).ready(function(){
 
           
@@ -77,7 +89,6 @@
           getPredictions()
         });
 });
-
       
         function getPredictions(){
         var cBox=document.getElementById("checkbox").checked
@@ -88,31 +99,76 @@
           end_stop = $('input[name="end"]').val();
         if (cBox==true) {
          date = new Date();
-            alert(date);
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
-        }
-            else {
-                
-          //  date = new Date();
-       var parsed=Date.parse(dTime);
-                var diff = dTime;
-
-                year=diff.getFullYear();
-  month = diff.getMonth() + 1;
-          day = diff.getDate();
-          hour = diff.getHours();
-}
+            
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
           console.log("Day =", day)
           console.log("Hour =", hour)
+        }
+            else {
+      
+          //  date = new Date();
+        
+                
+          var diff = dTime;
+
+          year=diff.getFullYear();
+          month = diff.getMonth() + 1;
+          day = diff.getDate();
+          hour = diff.getHours();
+          console.log("Route =", route)
+          console.log("Start Stop =", start_stop)
+          console.log("End Stop =", end_stop)
+          console.log("Day =", day)
+          console.log("Hour =", hour)
+    
+                }
+          
+            current = new Date();
+            c_year = current.getFullYear();
+          c_month = current.getMonth() + 1;
+          c_day = current.getDate();
+          c_hour = current.getHours();
+        var max_day;
+            var max_hour;
+        if ((c_month == 9 || c_month == 4 || c_month == 6 ||  c_month == 11) && (c_day<=30 && c_day>=26))  {
+           max_day=c_day-25;
+            }         
+        else if ((c_month==2) && (c_day<=27 && c_day>=23)) {
+            max_day=c_day-25;
+        }
+        else if (c_day<=31 && c_day>=27){
+            max_day=c_day-25;
+      
+        }
+            else {
+            max_day=c_day+5;
+         max_hour=c_hour-3;
+            }
+            
+            
+            
+             //   alert(max_day);
+               // alert(max_hour);
+            24 <29 & c_day 
+            if (day <=max_day && day>=c_day){
+                alert("all good");
+            }else {
+                alert ("out of range for weather")
+            }
+            
+            
+            
+            
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
+              print (data)
               $('#results > p').html("Estimated Journey Time:<br>" + data);
           });
 	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
