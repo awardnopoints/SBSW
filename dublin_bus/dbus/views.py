@@ -13,12 +13,20 @@ import pandas as pd
 import os
 import zipfile
 import sys
+import dbus.bus_realtime as rt
 import json
 import requests
 import datetime
 
 
-routes = ('46A','31')
+routes_implemented = ('31')
+
+routes_to_be_implemented = ('1', '102', '104', '11', '111', '114', '116', '118', '120', '122', '123', '13', '130', '14', '140', '142', '145', '15', '150', '151', '15A', '15B', '16', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '39A', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9')
+
+routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
+
+routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '33N', '39X', '39N', '41N', '42N', '46N', '49N', '66N')
+
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
 day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
@@ -27,7 +35,7 @@ zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
 
 def unzip_models():
-	for route in routes:
+	for route in routes_implemented:
         	for aspect in ('hangtime','traveltime'):
                 	if os.path.exists('dbus/predictive_models/{}_{}_model'.format(route, aspect)):
                         	print('Model {}, {} found'.format(route, aspect))
@@ -49,52 +57,89 @@ def load_models():
         	models[route + '_t'] = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
         return models
 
+def stop_and_routes_info():
+        print('building stops json')
+        mystops = {}
+        stops = sllz.objects.all()
+        for stop in stops:
+                mystop = {}
+                mystop["lat"] = stop.lat
+                mystop["long"] = stop.long
+                mystop["stop_name"] = stop.stop_name
+                mystop["stop_address"] = stop.stop_address
+                mystop["zone"] = stop.zone
+                mystops[stop.stop_id] = mystop
+
+        print('building routes json')
+        myroutes = {}
+        route_numbers = bssd.objects.values_list('route_number',flat=True).distinct()
+        for rn in route_numbers:
+                myroutes[rn] = {'I':[],'O':[]}
+        
+        routes = bssd.objects.all()
+        for stop in routes:
+                mystop = {}
+                mystop['stop_id'] = stop.stop_id
+                mystop['sequence'] = stop.sequence
+                mystop['distance'] = stop.distance
+                myroutes[stop.route_number][stop.route_direction].append(mystop)
+        
+
+        mystops = json.dumps(mystops)
+        myroutes = json.dumps(myroutes)
+        
+        print('json files complete')
+
+        return(mystops, myroutes)
+
+
 unzip_models()
 models = load_models()
+#stops, routes = stop_and_routes_info()
 
+stops = sllz.objects.all()
+routes = bssd.objects.all()
+route_numbers = routes.values_list('route_number', flat=True).distinct()
 
 def home(request):
+        context = {
+                'route_numbers':route_numbers,
+                'stops':stops,
+                'routes':routes
+        }
+        return render(request, 'dbus/index.html', context)
 
-        if request.method == "POST":         
-                
-                form = Predictions(request.POST)
-                if form.is_valid():
-                        stops = DbusStopsv3.objects.all()
-                        start = form.cleaned_data['start']
-                        end = form.cleaned_data['end']
-                        form = Predictions()
-                        day = 0
-                        hour = 10.0
-                        minute = 15
-                        route = "46A"
+def get_times(json_parsed, user_route):
+        
+    results=json_parsed['results']
+    i=0
+    length=len(results)
+    while i < length:
 
-                        #result = predictions(start, end, route, hour, day, minute) #etc )
-                        result = predictions_model(start, end, route, day, hour)
-                        if result:
-                                mins = int(result/60)
-                                secs = int(result%60)
-                                result = str(mins) + ':' + str(secs)
+        each = results[i]
+        additional_info=each['additionalinformation']
+        arrival_time = each['arrivaldatetime']
+        departure_time = each['departuredatetime']
+        departing_in = each['departureduetime']
+        destination = each['destination']
+        destination_local=each['destinationlocalized']
+        direction = each['direction']
+        arriving_in = each['duetime']
+        low_floor=each['lowfloorstatus']
+        monitored=each['monitored']
+        operator=each['operator']
+        origin = each['origin']
+        origin_local=each['originlocalized']
+        route=each['route']
+        scheduled_arrival = each['scheduledarrivaldatetime']
+        scheduled_departure = each['scheduleddeparturedatetime']
+        timestamp = each['sourcetimestamp']
+        i+=1
 
-                        context = {
-                                "stops": stops,
-                                "result": result,
-                                "form": form
-                                }
-
-                return render(request, 'dbus/result.html', context)
-
-        else:
-
-                stops = DbusStopsv3.objects.all()
-                form = Predictions()
-                context = {
-                        "stops": stops,
-                        "form": form
-                        }
-
-
-                return render(request, 'dbus/index.html', context)
-
+        times=""
+        if (route==user_route):
+            times+=departing_in
+        return times
 
 def predictions_model(start, end, route, year, month, day, hour):
 
@@ -155,6 +200,13 @@ def predictions_model(start, end, route, year, month, day, hour):
         del df['distance']
         h_predictions = models[route+'_h'].predict(df)
         total += h_predictions.sum()
+        minutes = str(int(total/60))
+        seconds = int(total%60)
+        if seconds < 10:
+                seconds = '0' + str(seconds)
+        else:
+                seconds = str(seconds)
+        total = minutes + ':' + seconds
         return total
 
 def inputValidator(start_stop, end_stop):
@@ -177,61 +229,33 @@ def inputValidator(start_stop, end_stop):
         else:
                 start_stop = start_stop.first()
                 end_stop = end_stop.first()
+                
         if start_stop.route_direction != end_stop.route_direction:
                 return False
-        return(start_stop, end_stop)        
+
+        return(start_stop, end_stop) 
+
+
+def wait_time(route, stop_id):
         
-
-def predictions(start, end, route, hour, day, minute):
-	
-        total = 0
-
-
-        if minute >= 30:
-                minute = 45
+       # returns real time info from api based on user selected stop id - refers to function in bus_realtime file
+        url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
+        rt.delete_current_rtpi()
+        data = rt.call_api(url)
+        json_parsed = rt.write_file(data)
+        realtime = get_times(json_parsed, route)
+        print ('Realtime:',realtime)
+                
+        if (realtime == "Due"):
+            wait = 'Due Now'
         else:
-                minute = 15
-
-        fh = open("/home/student/analytics/routes/%s.txt"  % route)
-
-        start_stop = False
-
-        start_stretch = 0
-
-        for line in fh:
-		
-                line = str(int(line))
-
-                if int(line) == int(start):
-
-                        start_stop = True
-                        start_stretch = line
-
-                elif start_stop == True and int(line) != int(end):
-                      
-                        
-                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=str(line), start_stop = start_stretch)
-
-                        print(att)
-
-                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
-
-                        start_stretch = line
-
-
-
-                elif start_stop == True and int(line) == int(end):
-			
-                        att = Trip_avg.objects.all().filter(hour=hour, minute=minute, day_of_week=day, end_stop=end, start_stop=start_stretch)
-                        total += (int(att[0].avg_time_taken) + int(att[0].avg_hang))
-                        break
-
-        return total
-
-def ajax_view(request):
-        if request.method=='GET':
-                message = request.GET['message']
-                return HttpResponse('Message: ' + message)
+            wait = realtime + ':00'
+        
+        if realtime == "":
+                wait = "Unknown"
+       
+        return wait
+        
 
 def predict_request(request):
         if request.method=='GET':
@@ -240,8 +264,42 @@ def predict_request(request):
                 start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
                 prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
-                return HttpResponse(prediction)
+                wait = wait_time(route, start_stop)
+                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p>')
 
+def getRoutes(request):
+        return HttpResponse(routes)
+
+def getStops(request):
+        return HttpResponse(stops)
+
+def bus_stops(request):
+        if request.method=='GET':
+            g=request.GET
+            routes=BusStopsSequence.objects.values('route_number').distinct()
+            route_no=g['route_number']
+            stops2 = BusStopsSequence.objects.filter(route_number=route_no).values_list('stop_id', flat=True)
+            #list_stops=[]
+          
+            return HttpResponse(json.dumps(list(stops2)))
+        
+      
+
+def outbound (request):
+        if request.method=='GET':
+            g=request.GET
+            routes=BusStopsSequence.objects.values('route_number').distinct()
+            route_no=g['route_number']
+            stop=g['start_stop']
+            stops2 = BusStopsSequence.objects.filter(route_number=route_no)
+            inbound=stops2.values_list('stop_id').filter(route_direction="I")
+            outbound=stops2.values_list('stop_id').filter(route_direction="O")
+            if stop in inbound:
+                    print ("hey")
+                    return HttpResponse(inbound)
+            else:
+                    return HttpResponse(outbound)
+ 
 
 def popStop(request):
         if request.method=='GET':
