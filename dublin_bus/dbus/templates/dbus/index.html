@@ -53,8 +53,9 @@
           <input type="text" name="end">
           <br>
          <br>
-            <p>Leave Now <input type="checkbox" id="checkbox" onclick="disappear()"></p>
-      <div id="new">
+            Leave Now <input type="checkbox" id="checkbox" onclick="disappear()"><br>
+            
+      <div id="new"><br>
          <input type="datetime-local" id="dateTime" data-date-inline-picker="true"/></div>
             <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
@@ -68,6 +69,93 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
+        
+       // document.getElementById("dateTime").min = "2018-07-25T00:00:00";
+    //     document.getElementById("dateTime").max = "2018-07-29T23:59:59";
+ 
+              current = new Date();
+            c_year = current.getFullYear();
+          c_month = current.getMonth() + 1;
+            if (c_month >= 0 && c_month<=9) {
+            c_month = "0" + c_month;
+        }
+          c_day = current.getDate();
+            if (c_day >= 0 && c_day<=9) {
+            c_day = "0" + c_day;
+        }
+          c_hour = current.getHours();
+      document.getElementById("dateTime").min = c_year + "-" + c_month + "-" + c_day + "T" + c_hour + ":00" + ":00";
+      
+        
+        
+        if ((c_month == 9 || c_month == 4 || c_month == 6 ||  c_month == 11) && (c_day<=30 && c_day>=27))  {
+            c_day27=25;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=30 ;i> c_day27; i-- ) {
+                new_day=i-26;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+        else if ((c_month==2) && (c_day<=28 && c_day>=25)) {
+             c_day27=25;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=28 ;i> c_day27; i-- ) {
+                new_day=i-24;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+       
+        else if (c_day<=31 && c_day>=27){
+             c_day27=27;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=31 ;i> c_day27; i-- ) {
+                new_day=i-27;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+    
+            else {
+            
+       future_day=c_day+4;
+         document.getElementById("dateTime").max = c_year + "-" + c_month + "-" + future_day + "T" + "23:59:59";
+    
+            }
+        
+        
+        
+        
+        
+        
+        
+        
+        
      function disappear(){
           var chBox=document.getElementById("checkbox");
     var box = document.getElementById("new")
@@ -129,54 +217,20 @@
     
                 }
           
-            current = new Date();
-            c_year = current.getFullYear();
-          c_month = current.getMonth() + 1;
-          c_day = current.getDate();
-          c_hour = current.getHours();
-        var max_day;
-         
-        if ((c_month == 9 || c_month == 4 || c_month == 6 ||  c_month == 11) && (c_day<=30 && c_day>=26))  {
-           max_day=c_day-25;
-        
-            }         
-        else if ((c_month==2) && (c_day<=27 && c_day>=23)) {
-            max_day=c_day-25;
-       
-        }
-        else if (c_day<=31 && c_day>=27){
-            max_day=c_day-25;
-   
       
-        }
-            else {
-            max_day=c_day+5;
-    
-            }
+         
+
+        
             
-            
-            
-             //   alert(max_day);
-               // alert(max_hour);
+
            
-            if (day <=max_day && day>=c_day){
-                alert("weather prediction available");
                     $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
               $('#results > p').html("Estimated Journey Time:<br>" + data);
           });
                 
-            }else {
-                 alert ("out of range for weather");
-            $.get('/predict_request/', {route: route, start_stop: start_stop, 
-            end_stop: end_stop, year: year, month: month, day: day, 
-            hour: hour}, function(data){
-              $('#results > p').html("Estimated Journey Time:<br>" + data);
-          });
-               
-            }
-            
+         
             
             
             

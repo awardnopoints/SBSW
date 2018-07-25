@@ -184,18 +184,33 @@ def predictions_model_future (start, end, route, year, month, day, hour):
         for stop in stops:
                 input_list.append((stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
         date = datetime.datetime(year, month, day, hour)
+        weather = forecast.objects.filter(datetime__date=datetime.date(year, month, day),
+                                        datetime__hour__lte=hour+1.5
+                                        )
+       
+        print(len(weather))
+        if len(weather) == 0:
+                weather = forecast.objects.all().first()
+        else:
+                weather = weather.last()
+        print(weather)
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
         df['day'] = date.weekday()
+        df['weather_main'] = weather.mainDescription
+        df['temp'] = weather.temp
+        df['wind_speed'] = weather.wind_speed
+        
         hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
                         (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
         df['before_7am'], df['7am_9am'], df['9am_11am'],df['11am_3pm'], df['3pm_6pm'], df['6pm_midnight'] = hours_tuple
         
         df['stop_id'] = df['stop_id'].astype('category', categories=stop_cats)
         df['day'] = df['day'].astype('category', categories=day_cats)
+        df['weather_main'] = df['weather_main'].astype('category', categories=weather_cats)
         df['zone'] = df['zone'].astype('category', categories=zone_cats)
 
-        df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','zone','distance']]
-        df = pd.get_dummies(df, columns=['stop_id','day','zone'])
+        df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
+        df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
         t_predictions = models[route+'_t'].predict(df)
         total += t_predictions.sum()
