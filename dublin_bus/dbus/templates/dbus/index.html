@@ -42,7 +42,17 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
-        <form method = "POST" class = "post-form" id="post-form">{% csrf_token %}
+        <form method = "POST" class = "post-form" id="post-form1">{% csrf_token %}
+	  Start Address<br>
+	  <input id="start_address" type="text" name="start_address">
+	  <br>
+          End Address<br>
+	  <input id="end_address" type="text" name="end_address">
+	  <br>
+	  <br>
+	  <button id="address_submit" type="submit">Submit</button>
+	  </form>
+	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
           Route:<br>
           <input type="text" name="route">
           <br>
@@ -98,6 +108,114 @@
             drawRoute(data);
           });
         };
+
+	$(document).ready(function() {
+
+		$('#post-form1').on('submit', function(event){
+			event.preventDefault();
+			$('#results > p').text('waiting...');
+			getPredictionsAddress();
+		});
+	});
+
+
+	async function getPredictionsAddress() {
+		
+		context = await getDirections();
+		
+		lat1 = context[0];
+		lng1 = context[1];
+		lat2 = context[2];
+		lng2 = context[3];
+		
+		walk_time = context[4];
+		
+		date = new Date();
+	        year = date.getFullYear();
+                month = date.getMonth() + 1;
+                day = date.getDate();
+                hour = date.getHours();
+
+		$.get('/predict_address/', {lat1 : lat1, lng1 : lng1, lat2: lat2, lng2: lng2, walk_time: walk_time,
+		 year: year, month: month, day: day, hour: hour}, function(data) {
+
+			$('#results > p').html("Estimated Journey Time:<br>" + data[0]);
+			popStops(data[1])
+			drawRoute(data[1])
+			});
+
+		};
+
+	function getDirections() {
+
+		return new Promise(function(resolve, reject) {	
+
+		var result = []
+		var walk_time	
+
+		var start = document.getElementById("start_address").value;
+		var end = document.getElementById("end_address").value;
+
+		var request = {
+			origin: start,
+			destination: end,
+			travelMode: 'TRANSIT',
+			transitOptions: {
+				modes: ['BUS'],
+				routingPreference : 'FEWER_TRANSFERS'
+				},
+			}
+
+		directionsService.route(request, function(result, status){
+
+			var context = []
+		
+			if (status == "OK") {
+				steps = result.routes[0].legs[0].steps
+				console.log(steps);
+				for (var i = 0; i<steps.length; i++) {
+
+					
+
+					if (steps[i].travel_mode == "TRANSIT") {
+
+						console.log("bus");	
+						console.log(steps[i])
+						console.log(steps[i].path[steps[i].path.length - 1].lng());
+						console.log(steps[i].path.length);
+						var lat1 = steps[i].path[0].lat()
+						var lat2 = steps[i].path[steps[i].path. length - 1].lat()
+						var lng1 = steps[i].path[0].lng()
+						var lng2 = steps[i].path[steps[i].path.length - 1].lng()
+						console.log(lng2);
+						
+						context.push(lat1);
+						context.push(lng1)
+						context.push(lat2)
+						context.push(lng2)		
+						console.log(context);	
+						
+					
+					}
+					else {
+
+						walk_time += steps[i].duration["value"];
+
+					}
+
+				}
+
+					context.push(walk_time);
+
+					resolve(context);	
+
+			}
+				
+		});
+
+	});
+
+	}	
  
       function Go(){
           document.getElementById('results').innerHTML= " "
@@ -140,10 +258,7 @@
 }
 
 
-              
-          
-          
-          
+var placeSearch, autocomplete_start, autocomplete_end; 
           
       // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
       // Finds routes that pass through each bus stop and selects only those common to both. 
@@ -151,67 +266,70 @@
 
       //next take time of day, day of week, weather and input into predictor?//
           
-          
-      function GetRoutes(start, end) {
-        // GetPrediction(start, end, route);
-          //match the start and end bus to start and end bus 
-          //get routes
-          //get stops between
-      }
-              
-//      function GetPrediction(start, end, route) {
-//          var dayInput = document.getElementById("exampleFormControlSelect1Day");
-//          var day = selectTime.options[selectTime.selectedIndex].text;
-//          var timeInput = document.getElementById("exampleFormControlSelect1Time");
-//          var time = selectDay.options[selectDay.selectedIndex].text;
-//          
-//          if (day == " " || time == " ") {
-//              var dt = new Date();
-//              var time = dt.getHours() + ":" + dt.getMinutes();
-//              //var day =
-//                  
-//              // new Date($.now());
-//          //
-//          }
-//      }
-
 var map; 
 var markers = []
 var directionsDisplay;
 var directionsService;
         
-      function initMap(){
+function initMap(){
 
-      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
+	directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
 
-      directionsService = new google.maps.DirectionsService();
+	directionsService = new google.maps.DirectionsService();
 
    	
-      map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 12,
+	map = new google.maps.Map(document.getElementById('map'), {
+        	zoom: 12,
                 center: {lat: 53.3498, lng: -6.2603}
               });
                
 		
-             var trafficLayer = new google.maps.TrafficLayer();
-             trafficLayer.setMap(map);
-/*
-      markers = [];
-      {% for item in stops %}
-                      var name = "{{item.stop_name}}"
-                      var latitude = "{{item.latitude}}"
-                      var longitude = "{{item.longitude}}"
-                      var marker = new google.maps.Marker({
-                              position: {lat: Number(latitude), lng: Number(longitude)},
-                              map: map,
-                              title: name
-                      });
-                      markers.push(marker);
-              {% endfor %}
-              var markerCluster = new MarkerClusterer(map, markers,
-                  {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-*/
-      }
+	var trafficLayer = new google.maps.TrafficLayer();
+	trafficLayer.setMap(map);
+
+	//autocomplete section on init
+
+	var input_start = document.getElementById('start_address');
+	var input_end = document.getElementById('end_address');
+
+	var store = []
+
+        var options = {
+                types: ['geocode'],
+                componentRestrictions : {country: 'ie'}
+        };
+
+	var fields = [
+		'address_components',
+		'geometry',
+		'icon',
+		'name'
+	];
+        
+        autocomplete_start = new google.maps.places.Autocomplete(input_start, options);
+	autocomplete_start.setFields(fields);
+        autocomplete_end = new google.maps.places.Autocomplete(input_end, options);
+	autocomplete_end.setFields(fields);
+
+        store.push(autocomplete_start);
+        store.push(autocomplete_end);
+
+	for (var i = 0; i< store.length; i++) {
+
+		store[i].addListener('place_changed', function() {
+			var place = store[i].getPlace();
+			if (!place.geometry) {
+				window.alert("No details available for input: '" + place.name + "'");
+				return;
+			}
+
+			
+			});
+
+	}
+
+	return;
+};
 
      function popStops(context){
       console.log(context[0]["rtpi"])      
@@ -264,7 +382,7 @@ function removeMarkers(){
 };
 
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap" type = 'text/javascript'></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap&libraries=places" type = 'text/javascript'></script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>   
     
   </body>

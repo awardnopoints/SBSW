@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.template import RequestContext, loader
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import TemplateView
+from django.db import connection
 from dbus.models import DbusStopsv3
+from dbus.models import DbusStopsv4
 from dbus.models import Trip_avg
 from dbus.models import BusStopsSequenceDistance as bssd
 from dbus.models import StopsLatlngZone as sllz
@@ -182,7 +184,12 @@ def inputValidator(start_stop, end_stop):
         return(start_stop, end_stop)        
         
 
+"""
 def predictions(start, end, route, hour, day, minute):
+
+
+#A function to return basic average predictions
+
 	
         total = 0
 
@@ -227,6 +234,8 @@ def predictions(start, end, route, hour, day, minute):
                         break
 
         return total
+
+"""
 
 def ajax_view(request):
         if request.method=='GET':
@@ -291,3 +300,36 @@ def popStop(request):
   
         
         return JsonResponse(response)
+
+
+def predict_address(request):
+
+    if request.method=="GET":
+        g = request.GET
+        lat1, lng1, lat2, lng2, walk_time, year, month, day, hour = g['lat1'], g['lng1'], g['lat2'], g['lng2'], g['walk_time'], g['year'], g['month'], g['day'], g['hour']
+
+        query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
+
+        print(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
+
+        stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
+
+        print(stop1)
+
+
+        stop2 = DbusStopsv3.objects.raw("select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;" % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
+
+        print(stop1)
+        print(stop2)
+
+        route = (bssd.objects.all().filter(stop_id = stop1) & bssd.objects.all().filter(stop_id = stop1))[0].route_number
+
+        print(route)
+
+        prediction = predictions_model(stop1, stop2, route, int(year), int(month), int(day), int(hour))
+
+        print(prediction)
+ 
+        return HttpResponse(prediction + float(walk_time))
+
+
