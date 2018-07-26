@@ -251,52 +251,59 @@ def predict_request(request):
                 print("Predicted wait time is", prediction)
                 return HttpResponse(prediction)
 
+def getStops(route, start_stop, end_stop):
+
+    stops = bssd.objects.all().filter(route_number = route)
+    first = False
+    last = False
+    response = {}
+    i = 0
+    for stop in stops:
+
+        stop = str(stop.stop_id)
+
+
+        if not first and stop == start_stop:
+            url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
+            req = requests.get(url)
+            req_text = req.text
+            json_parsed = json.loads(req_text)
+            first = True
+            latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+
+            lat = latlong[0].lat
+            lon = latlong[0].longitude
+            response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
+            i += 1
+
+        elif first and not last and stop != end_stop:
+
+            latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+
+            lat = latlong[0].lat
+            lon = latlong[0].longitude
+            response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
+            i += 1
+
+
+        elif first and not last and stop == end_stop:
+
+             last = True
+             latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
+             lat = latlong[0].lat
+             lon = latlong[0].longitude
+             response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
+             break
+
+    return response
+
+
 
 def popStop(request):
         if request.method=='GET':
                 g = request.GET
                 start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
-                stops = bssd.objects.all().filter(route_number = route)
-                first = False
-                last = False
-                response = {}
-                i = 0
-                for stop in stops:
-
-                        stop = str(stop.stop_id)
-
-                        
-                        if not first and stop == start_stop:
-                                url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
-                                req = requests.get(url)
-                                req_text = req.text
-                                json_parsed = json.loads(req_text)
-                                first = True
-                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
-                                
-                                lat = latlong[0].lat
-                                lon = latlong[0].longitude
-                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
-                                i += 1
-                        
-                        elif first and not last and stop != end_stop:
-
-                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
-                                
-                                lat = latlong[0].lat
-                                lon = latlong[0].longitude
-                                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
-                                i += 1
-
-
-                        elif first and not last and stop == end_stop:
- 
-                                last = True
-                                latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
-                                lat = latlong[0].lat
-                                lon = latlong[0].longitude
-                                response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
-                                break
+                response = getStops(route, start_stop, end_stop_
   
         
         return JsonResponse(response)
@@ -310,26 +317,21 @@ def predict_address(request):
 
         query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
 
-        print(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
-
         stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
-
-        print(stop1)
-
 
         stop2 = DbusStopsv3.objects.raw("select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;" % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
 
-        print(stop1)
-        print(stop2)
-
         route = (bssd.objects.all().filter(stop_id = stop1) & bssd.objects.all().filter(stop_id = stop1))[0].route_number
-
-        print(route)
 
         prediction = predictions_model(stop1, stop2, route, int(year), int(month), int(day), int(hour))
 
-        print(prediction)
+        stops = getStops(route, stop1, stop2)
+
+	context = {}
+
+	context["stops"] = stops
+	context["prediciton"] = prediction + walk_time
  
-        return HttpResponse(prediction + float(walk_time))
+        return JsonResponse(context)
 
 
