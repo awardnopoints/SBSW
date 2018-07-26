@@ -57,7 +57,7 @@
           <input type="text" name="route">
           <br>
           Start Stop:<br>
-          <input type="text" name="start">
+          <input type="text" name="start" id="start">
           <br>
           End Stop:<br>
           <input type="text" name="end">
@@ -75,7 +75,9 @@
     <script type = "text/javascript">
 
       $(document).ready(function(){
+          
 
+          $("#start").html("clicked");
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
@@ -233,6 +235,7 @@
 	var len = Object.keys(data).length
         
         var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
+        alert(start);
         var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
 	
         var request = {
@@ -342,10 +345,37 @@ function initMap(){
                               map: map,
                               title: context[key]["stop"],
                               //icon :  "/static/images/bus-station.svg"
-                              
-});
+              });
+              google.maps.event.addDomListener(marker, 'click', function() {
+  //   document.getElementById('start').value= "clicked";
+            var mPosition=marker.getPosition();
+          lats=(mPosition.lat());
+           longs=(mPosition.lng());
+          alert(mPosition);
+            $.get('/get_stop_no/', {lat: lats}, function(data) {
+                document.getElementById('start').value=data;
+              
+			});
+            alert('clicked');
+         })
+ 
 
-          markers.push(marker)
+                              
+
+          
+           markers.push(marker);
+var mPosition=marker.getPosition();
+          lats=(mPosition.lat());
+           longs=(mPosition.lng());
+          
+        
+          
+       //   	$.get('/get_stop_no/', {lat: lats}, function(data) {
+
+		//	$('#results > p').html(data);
+              
+		//	});
+          
                            
                     };
 		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
@@ -353,6 +383,7 @@ function initMap(){
 		for (i in context[0]["rtpi"]["results"]){
 			
 			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
+ 
 		};
         
 	
@@ -360,16 +391,17 @@ function initMap(){
 			content: content
 
 		});
+         
 
-
+       
 		infowindow.open(map, markers[0]);
 
 		google.maps.event.addListener(markers[0], 'click', function() {
 			console.log("hello");
 			infowindow.open(map, markers[0]);
 		});
-
-
+         
+       
 		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
 };
 

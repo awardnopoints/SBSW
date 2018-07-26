@@ -162,23 +162,23 @@ def predictions_model(start, end, route, year, month, day, hour):
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
-                return False
+            return False
         if len(start_stop) > 1 or len(end_stop) > 1:
-                resolved = False
-                for s in start_stop:
-                        if resolved:
-                                break
-                        for e in end_stop:
-                                print(s, '\n', e)
-                                if s.sequence < e.sequence and s.route_direction == e.route_direction:
-                                        start_stop, end_stop = s, e
-                                        resolved = True
-                                        break
+            resolved = False
+            for s in start_stop:
+                if resolved:
+                    break
+            for e in end_stop:
+                print(s, '\n', e)
+                if s.sequence < e.sequence and s.route_direction == e.route_direction:
+                    start_stop, end_stop = s, e
+                    resolved = True
+                    break
                 if not resolved:
-                        return False
+                    return False
         else:
-                start_stop = start_stop.first()
-                end_stop = end_stop.first()
+            start_stop = start_stop.first()
+            end_stop = end_stop.first()
         if start_stop.route_direction != end_stop.route_direction:
                 return False
         return(start_stop, end_stop)        
@@ -238,18 +238,18 @@ def predictions(start, end, route, hour, day, minute):
 """
 
 def ajax_view(request):
-        if request.method=='GET':
-                message = request.GET['message']
-                return HttpResponse('Message: ' + message)
+    if request.method=='GET':
+        message = request.GET['message']
+        return HttpResponse('Message: ' + message)
 
 def predict_request(request):
-        if request.method=='GET':
-                print("is get")
-                g = request.GET
-                start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
-                prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
-                print("Predicted wait time is", prediction)
-                return HttpResponse(prediction)
+    if request.method=='GET':
+        print("is get")
+        g = request.GET
+        start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+        prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
+        print("Predicted wait time is", prediction)
+        return HttpResponse(prediction)
 
 def getStops(route, start_stop, end_stop):
 
@@ -300,13 +300,13 @@ def getStops(route, start_stop, end_stop):
 
 
 def popStop(request):
-        if request.method=='GET':
-                g = request.GET
-                start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
-                response = getStops(route, start_stop, end_stop_
-  
-        
-        return JsonResponse(response)
+    if request.method=='GET':
+        g = request.GET
+        start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
+        response = getStops(route, start_stop, end_stop)
+
+
+    return JsonResponse(response)
 
 
 def predict_address(request):
@@ -327,11 +327,19 @@ def predict_address(request):
 
         stops = getStops(route, stop1, stop2)
 
-	context = {}
+        context = {}
 
-	context["stops"] = stops
-	context["prediciton"] = prediction + walk_time
- 
+        context["stops"] = stops
+        context["prediciton"] = prediction + walk_time
+
         return JsonResponse(context)
 
+def get_stop_no (request):
+    if request.method=="GET":
+        g=request.GET
+        lat=g['lat']
+        stops=[]
+        stops=DbusStopsv4.objects.values_list('stop_id', flat=True).filter(lat=lat)
+        return HttpResponse(stops)
+        
 

@@ -7,7 +7,8 @@ urlpatterns = [
         path('dbus/ajax_test/', views.ajax_view, name = 'ajax_view'),
         path('predict_request/', views.predict_request, name='predict_request'),
         path('popStop/', views.popStop, name = 'popStop'),
-        path('predict_address/' , views.predict_address, name='predict_address')
+        path('predict_address/' , views.predict_address, name='predict_address'),
+        path('get_stop_no/' , views.get_stop_no, name='get_stop_no')
 
 ]
 
