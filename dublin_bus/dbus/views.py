@@ -322,69 +322,69 @@ def predict_address(request):
         g = request.GET
         year, month, day, hour = g['year'], g['month'], g['day'], g['hour']
         latlng = json.loads(g["context"])[0]
-        print(latlng)
-      
+        walk_time = latlng["walk_time"]
         prediction = 0
         context = {}
         context["stops"] = []
         context["prediction"] = []
+        context["error"] = "0"
 	#context from the front end could include more that one bus journey so loop through all bus journeys
 	#and added on prediction for each one and relevant stops
 
-        for key, i in latlng.items():
+        try:
+            for key, i in latlng.items():
             
-            if key in "012345689":
-               print(key)
-               lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
+                if key in "012345689":
+                   print(key)
+                   lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
 	
-               query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
+                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
+               
+                   stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
-               stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
+                   stop2 = DbusStopsv3.objects.raw("select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;" % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
 
-               stop2 = DbusStopsv3.objects.raw("select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;" % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
+                   url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop1) + "&format=json"
+                   req = requests.get(url)
+                   req_text = req.text
+                   json_parsed = json.loads(req_text)
 
-               url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop1) + "&format=json"
-               req = requests.get(url)
-               req_text = req.text
-               json_parsed = json.loads(req_text)
+                   route_time = math.inf
 
-
-               print(stop1)
-               print(stop2)
-
-               route_time = math.inf
-
-               route = bssd.objects.raw("select * from (select * from bus_stops_sequence_distance where stop_id = %s) as a join (select * from bus_stops_sequence_distance where stop_id = %s) as b where a.route_number = b.route_number;" % (stop1, stop2))
+                   route = bssd.objects.raw("select * from (select * from bus_stops_sequence_distance where stop_id = %s) as a join (select * from bus_stops_sequence_distance where stop_id = %s) as b where a.route_number = b.route_number;" % (stop1, stop2))
         
-               final_route = route[0].route_number
+                   final_route = route[0].route_number
 
         #above query could return more than one route so use rtpi to decide which one to use (next one due at the first stop)
  
-               for i in route:
-                   results = json_parsed["results"]
+                   for i in route:
+                       results = json_parsed["results"]
 
-                   for result in results:
+                       for result in results:
 
-                       if result["route"] == str(i.route_number):  
+                           if result["route"] == str(i.route_number):  
 
-                           if result["duetime"] == "Due":
+                               if result["duetime"] == "Due":
 
-                               route_time = 0
-                               final_route = result["route"]
+                                   route_time = 0
+                                   final_route = result["route"]
 
-                           elif int(result["duetime"]) < route_time:
-                               route_time = int(result["duetime"])
-                               final_route = result["route"]     
+                               elif int(result["duetime"]) < route_time:
+                                   route_time = int(result["duetime"])
+                                   final_route = result["route"]     
        
                 #prediction = predictions_model(stop1, stop2, route, int(year), int(month), int(day), int(hour))
-               prediction = 1
-               print(str(final_route))
-               stops = getStops(str(final_route), str(stop1), str(stop2))
+                   prediction = 1 + walk_time
+               
+                   stops = getStops(str(final_route), str(stop1), str(stop2))
 
-               context["stops"].append(stops)
-               context["prediction"].append(prediction)
+                   context["stops"].append(stops)
+                   context["prediction"].append(prediction)
 
-        
+        except Exception as e:
+           context["error"] = "1"
+           print(e)   
+
         return JsonResponse(context)
 
 

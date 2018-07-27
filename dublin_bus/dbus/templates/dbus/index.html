@@ -166,10 +166,14 @@
 
 		$.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
 
-			$('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
-                        console.log(data)
+                        if (data["error"] == "0") {
 			popStops(data["stops"])
 			drawRoute(data["stops"])
+			$('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
+			}
+			else{
+			$('#results > p').html("Oops, something went wrong enter a different route and please try again");
+			}
 			});
 
 		};
@@ -198,19 +202,16 @@
 
 			var context = {}
 			var step_no = 1
+			var walk_time = 0;
 		
 			if (status == "OK") {
 				steps = result.routes[0].legs[0].steps
 				
 				for (var i = 0; i<steps.length; i++) {
 
-					
-
 					if (steps[i].travel_mode == "TRANSIT") {
 
 						route = []
-
-						console.log("bus");	
 						
 						var lat1 = steps[i].path[0].lat()
 						var lat2 = steps[i].path[steps[i].path. length - 1].lat()
@@ -228,14 +229,15 @@
 					
 					}
 					else {
-
-						walk_time += steps[i].duration["value"];
+					
+						walk_time += steps[i].duration.value;
 
 					}
 
 				}
 
 					context["walk_time"] = walk_time
+					
 
 					resolve(context);	
 
@@ -257,7 +259,7 @@
 
 
       function drawRoute(data){
-	console.log(data)
+	
 	directionsDisplay.setMap(map);
         
         var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]))
@@ -265,7 +267,7 @@
 	var len = Object.keys(data[i]).length
         var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
 	}
-	console.log(end)
+
         var request = {
 		origin: start,
 		destination: end,
@@ -279,8 +281,7 @@
 	directionsService.route(request, function(result, status){
                 
 		if (status == 'OK') {
-                        console.log(result.routes[0].legs[0].start_location.lat());
-                        console.log(result.routes[0].legs[0].start_location.lng());			
+                        
 			directionsDisplay.setDirections(result);
 			
 
@@ -325,7 +326,13 @@ function initMap(){
 
 	var store = []
 
+	var cityBounds = new google.maps.LatLngBounds(
+		new google.maps.LatLng(52.840362, -7.228772),
+		new google.maps.LatLng(54.017627, -6.164425)
+		);
+
         var options = {
+		bounds: cityBounds,
                 types: ['geocode'],
                 componentRestrictions : {country: 'ie'}
         };
