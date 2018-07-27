@@ -346,9 +346,18 @@ function initMap(){
                               title: context[key]["stop"],
                               //icon :  "/static/images/bus-station.svg"
               });
-              google.maps.event.addDomListener(marker, 'click', function() {
+       
+   
+           markers.push(marker);
+var mPosition=marker.getPosition();
+          lats=(mPosition.lat());
+           longs=(mPosition.lng());
+          
+      };
+         
+                google.maps.event.addDomListener(markers[2], 'click', function() {
   //   document.getElementById('start').value= "clicked";
-            var mPosition=marker.getPosition();
+            var mPosition=markers[2].getPosition();
           lats=(mPosition.lat());
            longs=(mPosition.lng());
           alert(mPosition);
@@ -358,17 +367,7 @@ function initMap(){
 			});
             alert('clicked');
          })
- 
-
-                              
-
           
-           markers.push(marker);
-var mPosition=marker.getPosition();
-          lats=(mPosition.lat());
-           longs=(mPosition.lng());
-          
-        
           
        //   	$.get('/get_stop_no/', {lat: lats}, function(data) {
 
@@ -377,7 +376,7 @@ var mPosition=marker.getPosition();
 		//	});
           
                            
-                    };
+     
 		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
 		
 		for (i in context[0]["rtpi"]["results"]){
