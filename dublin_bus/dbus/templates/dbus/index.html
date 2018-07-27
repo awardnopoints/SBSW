@@ -42,6 +42,7 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
+	<span id="invalid"><p></p></span>
         <form method = "POST" class = "post-form" id="post-form1">{% csrf_token %}
 	  Start Address<br>
 	  <input id="start_address" type="text" name="start_address">
@@ -50,7 +51,7 @@
 	  <input id="end_address" type="text" name="end_address">
 	  <br>
 	  <br>
-	  <button id="address_submit" type="submit">Submit</button>
+	  <input id="address_submit" type="submit"></input>
 	  </form>
 	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
           Route:<br>
@@ -73,6 +74,28 @@
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
+
+
+	function validateForm() {
+
+		start = document.getElementById("start_address").value;
+		end = document.getElementById("end_address").value;
+
+                if (start == "" || end == "") {
+
+			console.log("invalid")
+			$('#invalid > p').text("Oops, please complete the form and try again");
+			return false;
+                       
+
+		}
+
+		else {
+			$('#invalid > p').text("");
+			return true;
+		}		
+
+	}
 
       $(document).ready(function(){
 
@@ -109,26 +132,31 @@
           });
         };
 
+        
+
 	$(document).ready(function() {
 
 		$('#post-form1').on('submit', function(event){
-			event.preventDefault();
+                        event.preventDefault()
+                        valid = validateForm()
+			if (valid) {
+			
 			$('#results > p').text('waiting...');
 			getPredictionsAddress();
+		}
 		});
 	});
+	
+
+	
 
 
 	async function getPredictionsAddress() {
 		
-		context = await getDirections();
-		
-		lat1 = context[0];
-		lng1 = context[1];
-		lat2 = context[2];
-		lng2 = context[3];
-		
-		walk_time = context[4];
+		var context = await getDirections();
+		output = []
+		output.push(context)		
+		context = JSON.stringify(output)		
 		
 		date = new Date();
 	        year = date.getFullYear();
@@ -136,12 +164,12 @@
                 day = date.getDate();
                 hour = date.getHours();
 
-		$.get('/predict_address/', {lat1 : lat1, lng1 : lng1, lat2: lat2, lng2: lng2, walk_time: walk_time,
-		 year: year, month: month, day: day, hour: hour}, function(data) {
+		$.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
 
-			$('#results > p').html("Estimated Journey Time:<br>" + data[0]);
-			popStops(data[1])
-			drawRoute(data[1])
+			$('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
+                        console.log(data)
+			popStops(data["stops"])
+			drawRoute(data["stops"])
 			});
 
 		};
@@ -168,32 +196,34 @@
 
 		directionsService.route(request, function(result, status){
 
-			var context = []
+			var context = {}
+			var step_no = 1
 		
 			if (status == "OK") {
 				steps = result.routes[0].legs[0].steps
-				console.log(steps);
+				
 				for (var i = 0; i<steps.length; i++) {
 
 					
 
 					if (steps[i].travel_mode == "TRANSIT") {
 
+						route = []
+
 						console.log("bus");	
-						console.log(steps[i])
-						console.log(steps[i].path[steps[i].path.length - 1].lng());
-						console.log(steps[i].path.length);
+						
 						var lat1 = steps[i].path[0].lat()
 						var lat2 = steps[i].path[steps[i].path. length - 1].lat()
 						var lng1 = steps[i].path[0].lng()
 						var lng2 = steps[i].path[steps[i].path.length - 1].lng()
-						console.log(lng2);
 						
-						context.push(lat1);
-						context.push(lng1)
-						context.push(lat2)
-						context.push(lng2)		
-						console.log(context);	
+						
+						route.push(lat1);
+						route.push(lng1)
+						route.push(lat2)
+						route.push(lng2)
+						context[step_no] = route
+						step_no++
 						
 					
 					}
@@ -205,7 +235,7 @@
 
 				}
 
-					context.push(walk_time);
+					context["walk_time"] = walk_time
 
 					resolve(context);	
 
@@ -227,14 +257,15 @@
 
 
       function drawRoute(data){
-	
+	console.log(data)
 	directionsDisplay.setMap(map);
-
-	var len = Object.keys(data).length
         
-        var start = new google.maps.LatLng(Number(data[0]["lat"]), Number(data[0]["lon"]))
-        var end = new google.maps.LatLng(Number(data[len - 1]["lat"]), Number(data[len - 1]["lon"]))
-	
+        var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]))
+	for ( i in data ) {
+	var len = Object.keys(data[i]).length
+        var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
+	}
+	console.log(end)
         var request = {
 		origin: start,
 		destination: end,
@@ -317,30 +348,31 @@ function initMap(){
 	for (var i = 0; i< store.length; i++) {
 
 		store[i].addListener('place_changed', function() {
+			if (store[i]){
 			var place = store[i].getPlace();
 			if (!place.geometry) {
 				window.alert("No details available for input: '" + place.name + "'");
 				return;
 			}
 
-			
+			}
 			});
-
 	}
 
 	return;
 };
 
      function popStops(context){
-      console.log(context[0]["rtpi"])      
+      
       removeMarkers();
       markers = []
-      for (var key in context) {
+      for (var i in context) {
+      for (var key in context[i]) {
            
           var marker = new google.maps.Marker({
-                              position: {lat: Number(context[key]["lat"]), lng: Number(context[key]["lon"])},
+                              position: {lat: Number(context[i][key]["lat"]), lng: Number(context[i][key]["lon"])},
                               map: map,
-                              title: context[key]["stop"],
+                              title: context[0][key]["stop"],
                               //icon :  "/static/images/bus-station.svg"
                               
 });
@@ -350,9 +382,10 @@ function initMap(){
                     };
 		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
 		
-		for (i in context[0]["rtpi"]["results"]){
+		
+		for (j in context[0][0]["rtpi"]["results"]){
 			
-			content = content + "<tr> <td>" + context[0]["rtpi"]["results"][i]["route"] + "</td> <td>" + context[0]["rtpi"]["results"][i]["duetime"] + "</td> </tr>"
+			content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
 		};
         
 	
@@ -368,9 +401,11 @@ function initMap(){
 			console.log("hello");
 			infowindow.open(map, markers[0]);
 		});
+	
 
+	};
 
-		map.setCenter(new google.maps.LatLng(Number(context[0]["lat"]), Number(context[key]["lon"])));   
+	
 };
 
 
