@@ -345,7 +345,22 @@ function initMap(){
                               map: map,
                               title: context[key]["stop"],
                               //icon :  "/static/images/bus-station.svg"
-              });
+          })
+              marker.addListener('click', function() {
+  //   document.getElementById('start').value= "clicked";
+            var mPosition=this.getPosition();
+          lats=(mPosition.lat());
+           longs=(mPosition.lng());
+          alert(mPosition);
+            $.get('/get_stop_no/', {lat: lats, long:longs}, function(data) {
+                document.getElementById('start').value=data;
+              
+			});
+            alert('clicked');
+         });
+          
+              
+              
        
    
            markers.push(marker);
@@ -355,18 +370,18 @@ var mPosition=marker.getPosition();
           
       };
          
-                google.maps.event.addDomListener(markers[2], 'click', function() {
+   //             google.maps.event.addDomListener(markers, 'click', function() {
   //   document.getElementById('start').value= "clicked";
-            var mPosition=markers[2].getPosition();
-          lats=(mPosition.lat());
-           longs=(mPosition.lng());
-          alert(mPosition);
-            $.get('/get_stop_no/', {lat: lats}, function(data) {
-                document.getElementById('start').value=data;
+     //       var mPosition=markers.getPosition();
+//          lats=(mPosition.lat());
+  //         longs=(mPosition.lng());
+    //      alert(mPosition);
+      //      $.get('/get_stop_no/', {lat: lats}, function(data) {
+//                document.getElementById('start').value=data;
               
-			});
-            alert('clicked');
-         })
+//			});
+  //          alert('clicked');
+    //     })
           
           
        //   	$.get('/get_stop_no/', {lat: lats}, function(data) {
