@@ -43,37 +43,60 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
+          <div class="panel-group" id="accordion">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+      
+    <a class="btn btn-primary" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Journey Planner
+  </a>  
+             <a class="btn btn-primary" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Search by Route
+  </a>      
+      </div>
+       
 	<span id="invalid"><p></p></span>
+          <div class="collapse in" id="collapseExample" >
+  <div class="panel-collapse collapse in">
         <form method = "POST" class = "post-form" id="post-form1">{% csrf_token %}
-	  Start Address<br>
-	  <input id="start_address" type="text" name="start_address">
+        
+	  <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
 	  <br>
-          End Address<br>
-	  <input id="end_address" type="text" name="end_address">
+         <h4> End Address: </h4><input id="end_address" type="text" name="end_address">
+
 	  <br>
-	  <br>
-	  <input id="address_submit" type="submit"></input>
-	  </form>
+
+     <br> <button id = "address_submit" type = "submit" class = "save btn btn-default">Go</button>
+      </form></div></div>
+        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
+  <div class="panel-collapse collapse in"> 
+        <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
 	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
-          Route:<br>
+        
             <select id="routes" >
               <option>Select Route</option>
-            </select>
+            </select>   <br>
 
           <br>
-          Start Stop:<br>
+       
             <select id="start">  
-              <option>Select Route</option>
-            </select><br>
-          End Stop:<br>
-            <select id="end">
               <option>Select Start Stop</option>
+            </select><br>
+             <br>
+            <select id="end">
+              <option>Select End Stop</option>
             </select>
+             <br>
             <br>
-          <button type = "submit" class = "save btn btn-default">Go</button>
+          
+          <button type = "submit" class = "save btn btn-default">Go</button></div></div>
+                 
         </form>
-        <div id="results"><p> </p></div>
+        
+   <div id="results"><p> </p></div>
       </div> 
+              </div>
+          </div>
       <!-- Main component for a primary marketing message or call to action -->
       <div id='map' class="jumbotron text-center col-md-6"></div>
     </div> <!-- /container -->
@@ -82,6 +105,7 @@
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
 
+        
       $('#routes').prop('disabled', true);
       $('#routes').html('<option>Loading...</option>');
       $('#end').prop('disabled', true);
@@ -92,6 +116,8 @@
       var directionsService;
       var placeSearch, autocomplete_start, autocomplete_end; 
 
+        
+        
 	    function validateForm() {
 
 		    start = document.getElementById("start_address").value;

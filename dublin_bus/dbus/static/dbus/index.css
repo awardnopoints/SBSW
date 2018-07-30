@@ -63,7 +63,6 @@ padding-left: 15px;
 
 }
 
-
 .form-group {
     padding-top: 10px;
     
@@ -74,7 +73,22 @@ padding-left: 15px;
 .post-form {
     padding-top: 80px;
     width: 300px;
-    margin-left: -25px;
+    margin-bottom: 100px;
+    margin-left: 30px;
+  
+   
+}
+
+
+
+h4 {
+    display: inline-block;
+    padding-right: 10px;
+}
+
+#inputs {
+    padding-top: 10px;
+    margin-left: 100px;
     
 }
 
