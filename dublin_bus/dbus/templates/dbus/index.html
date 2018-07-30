@@ -22,6 +22,7 @@
 
 <!-- bootstrap-datetimepicker -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       
   </head>
 
@@ -55,14 +56,20 @@
 	  </form>
 	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
           Route:<br>
-          <input type="text" name="route">
+            <select id="routes" >
+              <option>Select Route</option>
+            </select>
+
           <br>
           Start Stop:<br>
-          <input type="text" name="start">
-          <br>
+            <select id="start">  
+              <option>Select Route</option>
+            </select><br>
           End Stop:<br>
-          <input type="text" name="end">
-          <br>
+            <select id="end">
+              <option>Select Start Stop</option>
+            </select>
+            <br>
           <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
         <div id="results"><p> </p></div>
@@ -75,42 +82,268 @@
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
 
+      $('#routes').prop('disabled', true);
+      $('#routes').html('<option>Loading...</option>');
+      $('#end').prop('disabled', true);
+      $('#start').prop('disabled', true);
+      var map; 
+      var markers = []
+      var directionsDisplay;
+      var directionsService;
+      var placeSearch, autocomplete_start, autocomplete_end; 
 
-	function validateForm() {
+	    function validateForm() {
 
-		start = document.getElementById("start_address").value;
-		end = document.getElementById("end_address").value;
+		    start = document.getElementById("start_address").value;
+		    end = document.getElementById("end_address").value;
 
-                if (start == "" || end == "") {
+        if (start == "" || end == "") {
+			    console.log("invalid")
+			    $('#invalid > p').text("Oops, please complete the form and try again");
+			    return false;
+        }
 
-			console.log("invalid")
-			$('#invalid > p').text("Oops, please complete the form and try again");
-			return false;
-                       
+		    else {
+			    $('#invalid > p').text("");
+			    return true;
+		    }		
+	    }
+        
+      function initMap(){
+	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
+        directionsService = new google.maps.DirectionsService();
+        map = new google.maps.Map(document.getElementById('map'), {
+        	zoom: 12,
+          center: {lat: 53.3498, lng: -6.2603}
+        });
+        var trafficLayer = new google.maps.TrafficLayer();
+	      trafficLayer.setMap(map);
 
-		}
+	      //autocomplete section on init
+        var input_start = document.getElementById('start_address');
+	      var input_end = document.getElementById('end_address');
 
-		else {
-			$('#invalid > p').text("");
-			return true;
-		}		
+	      var store = []
 
-	}
+	      var cityBounds = new google.maps.LatLngBounds(
+		      new google.maps.LatLng(52.840362, -7.228772),
+		      new google.maps.LatLng(54.017627, -6.164425)
+		    );
+
+        var options = {
+		      bounds: cityBounds,
+          types: ['geocode'],
+          componentRestrictions : {country: 'ie'}
+        };
+
+	      var fields = [
+		      'address_components',
+		      'geometry',
+		      'icon',
+		      'name'
+	      ];
+        
+        autocomplete_start = new google.maps.places.Autocomplete(input_start, options);
+	      autocomplete_start.setFields(fields);
+        autocomplete_end = new google.maps.places.Autocomplete(input_end, options);
+	      autocomplete_end.setFields(fields);
+
+        store.push(autocomplete_start);
+        store.push(autocomplete_end);
+
+	      for (var i = 0; i< store.length; i++) {
+		      store[i].addListener('place_changed', function() {
+			      if (store[i]){
+			        var place = store[i].getPlace();
+			        if (!place.geometry) {
+				        window.alert("No details available for input: '" + place.name + "'");
+				        return;
+			        }
+			      }
+			    });
+	      }
+
+	      return;
+      };
+
+      function getDirections() {
+        return new Promise(function(resolve, reject) {	
+          var result = []
+          var walk_time	
+          var start = document.getElementById("start_address").value;
+          var end = document.getElementById("end_address").value;
+        
+          var request = {
+            origin: start,
+            destination: end,
+            travelMode: 'TRANSIT',
+            transitOptions: {
+              modes: ['BUS'],
+              routingPreference : 'FEWER_TRANSFERS'
+            },
+          }
+    
+          directionsService.route(request, function(result, status){
+            var context = {}
+            var step_no = 1
+            var walk_time = 0;
+            if (status == "OK") {
+              steps = result.routes[0].legs[0].steps
+              for (var i = 0; i<steps.length; i++) {
+                if (steps[i].travel_mode == "TRANSIT") {
+                  route = []
+                  
+                  var lat1 = steps[i].path[0].lat()
+                  var lat2 = steps[i].path[steps[i].path. length - 1].lat()
+                  var lng1 = steps[i].path[0].lng()
+                  var lng2 = steps[i].path[steps[i].path.length - 1].lng()
+                  
+                  route.push(lat1);
+                  route.push(lng1)
+                  route.push(lat2)
+                  route.push(lng2)
+                  context[step_no] = route
+                  step_no++
+                } else {
+                    walk_time += steps[i].duration.value;
+                }
+              }
+              
+              context["walk_time"] = walk_time
+              resolve(context);	
+            }
+          });
+        });
+      }	
+
+      var stops = {};
+      {% for stop in stops %}
+        var mystop = {};
+        mystop["lat"] = "{{stop.lat}}";
+        mystop["long"] = "{{stop.long}}";
+        mystop["stop_name"] = "{{stop.stop_name}}";
+        mystop["stop_address"] = "{{stop.stop_address}}";
+        mystop["zone"] = "{{stop.zone}}";
+        stops['{{stop.stop_id}}'] = mystop;
+      {% endfor %}
+
+      var routes = {};
+      {% for rn in route_numbers %}
+        routes["{{rn}}"] = {'I':[],'O':[]};
+      {% endfor %}
+
+      {% for stop in routes %}
+        var mystop = {}
+        mystop['stop_id'] = "{{stop.stop_id}}";
+        mystop['sequence'] = "{{stop.sequence}}";
+        mystop['distance'] = "{{stop.distance}}";
+        routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
+      {% endfor %} 
+
+      //console.log('stops')
+      //console.log(stops)
+      //console.log('routes')
+      //console.log(routes)
+
+
 
       $(document).ready(function(){
 
+        /*$.when(
+          $.get('/get_routes/', function(data){
+            routes=JSON.parse(data);
+          }),
+          $.get('/get_stops', function(data){
+            stops=data;
+          })
+        ).done( function(){
+          stops=JSON.parse(stops);
+          routes=JSON.parse(routes);
+        });*/
+
+        /*$.ajax({
+          url: 'get_routes/',
+          success: function (data) {
+              routes=data;
+          },
+          async: false
+        });
+
+        $.ajax({
+          url: 'get_stops/',
+          success: function (data) {
+              stops=data;
+          },
+          async: false
+        });
+
+        route=JSON.parse(routes)
+        stops=JSON.parse(stops)*/
+
+        $('#routes').html('<option>Select Route</option>');
+        Object.keys(routes).forEach(function(element){
+          $('#routes').append('<option>' + element + '</option>');
+          $('#routes').prop('disabled', false)
+        })        
+          
+        $("#routes").change(function(){
+          var route = $("#routes option:selected").text();
+          if (route == "Select Route") {
+            return;
+          }
+          $('#start').html('<option>Loading...</option>');
+          $('#start').prop('disabled', true);
+          var options = "";
+          routes[route]['I'].forEach(function(element){
+            options += '<option value="Incoming">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Incoming)</option>";
+          });
+          routes[route]['O'].forEach(function(element){
+            options += '<option value="Outgoing">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Outgoing)</option>";
+          });
+          $('#start').html('<option>Select Start Stop</option>');
+          $('#start').append(options);
+          $('#start').prop('disabled', false);
+        }); 
+          
+        $("#start").change(function(){
+          var route = $("#routes option:selected").text();
+          var start = $("#start option:selected").text().split(',')[0];
+          if (start == "Select Start Stop"){
+            return;
+          }
+          var direction = $('#start').val();
+          var d = direction.substr(0,1);
+          $('#end').html('<option>Loading...</option>');
+          $('#end').prop('disabled', true);
+          var options = "";
+          var found = false;
+
+          routes[route][d].forEach(function(element){
+            //console.log(start, element.stop_id, found)
+            if (found){
+              options += '<option>' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (" + direction + ")</option>";
+            };
+            if (start == element.stop_id){
+              found = true;
+            };
+          });
+          //console.log(options);
+          $('#end').html('<option>Select End Stop</option>');
+          $('#end').append(options);
+          $('#end').prop('disabled', false);  
+        });
+          
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
           $('#results > p').text('waiting...');
           getPredictions()
         });
-});
 
         function getPredictions(){
-          route = $('input[name="route"]').val();
-          start_stop = $('input[name="start"]').val();
-          end_stop = $('input[name="end"]').val();
+          route = $("#routes option:selected").text();
+          start_stop = $('#start option:selected').text().split(',')[0];
+          end_stop = $('#end option:selected').text().split(',')[0];
           date = new Date();
           year = date.getFullYear();
           month = date.getMonth() + 1;
@@ -124,305 +357,112 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
-              $('#results > p').html("Estimated Journey Time:<br>" + data);
+              $('#results').html(data);
           });
-	        $.get('/popStop/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
-          	popStops(data);
-            drawRoute(data);
+	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
+            console.log(data)
+            popStops(data['stops']);
+            drawRoute(data['stops']);
           });
         };
 
-        
+		    $('#post-form1').on('submit', function(event){
+          event.preventDefault()
+          valid = validateForm()
+			    if (valid) {
+			      $('#results > p').text('waiting...');
+			      getPredictionsAddress();
+		      }
+		    });
 
-	$(document).ready(function() {
+        function drawRoute(data){
+          directionsDisplay.setMap(map);
+          var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]));
+          for ( i in data ) {
+            var len = Object.keys(data[i]).length
+            var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
+          }
+          var request = {
+            origin: start,
+            destination: end,
+            travelMode: 'TRANSIT',
+            transitOptions: {
+              modes : ['BUS'],
+              routingPreference : 'FEWER_TRANSFERS'
+            },       
+          }
+    
+          directionsService.route(request, function(result, status){              
+            if (status == 'OK') {
+              console.log(result);{            
+              directionsDisplay.setDirections(result);
+              }
+            }
+          });
+        }          
 
-		$('#post-form1').on('submit', function(event){
-                        event.preventDefault()
-                        valid = validateForm()
-			if (valid) {
-			
-			$('#results > p').text('waiting...');
-			getPredictionsAddress();
-		}
-		});
-	});
-	
-
-	
-
-
-	async function getPredictionsAddress() {
-		
-		var context = await getDirections();
-		output = []
-		output.push(context)		
-		context = JSON.stringify(output)		
-		
-		date = new Date();
-	        year = date.getFullYear();
-                month = date.getMonth() + 1;
-                day = date.getDate();
-                hour = date.getHours();
-
-		$.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
-
-                        if (data["error"] == "0") {
-			popStops(data["stops"])
-			drawRoute(data["stops"])
-			$('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
-			}
-			else{
-			$('#results > p').html("Oops, something went wrong enter a different route and please try again");
-			}
-			});
-
-		};
-
-	function getDirections() {
-
-		return new Promise(function(resolve, reject) {	
-
-		var result = []
-		var walk_time	
-
-		var start = document.getElementById("start_address").value;
-		var end = document.getElementById("end_address").value;
-
-		var request = {
-			origin: start,
-			destination: end,
-			travelMode: 'TRANSIT',
-			transitOptions: {
-				modes: ['BUS'],
-				routingPreference : 'FEWER_TRANSFERS'
-				},
-			}
-
-		directionsService.route(request, function(result, status){
-
-			var context = {}
-			var step_no = 1
-			var walk_time = 0;
-		
-			if (status == "OK") {
-				steps = result.routes[0].legs[0].steps
-				
-				for (var i = 0; i<steps.length; i++) {
-
-					if (steps[i].travel_mode == "TRANSIT") {
-
-						route = []
-						
-						var lat1 = steps[i].path[0].lat()
-						var lat2 = steps[i].path[steps[i].path. length - 1].lat()
-						var lng1 = steps[i].path[0].lng()
-						var lng2 = steps[i].path[steps[i].path.length - 1].lng()
-						
-						
-						route.push(lat1);
-						route.push(lng1)
-						route.push(lat2)
-						route.push(lng2)
-						context[step_no] = route
-						step_no++
-						
-					
-					}
-					else {
-					
-						walk_time += steps[i].duration.value;
-
-					}
-
-				}
-
-					context["walk_time"] = walk_time
-					
-
-					resolve(context);	
-
-			}
-				
-		});
-
-	});
-
-	}	
- 
-      function Go(){
-          document.getElementById('results').innerHTML= " "
-          var start_stop;
-          var end_stop;
-          GetStopID(start_stop, end_stop);
-          
-      }
-
-
-      function drawRoute(data){
-	
-	directionsDisplay.setMap(map);
-        
-        var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]))
-	for ( i in data ) {
-	var len = Object.keys(data[i]).length
-        var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
-	}
-
-        var request = {
-		origin: start,
-		destination: end,
-		travelMode: 'TRANSIT',
-		transitOptions: {
-			modes : ['BUS'],
-			routingPreference : 'FEWER_TRANSFERS'
-			},
-		
-		}
-	directionsService.route(request, function(result, status){
-                
-		if (status == 'OK') 
-			console.log(result);{
-                        
-			directionsDisplay.setDirections(result);
-			
-
-		}
-	});
-}
-
-
-var placeSearch, autocomplete_start, autocomplete_end; 
-          
-      // 1. getRoutes - takes name of start bus stop and end bus stop and translates to bus stop number. 
-      // Finds routes that pass through each bus stop and selects only those common to both. 
-      // 2. Determines how many stops between start and end // returns routes and stops between each
-
-      //next take time of day, day of week, weather and input into predictor?//
-          
-var map; 
-var markers = []
-var directionsDisplay;
-var directionsService;
-        
-function initMap(){
-
-	directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
-
-	directionsService = new google.maps.DirectionsService();
-
-   	
-	map = new google.maps.Map(document.getElementById('map'), {
-        	zoom: 12,
-                center: {lat: 53.3498, lng: -6.2603}
+        function popStops(context){
+          console.log(context)
+          removeMarkers();
+          markers = []
+          for (var i in context) {
+            for (var key in context[i]) {   
+              var marker = new google.maps.Marker({
+                position: {lat: Number(context[i][key]["lat"]), lng: Number(context[i][key]["lon"])},
+                map: map,
+                title: context[i][key]["stop"],
+                //icon :  "/static/images/bus-station.svg"
               });
-               
-		
-	var trafficLayer = new google.maps.TrafficLayer();
-	trafficLayer.setMap(map);
-
-	//autocomplete section on init
-
-	var input_start = document.getElementById('start_address');
-	var input_end = document.getElementById('end_address');
-
-	var store = []
-
-	var cityBounds = new google.maps.LatLngBounds(
-		new google.maps.LatLng(52.840362, -7.228772),
-		new google.maps.LatLng(54.017627, -6.164425)
-		);
-
-        var options = {
-		bounds: cityBounds,
-                types: ['geocode'],
-                componentRestrictions : {country: 'ie'}
+              markers.push(marker)
+            };
+          
+            var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
+            for (j in context[0][0]["rtpi"]["results"]){
+              content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
+            };
+            
+            var infowindow = new google.maps.InfoWindow({
+              content: content
+            });
+          
+            infowindow.open(map, markers[0]);
+            google.maps.event.addListener(markers[0], 'click', function() {
+              console.log("hello");
+              infowindow.open(map, markers[0]);
+            });
+          };
         };
 
-	var fields = [
-		'address_components',
-		'geometry',
-		'icon',
-		'name'
-	];
-        
-        autocomplete_start = new google.maps.places.Autocomplete(input_start, options);
-	autocomplete_start.setFields(fields);
-        autocomplete_end = new google.maps.places.Autocomplete(input_end, options);
-	autocomplete_end.setFields(fields);
-
-        store.push(autocomplete_start);
-        store.push(autocomplete_end);
-
-	for (var i = 0; i< store.length; i++) {
-
-		store[i].addListener('place_changed', function() {
-			if (store[i]){
-			var place = store[i].getPlace();
-			if (!place.geometry) {
-				window.alert("No details available for input: '" + place.name + "'");
-				return;
-			}
-
-			}
-			});
-	}
-
-	return;
-};
-
-     function popStops(context){
+        async function getPredictionsAddress() {
+		
+          var context = await getDirections();
+          output = []
+          output.push(context)		
+          context = JSON.stringify(output)		
+          
+          date = new Date();
+                year = date.getFullYear();
+                      month = date.getMonth() + 1;
+                      day = date.getDate();
+                      hour = date.getHours();
       
-      removeMarkers();
-      markers = []
-      for (var i in context) {
-      for (var key in context[i]) {
-           
-          var marker = new google.maps.Marker({
-                              position: {lat: Number(context[i][key]["lat"]), lng: Number(context[i][key]["lon"])},
-                              map: map,
-                              title: context[i][key]["stop"],
-                              //icon :  "/static/images/bus-station.svg"
-                              
-});
+          $.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
+            if (data["error"] == "0") {
+              popStops(data["stops"])
+              drawRoute(data["stops"])
+              $('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
+            } else {
+              $('#results > p').html("Oops, something went wrong enter a different route and please try again");
+            }
+          });
+        };
 
-          markers.push(marker)
-                           
-                    };
-		var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-		
-		
-		for (j in context[0][0]["rtpi"]["results"]){
-			
-			content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
-		};
-        
-	
-		var infowindow = new google.maps.InfoWindow({
-			content: content
-
-		});
-
-
-		infowindow.open(map, markers[0]);
-
-		google.maps.event.addListener(markers[0], 'click', function() {
-			console.log("hello");
-			infowindow.open(map, markers[0]);
-		});
-	
-
-	};
-
-	
-};
-
-
-function removeMarkers(){
-
-	for (var i = 0; i < markers.length; i++){
-		markers[i].setMap(null);
-	};
-};
+        function removeMarkers(){
+          for (var i = 0; i < markers.length; i++){
+            markers[i].setMap(null);
+          };
+        };
+      });
 
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap&libraries=places" type = 'text/javascript'></script>
