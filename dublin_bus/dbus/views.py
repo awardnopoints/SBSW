@@ -37,7 +37,6 @@ routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','4
 for route in routes_unsupported_by_data:
         routes_implemented.remove(route)
 
-routes_implemented = ('31',)
 
 print('building categories')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
