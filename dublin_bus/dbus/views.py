@@ -22,9 +22,9 @@ import datetime
 import math
 
 
-routes_implemented = ('31','130','140','14','15','16','31','39A','46A')
+routes_implemented = ('31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '122', '123', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9')
 
-routes_to_be_implemented = ('1', '102', '104', '11', '111', '114', '116', '118', '120', '122', '123', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9')
+routes_to_be_implemented = ()
 
 routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
 
@@ -150,8 +150,12 @@ def predictions_model(start, end, route, year, month, day, hour):
         a travel time prediction based on that.
         """
         total = 0
+        print("route",route)
         stops = bssd.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
+        print(len(stops))
         zones = sllz.objects.all()
+        print("start:",start)
+        print("end:",end)
         start_stop = stops.filter(stop_id=start)
         end_stop = stops.filter(stop_id=end)
 
@@ -159,6 +163,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         if r:
                 start_stop, end_stop = r[0], r[1]
         else:
+                
                 return False
 
         # Creates a list of tuples to pass into the model
@@ -214,6 +219,7 @@ def predictions_model(start, end, route, year, month, day, hour):
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
+                print("start_stop length:",len(start_stop),"end_stop length",len(end_stop))
                 return False
         if len(start_stop) > 1 or len(end_stop) > 1:
                 resolved = False
@@ -260,7 +266,6 @@ def wait_time(route, stop_id):
 
 def predict_request(request):
         if request.method=='GET':
-                print("is get")
                 g = request.GET
                 start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
                 
@@ -366,8 +371,6 @@ def predict_address(request):
                    print(key)
                    print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
-	
-                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
@@ -389,6 +392,7 @@ def predict_address(request):
                    for i in route:
                        results = json_parsed["results"]
 
+
                        for result in results:
 
                            if result["route"] == str(i.route_number):  
@@ -402,8 +406,9 @@ def predict_address(request):
                                    route_time = int(result["duetime"])
                                    final_route = result["route"]     
        
-                #prediction = predictions_model(stop1, stop2, route, int(year), int(month), int(day), int(hour))
-                   prediction = 1 + walk_time
+                   prediction = predictions_model(str(stop1), str(stop2), str(final_route), int(year), int(month), int(day), int(hour))
+                   print("prediction",prediction)
+                   prediction = prediction + walk_time
                
                    stops = getStops(str(final_route), str(stop1), str(stop2))
 
@@ -414,10 +419,7 @@ def predict_address(request):
            context["error"] =  "1"
            print(e)
 
-        try: 
-                print(context['stops'][0][0])
-        except Exception:
-                context['stops'][0] = context['stops']   
+        print(context) 
 
         return JsonResponse(context)
 
