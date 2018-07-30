@@ -336,13 +336,14 @@ def predict_address(request):
             
                 if key in "012345689":
                    print(key)
+                   print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
 	
-                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
-               
+                   query = "select * from dbus_stopsv3 where lat >= (%f*0.999) and lat <= (%f*1.001) and abs(longitude) >= abs(%f*0.999) and abs(longitude) <= abs(%f*1.001) order by abs(lat-%f) limit 1;"
+                                
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
-                   stop2 = DbusStopsv3.objects.raw("select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;" % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
+                   stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
 
                    url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop1) + "&format=json"
                    req = requests.get(url)

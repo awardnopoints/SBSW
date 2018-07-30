@@ -280,7 +280,8 @@
 		}
 	directionsService.route(request, function(result, status){
                 
-		if (status == 'OK') {
+		if (status == 'OK') 
+			console.log(result);{
                         
 			directionsDisplay.setDirections(result);
 			
@@ -379,7 +380,7 @@ function initMap(){
           var marker = new google.maps.Marker({
                               position: {lat: Number(context[i][key]["lat"]), lng: Number(context[i][key]["lon"])},
                               map: map,
-                              title: context[0][key]["stop"],
+                              title: context[i][key]["stop"],
                               //icon :  "/static/images/bus-station.svg"
                               
 });
