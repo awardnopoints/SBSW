@@ -51,7 +51,9 @@
             </div>
         </div>-->
           <!--<div id="boxes" style="width:100%;border:1px;">-->
-            <div id="box1" style="float:left;width:49%;border:1px solid black;background: #64BAE3;"><img src="http://openweathermap.org/img/w/10d.png"><br>{{ weather.temp }} C</div>
+            <div id="box1" style="float:left;width:49%;border:1px solid black;background-image:url(https://www.google.ie/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjSnqiywsbcAhWlKsAKHeMYDrQQjRx6BAgBEAU&url=https%3A%2F%2Ffreebiesbug.com%2Fcode-stuff%2Fweather-loading-animation%2F&psig=AOvVaw115UXsyJDcTM6V02ztlcac&ust=1533029587999602);border-radius: 10px;color:#FD3AB7;"><img id="icon" src="http://openweathermap.org/img/w/10d.png"><br>{{ weather.temp }} &#8451;
+            <br> {{weather.mainDescription}}
+            </div>
             <!--<div id="box2" style="float:right;width:49%;border:1px solid black;background: #FD3AB7">BOX2 CONTEXT</div>-->
         <!--</div>-->
 
@@ -108,11 +110,54 @@
           console.log("Hour =", hour)
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, day: day, 
-            hour: hour}, function(data){
-              $('#results > p').html("Estimated Journey Time:<br>" + data);
+            hour: hour}, function(data,data2){
+              $('#results > p').html("Estimated Journey Time:<br>" + data+data2);
           });
         };
       });
+        console.log("{{weather.description}}")
+        weather_description="{{weather.description}}";
+        iconGetter(weather_description);
+        
+        $(function(){
+            if(weather_description==='broken clouds'){
+                 $("#box1").css("background-image","url(https://img00.deviantart.net/6364/i/2017/030/4/1/broken_clouds_by_kevintheman-dax9bd4.jpg)");
+                 $("#icon").attr("src","http://openweathermap.org/img/w/04d.png")
+            }
+            else if(weather_description==='clear sky'){
+               
+               $("#box1").css("background-image","url(https://www.tibco.com/blog/wp-content/uploads/2013/10/shutterstock_1014579761.jpg)");
+                $("#icon").attr("src","http://openweathermap.org/img/w/01d.png")
+            }
+            else if(weather_description==='few clouds'){
+                $("#box1").css("background-image","url(https://img00.deviantart.net/6364/i/2017/030/4/1/broken_clouds_by_kevintheman-dax9bd4.jpg)");
+                $("#icon").attr("src","http://openweathermap.org/img/w/02d.png")
+            }
+            else if(weather_description==='scattered clouds'){
+                 $("#box1").css("background-image","url(https://img00.deviantart.net/6364/i/2017/030/4/1/broken_clouds_by_kevintheman-dax9bd4.jpg)");
+                $("#icon").attr("src","http://openweathermap.org/img/w/03d.png")
+            }
+            else if(weather_description==='shower rain'){
+                $("#icon").attr("src","http://openweathermap.org/img/w/09d.png")
+            }
+            else if(weather_description==='rain'){
+                $("#icon").attr("src","http://openweathermap.org/img/w/10d.png")
+            }
+            else if(weather_description==='thunderstorm'){
+                $("#icon").attr("src","http://openweathermap.org/img/w/11d.png")
+            }
+            else if(weather_description==='snow'){
+                $("#icon").attr("src","http://openweathermap.org/img/w/13d.png")
+            }
+            else if(weather_description==='mist'){
+                $("#icon").attr("src","http://openweathermap.org/img/w/50d.png")
+            }
+        });
+        
+        function iconGetter(weather_description){
+            if(weather_description==='Cloudy')
+                console.log('code goes here')
+        };
  
       function Go(){
           document.getElementById('results').innerHTML= " "
