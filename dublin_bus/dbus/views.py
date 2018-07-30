@@ -11,6 +11,8 @@ from dbus.models import StopsLatlngZone as sllz
 from dbus.models import forecast
 from dbus.forms import Predictions
 from sklearn.externals import joblib
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
 import pandas as pd
 import os
 import zipfile
@@ -35,13 +37,23 @@ routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','4
 for route in routes_unsupported_by_data:
         routes_implemented.remove(route)
 
+routes_implemented = ('31',)
+
 print('building categories')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
 day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
 zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
-
+def price_scrape(route, direction, start_sequence, end_sequence):
+        quote_page= 'https://www.dublinbus.ie/Fare-Calculator/Fare-Calculator-Results/?routeNumber=' + str(route).lower() + '&direction=' + str(direction).upper() + '&board=' + str(int(start_sequence)-1) + '&alight=' + str(int(end_sequence)-1)    
+        page = urlopen(quote_page)    
+        soup = BeautifulSoup(page, 'html.parser')
+        try:
+                name_box = soup.find("span", id="ctl00_FullRegion_MainRegion_ContentColumns_holder_FareListingControl_lblFare").get_text()    
+        except Exception:
+                return "Price calculation unresponsive."
+        return str(name_box)
 
 def find_models():
         for route in routes_implemented:
@@ -51,7 +63,7 @@ def find_models():
                                 #print('Model {}, {} found'.format(route, aspect))
                         else:
                                 print('Model {}, {} not found'.format(route, aspect))
-                                sys.exit(1,'Error: No model exists for: {}, {}'.format(route, aspect))
+                                sys.exit('Error: No model exists for: {}, {}'.format(route, aspect))
 
 def load_models():
         models = {}
@@ -103,12 +115,14 @@ models = load_models()
 stops = sllz.objects.all()
 routes = bssd.objects.all()
 route_numbers = routes.values_list('route_number', flat=True).distinct()
+weather = forecast.objects.all().first()
 
 def home(request):
         context = {
                 'route_numbers':route_numbers,
                 'stops':stops,
-                'routes':routes
+                'routes':routes,
+                'weather':weather
         }
         return render(request, 'dbus/index.html', context)
 
@@ -167,6 +181,10 @@ def predictions_model(start, end, route, year, month, day, hour):
                 
                 return False
 
+        # Get Price
+
+        price = price_scrape(route, start_stop.route_direction, start_stop.sequence, end_stop.sequence)
+
         # Creates a list of tuples to pass into the model
         input_list = []
         stops = stops.filter(route_direction=start_stop.route_direction,
@@ -214,8 +232,8 @@ def predictions_model(start, end, route, year, month, day, hour):
                 seconds = '0' + str(seconds)
         else:
                 seconds = str(seconds)
-        total = minutes + ':' + seconds
-        return total
+        prediction = minutes + ':' + seconds
+        return prediction, price 
 
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
@@ -254,12 +272,11 @@ def wait_time(route, stop_id):
         realtime = get_times(json_parsed, route)
         #print ('Realtime:',realtime)
                 
-        if (realtime == "Due"):
+        if realtime == "Due":
             wait = 'Due Now'
-        else:
+        elif realtime:
             wait = realtime + ':00'
-        
-        if realtime == "":
+        else:
                 wait = "Unknown"
        
         return wait
@@ -280,10 +297,10 @@ def predict_request(request):
                         return HttpResponse('<p>Route ' + route + ' not sufficiently supported by dataset, prediction unavailable</p>')
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
-                prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
+                prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 #print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p>')
+                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p><p>Price: ' + price + '</p>')
 
 def getRoutes(request):
         return HttpResponse(routes)
