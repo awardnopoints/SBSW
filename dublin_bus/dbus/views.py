@@ -24,6 +24,8 @@ import math
 
 routes_implemented = ['31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9']
 
+routes_implemented = ['46A','17','31','15','14','11','27']
+
 routes_to_be_implemented = ('123', '122')
 
 routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
@@ -32,8 +34,8 @@ routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '
 
 routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D','44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
 
-for route in routes_unsupported_by_data:
-        routes_implemented.remove(route)
+#for route in routes_unsupported_by_data:
+#        routes_implemented.remove(route)
 
 print('building categories')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
@@ -210,6 +212,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         total += h_predictions.sum()
         minutes = str(int(total/60))
         seconds = int(total%60)
+        
         if seconds < 10:
                 seconds = '0' + str(seconds)
         else:
@@ -220,7 +223,7 @@ def predictions_model(start, end, route, year, month, day, hour):
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
-                #print("start_stop length:",len(start_stop),"end_stop length",len(end_stop))
+                
                 return False
         if len(start_stop) > 1 or len(end_stop) > 1:
                 resolved = False
@@ -239,8 +242,8 @@ def inputValidator(start_stop, end_stop):
                 start_stop = start_stop.first()
                 end_stop = end_stop.first()
                 
-        if start_stop.route_direction != end_stop.route_direction:
-                return False
+        #if start_stop.route_direction != end_stop.route_direction:
+                #return False
         return(start_stop, end_stop)
 
 
@@ -374,6 +377,8 @@ def predict_address(request):
                    #print(key)
                    #print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
+
+                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
@@ -387,7 +392,9 @@ def predict_address(request):
                    route_time = math.inf
 
                    route = bssd.objects.raw("select * from (select * from bus_stops_sequence_distance where stop_id = %s) as a join (select * from bus_stops_sequence_distance where stop_id = %s) as b where a.route_number = b.route_number;" % (stop1, stop2))
-        
+       
+                   print(route)
+ 
                    final_route = route[0].route_number
 
         #above query could return more than one route so use rtpi to decide which one to use (next one due at the first stop)
@@ -407,11 +414,24 @@ def predict_address(request):
 
                                elif int(result["duetime"]) < route_time:
                                    route_time = int(result["duetime"])
-                                   final_route = result["route"]     
-       
+                                   final_route = result["route"]   
+ 
+                   print(stop1, stop2, final_route)       
                    prediction = predictions_model(str(stop1), str(stop2), str(final_route), int(year), int(month), int(day), int(hour))
-                   #print("prediction",prediction)
-                   prediction = prediction + walk_time
+                   print("prediction",prediction)
+                   prediction = prediction.split(":")
+                   print(prediction)
+                   minute = int(prediction[0])
+                   second = int(prediction[1])
+                   walk_minute = walk_time//60
+                   walk_second = walk_time - walk_minute * 60
+                   minute = minute + walk_minute
+                   second = second + walk_second
+                   if second >= 60:
+                       minute += 1
+                       second = second - 60
+                   
+                   prediction = str(minute) + ":" + str(second)
                
                    stops = getStops(str(final_route), str(stop1), str(stop2))
 
@@ -421,6 +441,7 @@ def predict_address(request):
         except Exception as e:
            context["error"] =  "1"
            print(e)
+        
 
         #print(context) 
 

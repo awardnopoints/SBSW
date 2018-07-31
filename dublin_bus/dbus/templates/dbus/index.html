@@ -405,16 +405,26 @@
           console.log(context)
           removeMarkers();
           markers = []
-          for (var i in context) {
-            for (var key in context[i]) {   
+          for (var i in context) {   
               var marker = new google.maps.Marker({
-                position: {lat: Number(context[i][key]["lat"]), lng: Number(context[i][key]["lon"])},
+                position: {lat: Number(context[i][0]["lat"]), lng: Number(context[i][0]["lon"])},
                 map: map,
-                title: context[i][key]["stop"],
+                title: context[i][0]["stop"],
                 //icon :  "/static/images/bus-station.svg"
               });
               markers.push(marker)
-            };
+              var length = Object.keys(context[i]).length
+	      console.log(length);
+	      var marker = new google.maps.Marker({
+                position: {lat: Number(context[i][length-1]["lat"]), lng: Number(context[i][length-1]["lon"])},
+                map: map,
+                title: context[i][length-1]["stop"],
+                //icon :  "/static/images/bus-station.svg"
+              });
+              markers.push(marker)
+
+	      
+            
           
             var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
             for (j in context[0][0]["rtpi"]["results"]){

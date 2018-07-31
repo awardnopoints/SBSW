@@ -128,6 +128,7 @@ def job():
     go=rtpi()
     go.bus_realtime()
 
+"""
 engine = connect()
 #create_table(engine)
 stop_id=sys.argv[1]
@@ -138,4 +139,4 @@ json_parsed=write_file(data)
 
 job()
 
-
+"""
