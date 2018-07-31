@@ -209,7 +209,9 @@ def predictions_model(start, end, route, year, month, day, hour):
         else:
                 seconds = str(seconds)
         total = minutes + ':' + seconds
+  
         return total
+
 
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
@@ -275,7 +277,7 @@ def predict_request(request):
                 prediction = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p>')
+                return HttpResponse('<p>Wait Time: ' + wait + ', Travel Time: ' + prediction + '</p>')
 
 def getRoutes(request):
         return HttpResponse(routes)

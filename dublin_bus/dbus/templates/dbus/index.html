@@ -34,6 +34,7 @@
       <div class="container">
         <div class="navbar-header">
           <h1>Bus App</h1>
+            
         </div>
           <ul class="nav navbar-nav navbar-right">
             <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
@@ -44,20 +45,21 @@
     <div class="container">
       <div class="jumbotron text-center col-md-6">
           <div class="panel-group" id="accordion">
+            
     <div class="panel panel-default">
       <div class="panel-heading">
-      
-    <a class="btn btn-primary" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+      <div class="btn-group btn-group-justified">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Journey Planner
-  </a>  
-             <a class="btn btn-primary" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+          </a>  
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Search by Route
   </a>      
-      </div>
+      </div></div>
        
 	<span id="invalid"><p></p></span>
           <div class="collapse in" id="collapseExample" >
-  <div class="panel-collapse collapse in">
+  <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1">{% csrf_token %}
         
 	  <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
@@ -67,9 +69,9 @@
 	  <br>
 
      <br> <button id = "address_submit" type = "submit" class = "save btn btn-default">Go</button>
-      </form></div></div>
+      </form></div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
-  <div class="panel-collapse collapse in"> 
+  <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
 	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
         
@@ -88,12 +90,18 @@
             </select>
              <br>
             <br>
-          
-          <button type = "submit" class = "save btn btn-default">Go</button></div></div>
+
+            Leave Now <input type="checkbox" id="checkbox" onclick="disappear()"><br>
+            
+      <div id="new"><br>
+         <input type="datetime-local" id="dateTime" data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" min=x max="2017-06-30T16:30" placeholder="YYYY/MM/DD HH:MM" /></div>
+            <br>
+          <button type = "submit" class = "save btn btn-default">Go</button></div></div></div>
                  
         </form>
         
-   <div id="results"><p> </p></div>
+    <div id="results">
+        <p> </p></div>
       </div> 
               </div>
           </div>
@@ -105,6 +113,101 @@
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
     <script type = "text/javascript">
 
+              current = new Date();
+            c_year = current.getFullYear();
+          c_month = current.getMonth() + 1;
+            if (c_month >= 0 && c_month<=9) {
+            c_month = "0" + c_month;
+        }
+          c_day = current.getDate();
+            if (c_day >= 0 && c_day<=9) {
+            c_day = "0" + c_day;
+        }
+          c_hour = current.getHours();
+       document.getElementById("dateTime").min = c_year + "-" + c_month + "-" + c_day + "T" + c_hour + ":00" + ":00";
+      
+        
+        
+        
+        if ((c_month == 9 || c_month == 4 || c_month == 6 ||  c_month == 11) && (c_day<=30 && c_day>=27))  {
+            c_day27=25;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=30 ;i> c_day27; i-- ) {
+                new_day=i-26;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+        else if ((c_month==2) && (c_day<=28 && c_day>=25)) {
+             c_day27=25;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=28 ;i> c_day27; i-- ) {
+                new_day=i-24;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+       
+        else if (c_day<=31 && c_day>=27){
+             c_day27=27;
+            new_day=0;
+            new_month=current.getMonth() + 2;
+            if (new_month >= 0 && new_month<=9) {
+            new_month = "0" + new_month;
+            }
+            for (i=31 ;i> c_day27; i-- ) {
+                new_day=i-25;     
+            }
+                   
+            if (new_day >= 0 && new_day<=9) {
+            new_day = "0" + new_day;
+        }
+            document.getElementById("dateTime").max = c_year + "-" + new_month + "-" + new_day + "T" + "23:59:59" ;
+        }       
+        
+    
+            else {
+            
+       future_day=c_day+4;
+         document.getElementById("dateTime").max = c_year + "-" + c_month + "-" + future_day + "T" + "23:59:59";
+    
+            }
+        
+        
+        
+        
+      
+        
+        
+        
+        
+     function disappear(){
+          var chBox=document.getElementById("checkbox");
+    var box = document.getElementById("new")
+        if (chBox.checked==true) {
+            box.style.display="none";
+        }
+        else
+            {
+            box.style.display="block";
+        }
+}
         
       $('#routes').prop('disabled', true);
       $('#routes').html('<option>Loading...</option>');
@@ -367,19 +470,48 @@
         });
 
         function getPredictions(){
+            
+              var cBox=document.getElementById("checkbox").checked
+        var dTime=new Date(document.getElementById("dateTime").value);
+            
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
           end_stop = $('#end option:selected').text().split(',')[0];
-          date = new Date();
+            
+       if (cBox==true) {
+         date = new Date();
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
+            
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
           console.log("Day =", day)
           console.log("Hour =", hour)
+        }
+            else {
+      
+          //  date = new Date();
+        
+                
+          var diff = dTime;
+
+          year=diff.getFullYear();
+          month = diff.getMonth() + 1;
+          day = diff.getDate();
+          hour = diff.getHours();
+          console.log("Route =", route)
+          console.log("Start Stop =", start_stop)
+          console.log("End Stop =", end_stop)
+          console.log("Day =", day)
+          console.log("Hour =", hour)
+    
+                }
+          
+      
+         
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
@@ -476,9 +608,9 @@
             if (data["error"] == "0") {
               popStops(data["stops"])
               drawRoute(data["stops"])
-              $('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
+              $('#results > h4').html("Estimated Journey Time:<br>" + data["prediction"]);
             } else {
-              $('#results > p').html("Oops, something went wrong enter a different route and please try again");
+              $('#results > h4').html("Oops, something went wrong enter a different route and please try again");
             }
           });
         };

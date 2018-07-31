@@ -1,6 +1,7 @@
 html body {
   min-height: 2000px;
     background-color: #74B9E0;
+ margin-bottom: 0px;
 }
 
 
@@ -29,6 +30,8 @@ padding-left: 15px;
     padding-right: 15px;
     color: #403F63;
     background-color: white;
+
+
     
 }
 
@@ -40,12 +43,13 @@ padding-left: 15px;
 
 .navbar-header h1 {
     color: #C36891;
-    margin-left: 60px;
+    margin-left: 80px;
+    height: 50px;
 }
 #map {
-    height: 500px;
-    
+    height: 500px;  
 }
+
 
 .jumbotron  {
     padding-top: 50px;
@@ -57,38 +61,31 @@ padding-left: 15px;
     padding-top: 50px;
   padding-bottom: 20px;
     height: 500px;
-     color: #403F63;
-    
-     
+     color: #403F63;  
 
 }
 
 .form-group {
-    padding-top: 10px;
-    
-     
-        
+    padding-top: 10px;    
 }
 
 .post-form {
-    padding-top: 80px;
+    padding-top: 10px;
     width: 300px;
-    margin-bottom: 100px;
+    margin-bottom: 50px;
     margin-left: 30px;
-  
-   
 }
 
 
 
 h4 {
     display: inline-block;
-    padding-right: 10px;
+    padding-right: 20px;
 }
 
 #inputs {
     padding-top: 10px;
-    margin-left: 100px;
+    margin-left: 90px;
     
 }
 
@@ -96,9 +93,18 @@ h4 {
     width: 600px;
 }
 
-.results {
-   padding-top: 60px;
+#results {
     width: 300px;
-    margin-left: -10px;
+    margin-left: 40px;
 
+    margin-top: -35px;
+
+}
+.save btn btn-default {
+    margin-left: 50px;
+}
+
+
+p {
+    font-size: 30px;
 }
