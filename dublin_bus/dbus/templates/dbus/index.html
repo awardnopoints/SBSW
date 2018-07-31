@@ -44,47 +44,68 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
-          <div id="box1" style="float:left;width:49%;border:1px solid black;background-image:url(https://www.google.ie/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjSnqiywsbcAhWlKsAKHeMYDrQQjRx6BAgBEAU&url=https%3A%2F%2Ffreebiesbug.com%2Fcode-stuff%2Fweather-loading-animation%2F&psig=AOvVaw115UXsyJDcTM6V02ztlcac&ust=1533029587999602);border-radius: 10px;color:#FD3AB7;">
-            <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
-            <p>{{ weather.temp }}</p> &#8451;
-            <p>{{weather.mainDescription}}</p>
-          </div>
-          <br>
-	      <span id="invalid"><p></p></span><br>
+        <div class="panel-group" id="accordion">
+            
+    <div class="panel panel-default">
+      <div class="panel-heading">
+      <div class="btn-group btn-group-justified">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Journey Planner
+          </a>  
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Search by Route
+  </a>      
+      </div></div>
+
+	      <span id="invalid"><p></p></span>
+                  <div class="collapse in" id="collapseExample" >
+  <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
-	        Start Address<br>
-	        <input id="start_address" type="text" name="start_address"><br>
-          End Address<br>
-	        <input id="end_address" type="text" name="end_address" required><br><br>
-	        <input id="address_submit" type="submit" required></input>
-        </form>
-    
+            
+              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
+	  <br>
+         <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
+ <br>
+	        
+	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
+      </form></div></div></div>
+        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
+  <div class="panel-collapse collapse in"> <div class="panel-body">
+        <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
         <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
-          Route:<br>
             <select id="routes" required>
               <option value="">Select Route</option>
             </select><br>
-          Start Stop:<br>
+            
+            <br>
+            
             <select id="start" required>  
-              <option value="">Select Route</option>
-            </select><br>
-          End Stop:<br>
-            <select id="end" required>
               <option value="">Select Start Stop</option>
+            </select><br>
+            
+      <br>
+            
+            <select id="end" required>
+              <option value="">Select End Stop</option>
             </select>
             <br>
-          <button type = "submit" class = "save btn btn-default">Go</button>
-        </form>
-
-        <p>Leave Now</p><input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
+            <br>
+            
+            Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
         <div id='date_input'>
-          <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
+          <input type='datetime-local' id='dateTime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
         </div>
+            <br>
+            <button type = "submit" class = "save btn btn-default">Go</button>
+        </form>
+    </div></div></div>
+        
         <div id="results"><p> </p></div>
       </div> 
+            </div>   </div> 
       <!-- Main component for a primary marketing message or call to action -->
       <div id='map' class="jumbotron text-center col-md-6"></div>
-    </div> <!-- /container -->
+            </div><!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>

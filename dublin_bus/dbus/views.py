@@ -269,7 +269,7 @@ def wait_time(route, stop_id):
         data = rt.call_api(url)
         json_parsed = rt.write_file(data)
         realtime = get_times(json_parsed, route)
-        #print ('Realtime:',realtime)
+        print ('Realtime:',realtime)
                 
         if realtime == "Due":
             wait = 'Due Now'
@@ -299,7 +299,7 @@ def predict_request(request):
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 #print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p>Wait Time: ' + wait + '</p><p>Travel Time: ' + prediction + '</p><p>Price: ' + price + '</p>')
+                return HttpResponse('<p>Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
 
 def getRoutes(request):
         return HttpResponse(routes)
@@ -390,6 +390,7 @@ def predict_address(request):
                    #print(key)
                    #print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
+                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
