@@ -22,6 +22,7 @@ import json
 import requests
 import datetime
 import math
+from functools import lru_cache
 
 
 routes_implemented = ('31','130','140','14','15','16','31','39A','46A','1', '102', '104', 
@@ -136,34 +137,21 @@ def home(request):
 def get_times(json_parsed, user_route):
         
     results=json_parsed['results']
-    i=0
-    length=len(results)
-    while i < length:
+    for each in results:
 
-        each = results[i]
-        additional_info=each['additionalinformation']
-        arrival_time = each['arrivaldatetime']
-        departure_time = each['departuredatetime']
         departing_in = each['departureduetime']
-        destination = each['destination']
-        destination_local=each['destinationlocalized']
-        direction = each['direction']
-        arriving_in = each['duetime']
-        low_floor=each['lowfloorstatus']
-        monitored=each['monitored']
-        operator=each['operator']
-        origin = each['origin']
-        origin_local=each['originlocalized']
         route=each['route']
-        scheduled_arrival = each['scheduledarrivaldatetime']
-        scheduled_departure = each['scheduleddeparturedatetime']
-        timestamp = each['sourcetimestamp']
-        i+=1
 
-        times=""
         if (route==user_route):
             times=departing_in
             return times
+        return ""
+
+@lru_cache(maxsize=20)
+def getModels(route):
+        t = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
+        h = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
+        return (t, h)
 
 def predictions_model(start, end, route, year, month, day, hour):
 
@@ -228,10 +216,11 @@ def predictions_model(start, end, route, year, month, day, hour):
         df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
         df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route)).predict(df)
+        t, h = getModels(route)
+        t_predictions = t.predict(df)
         total += t_predictions.sum()
         del df['distance']
-        h_predictions = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route)).predict(df)
+        h_predictions = h.predict(df)
         total += h_predictions.sum()
         minutes = str(int(total/60))
         seconds = int(total%60)
@@ -308,7 +297,8 @@ def predict_request(request):
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p> Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
+                #return HttpResponse('<p> Wait Time: ' + wait + '<br>Travel Time: ' + prediction + '<br>Price: ' + price + '</p>')
+                return JsonResponse({'wait':wait, 'prediction':prediction, 'price':price})
 
 def getRoutes(request):
         return HttpResponse(routes)
@@ -389,7 +379,8 @@ def predict_address(request):
         prediction = 0
         context = {}
         context["stops"] = []
-        context["prediction"] = []
+        context["prediction"] = ""
+        context["price"] = ""
         context["error"] = "0"
 	#context from the front end could include more that one bus journey so loop through all bus journeys
 	#and added on prediction for each one and relevant stops
@@ -463,7 +454,8 @@ def predict_address(request):
                    stops = getStops(str(final_route), str(stop1), str(stop2))
 
                    context["stops"].append(stops)
-                   context["prediction"].append(prediction)
+                   #context["prediction"].append(prediction)
+                   context['prediction'], context['price'] = prediction
 
         except Exception as e:
            context["error"] =  "1"
