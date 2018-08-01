@@ -317,11 +317,11 @@
       var stops = {};
       {% for stop in stops %}
         var mystop = {};
-        mystop["lat"] = "{{stop.lat}}";
-        mystop["long"] = "{{stop.long}}";
-        mystop["stop_name"] = "{{stop.stop_name}}";
+        //mystop["lat"] = "{{stop.lat}}";
+        //mystop["long"] = "{{stop.long}}";
+        //mystop["stop_name"] = "{{stop.stop_name}}";
         mystop["stop_address"] = "{{stop.stop_address}}";
-        mystop["zone"] = "{{stop.zone}}";
+        //mystop["zone"] = "{{stop.zone}}";
         stops['{{stop.stop_id}}'] = mystop;
       {% endfor %}
 
@@ -334,8 +334,10 @@
         var mystop = {}
         mystop['stop_id'] = "{{stop.stop_id}}";
         mystop['sequence'] = "{{stop.sequence}}";
-        mystop['distance'] = "{{stop.distance}}";
+        //mystop['distance'] = "{{stop.distance}}";
         routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
+        if ("{{stop.route_number}}" == "46A"){
+        }
       {% endfor %} 
 
 
@@ -384,6 +386,7 @@
             return;
           }
           $('#start').html('<option>Loading...</option>');
+          $('#end').html('<option>Select Start Stop</option>');
           $('#start').prop('disabled', true);
           var options = "";
           routes[route]['I'].forEach(function(element){
@@ -441,6 +444,21 @@
           }
         }
 
+        function getLeap(price){
+          switch (price) {
+            case '€2.10':
+              return ' / €1.50';
+            case '€2.85':
+              return ' / €2.15';
+            case '€3.30':
+              return ' / €2.60';
+            case '€3.65':
+              return ' / €2.90';
+            default:
+              return '';
+          }
+        }
+
         function getPredictions(){
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
@@ -458,7 +476,13 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
-              $('#results').html(data);
+              var leap = getLeap(data['price']);
+              var results = "";
+              if ($('#checkbox').is(':checked')) {
+                results = 'Wait time: ' + data['wait'] + '<br>';
+              }
+              results += 'Travel time: ' + data['prediction'] + '<br>Price: ' + data['price'] +  leap;
+              $('#results > p').html(results);
           });
 	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
             popStops(data['stops']);
@@ -529,9 +553,13 @@
             if ($('#checkbox').is(':checked')){
 
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-              for (j in context[0][0]["rtpi"]["results"]){
-                content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
-              };
+              if (context[0][0]['rtpi']['results'].length == 0) {
+                content = content + '<tr><td>No RTPI Available</td></tr>';
+              } else {
+                for (var j = 0; j < 10 && j < context[0][0]['rtpi']['results'].length; j++){
+                  content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
+                };
+              }
               
               var infowindow = new google.maps.InfoWindow({
                 content: content

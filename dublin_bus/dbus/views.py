@@ -22,11 +22,20 @@ import json
 import requests
 import datetime
 import math
+from functools import lru_cache
 
 
-routes_implemented = ['31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9']
+routes_implemented = ('31','130','140','14','15','16','31','39A','46A','1', '102', '104', 
+        '11', '111', '114', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', 
+        '17', '17A', '18', '184', '185', '220', '238', '239', '25', '25A', '25B', 
+        '25X', '26', '27', '270', '27A', '27B', '29A', '31A', '31B', 
+        '32', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', 
+        '40B', '40D', '41', '41B', '41C', '42', '43', '44', '45A', 
+        '47', '49', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', 
+        '66A', '66B', '66X', '67', '67X', '68', '69', '7', '70', 
+        '75', '757', '76', '77A', '79', '79A', '7A', '7B', '83', '84', 
+        '84A', '84X', '9')
 
-routes_implemented = ['46A','31','14','17', '27','11','15', '142','75','61']
 
 routes_to_be_implemented = ('123', '122')
 
@@ -34,10 +43,8 @@ routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
 
 routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '33N', '39X', '39N', '41N', '42N', '46N', '49N', '66N')
 
-routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D','44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
-
-#for route in routes_unsupported_by_data:
-        #routes_implemented.remove(route)
+routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D',
+        '44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
 
 
 print('building categories')
@@ -46,6 +53,7 @@ day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
 zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
+lru_cache(maxsize=1000)
 def price_scrape(route, direction, start_sequence, end_sequence):
         quote_page= 'https://www.dublinbus.ie/Fare-Calculator/Fare-Calculator-Results/?routeNumber=' + str(route).lower() + '&direction=' + str(direction).upper() + '&board=' + str(int(start_sequence)-1) + '&alight=' + str(int(end_sequence)-1)    
         page = urlopen(quote_page)    
@@ -108,9 +116,9 @@ def stop_and_routes_info():
 
         return(mystops, myroutes)
 
-print('finding models')
-find_models()
-models = load_models()
+#print('finding models')
+#find_models()
+#models = load_models()
 #stops, routes = stop_and_routes_info()
 
 stops = sllz.objects.all()
@@ -130,34 +138,21 @@ def home(request):
 def get_times(json_parsed, user_route):
         
     results=json_parsed['results']
-    i=0
-    length=len(results)
-    while i < length:
+    for each in results:
 
-        each = results[i]
-        additional_info=each['additionalinformation']
-        arrival_time = each['arrivaldatetime']
-        departure_time = each['departuredatetime']
         departing_in = each['departureduetime']
-        destination = each['destination']
-        destination_local=each['destinationlocalized']
-        direction = each['direction']
-        arriving_in = each['duetime']
-        low_floor=each['lowfloorstatus']
-        monitored=each['monitored']
-        operator=each['operator']
-        origin = each['origin']
-        origin_local=each['originlocalized']
         route=each['route']
-        scheduled_arrival = each['scheduledarrivaldatetime']
-        scheduled_departure = each['scheduleddeparturedatetime']
-        timestamp = each['sourcetimestamp']
-        i+=1
 
-        times=""
         if (route==user_route):
             times=departing_in
             return times
+        return ""
+
+@lru_cache(maxsize=20)
+def getModels(route):
+        t = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
+        h = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
+        return (t, h)
 
 def predictions_model(start, end, route, year, month, day, hour):
 
@@ -222,10 +217,11 @@ def predictions_model(start, end, route, year, month, day, hour):
         df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
         df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = models[route+'_t'].predict(df)
+        t, h = getModels(route)
+        t_predictions = t.predict(df)
         total += t_predictions.sum()
         del df['distance']
-        h_predictions = models[route+'_h'].predict(df)
+        h_predictions = h.predict(df)
         total += h_predictions.sum()
         minutes = str(int(total/60))
         seconds = int(total%60)
@@ -236,6 +232,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         prediction = minutes + ':' + seconds
         return prediction, price 
 
+@lru_cache(maxsize=20)
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
@@ -301,9 +298,9 @@ def predict_request(request):
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
-                #print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p> Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
+                #return HttpResponse('<p> Wait Time: ' + wait + '<br>Travel Time: ' + prediction + '<br>Price: ' + price + '</p>')
+                return JsonResponse({'wait':wait, 'prediction':prediction, 'price':price})
 
 def getRoutes(request):
         return HttpResponse(routes)
@@ -384,7 +381,8 @@ def predict_address(request):
         prediction = 0
         context = {}
         context["stops"] = []
-        context["prediction"] = []
+        context["prediction"] = ""
+        context["price"] = ""
         context["error"] = "0"
 	#context from the front end could include more that one bus journey so loop through all bus journeys
 	#and added on prediction for each one and relevant stops
@@ -393,8 +391,6 @@ def predict_address(request):
             for key, i in latlng.items():
                 if key in "012345689":
                    
-                   print(key)
-                   #print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
                    query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
@@ -458,7 +454,8 @@ def predict_address(request):
                    stops = getStops(str(final_route), str(stop1), str(stop2))
 
                    context["stops"].append(stops)
-                   context["prediction"].append(prediction)
+                   #context["prediction"].append(prediction)
+                   context['prediction'], context['price'] = prediction
 
         except Exception as e:
            context["error"] =  "1"
