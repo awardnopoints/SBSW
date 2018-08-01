@@ -24,9 +24,17 @@ import datetime
 import math
 
 
-routes_implemented = ['31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9']
+routes_implemented = ('31','130','140','14','15','16','31','39A','46A','1', '102', '104', 
+        '11', '111', '114', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', 
+        '17', '17A', '18', '184', '185', '220', '238', '239', '25', '25A', '25B', 
+        '25X', '26', '27', '270', '27A', '27B', '29A', '31A', '31B', 
+        '32', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', 
+        '40B', '40D', '41', '41B', '41C', '42', '43', '44', '45A', 
+        '47', '49', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', 
+        '66A', '66B', '66X', '67', '67X', '68', '69', '7', '70', 
+        '75', '757', '76', '77A', '79', '79A', '7A', '7B', '83', '84', 
+        '84A', '84X', '9')
 
-#routes_implemented = ['46A','31','14','17', '27','11']
 
 routes_to_be_implemented = ('123', '122')
 
@@ -34,11 +42,8 @@ routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
 
 routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '33N', '39X', '39N', '41N', '42N', '46N', '49N', '66N')
 
-routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D','44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
-
-for route in routes_unsupported_by_data:
-        print(route)
-        routes_implemented.remove(route)
+routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D',
+        '44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
 
 
 print('building categories')
@@ -157,8 +162,8 @@ def get_times(json_parsed, user_route):
 
         times=""
         if (route==user_route):
-            times+=departing_in
-        return times
+            times=departing_in
+            return times
 
 def predictions_model(start, end, route, year, month, day, hour):
 
@@ -243,6 +248,8 @@ def inputValidator(start_stop, end_stop):
                 #print("start_stop length:",len(start_stop),"end_stop length",len(end_stop))
                 return False
         if len(start_stop) > 1 or len(end_stop) > 1:
+                print(len(start_stop))
+                print(len(end_stop))
                 resolved = False
                 for s in start_stop:
                         if resolved:
@@ -301,7 +308,7 @@ def predict_request(request):
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p>Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
+                return HttpResponse('<p> Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
 
 def getRoutes(request):
         return HttpResponse(routes)
@@ -390,10 +397,11 @@ def predict_address(request):
         try:
             for key, i in latlng.items():
                 if key in "012345689":
-                   #print(key)
+                   
+                   print(key)
                    #print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
-                   query = "select * from dbus_stopsv3 where lat >= (%f*0.99995) and lat <= (%f*1.00015) and abs(longitude) >= abs(%f*0.99995) and abs(longitude) <= abs(%f*1.00015) order by abs(lat-%f) limit 1;"
+                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
@@ -431,9 +439,26 @@ def predict_address(request):
                                    route_time = int(result["duetime"])
                                    final_route = result["route"]     
        
+                   print("getting prediction")
                    prediction = predictions_model(str(stop1), str(stop2), str(final_route), int(year), int(month), int(day), int(hour))
                    print("prediction",prediction)
-                   prediction = prediction + walk_time
+                   time_prediction = prediction[0].split(":")
+                   minute = int(time_prediction[0])
+                   second = int(time_prediction[1])
+                   walk_minute = walk_time//60
+                   walk_second = walk_time - walk_minute * 60
+                   minute = minute + walk_minute
+                   second = second + walk_second
+                   if second >= 60:
+                       minute += 1
+                       second = second - 60
+
+                   print(time_prediction)
+
+                   time_prediction = str(minute) + ":" + str(second)
+                   prediction = (time_prediction, prediction[1])
+                   
+                   print(prediction)
                
                    stops = getStops(str(final_route), str(stop1), str(stop2))
 
