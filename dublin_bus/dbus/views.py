@@ -53,6 +53,7 @@ day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
 zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
+lru_cache(maxsize=1000)
 def price_scrape(route, direction, start_sequence, end_sequence):
         quote_page= 'https://www.dublinbus.ie/Fare-Calculator/Fare-Calculator-Results/?routeNumber=' + str(route).lower() + '&direction=' + str(direction).upper() + '&board=' + str(int(start_sequence)-1) + '&alight=' + str(int(end_sequence)-1)    
         page = urlopen(quote_page)    
@@ -231,6 +232,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         prediction = minutes + ':' + seconds
         return prediction, price 
 
+@lru_cache(maxsize=20)
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
@@ -389,8 +391,6 @@ def predict_address(request):
             for key, i in latlng.items():
                 if key in "012345689":
                    
-                   print(key)
-                   #print(i)
                    lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
                    query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
                                 
