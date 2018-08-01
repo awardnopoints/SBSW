@@ -26,7 +26,7 @@ import math
 
 routes_implemented = ['31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9']
 
-routes_implemented = ['46A','31','14','17', '27','11']
+#routes_implemented = ['46A','31','14','17', '27','11']
 
 routes_to_be_implemented = ('123', '122')
 
@@ -36,8 +36,9 @@ routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '
 
 routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D','44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
 
-#for route in routes_unsupported_by_data:
-        #routes_implemented.remove(route)
+for route in routes_unsupported_by_data:
+        print(route)
+        routes_implemented.remove(route)
 
 
 print('building categories')
@@ -108,9 +109,9 @@ def stop_and_routes_info():
 
         return(mystops, myroutes)
 
-print('finding models')
-find_models()
-models = load_models()
+#print('finding models')
+#find_models()
+#models = load_models()
 #stops, routes = stop_and_routes_info()
 
 stops = sllz.objects.all()
@@ -222,10 +223,10 @@ def predictions_model(start, end, route, year, month, day, hour):
         df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
         df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = models[route+'_t'].predict(df)
+        t_predictions = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route)).predict(df)
         total += t_predictions.sum()
         del df['distance']
-        h_predictions = models[route+'_h'].predict(df)
+        h_predictions = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route)).predict(df)
         total += h_predictions.sum()
         minutes = str(int(total/60))
         seconds = int(total%60)
@@ -299,7 +300,6 @@ def predict_request(request):
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
-                #print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
                 return HttpResponse('<p>Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
 
