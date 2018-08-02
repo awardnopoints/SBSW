@@ -3,17 +3,21 @@ html body {
     background-color: #74B9E0;
     margin-bottom: 0px;
     height: 100%;
+
 }
+
+
 
 
 .navbar-static-top {
   margin-bottom: 25px;
-   
     
 }
 
-
-
+.navbar {
+    background-color: #F8F8F8;
+    border-color: #E7E7E7;
+}
 
 .active img {
     width: 90px;
@@ -31,6 +35,7 @@ padding-left: 15px;
     padding-right: 15px;
     color: #403F63;
     background-color: white;
+    
 
 
     
@@ -46,42 +51,40 @@ padding-left: 15px;
     color: #C36891;
     margin-left: 80px;
     height: 50px;
+ /*   font-family: "Trebuchet MS", Helvetica, sans-serif;*/
 }
 #map {
- 
-    height: 100%; 
-  width: 100%; 
-  position:absolute; 
-  top: 0; 
-  left: 0; 
-  z-index: 0;
+  height: 500px;
+
 }
 
 
 .jumbotron  {
-   position: relative; 
-  z-index: 1; /* The z-index should be higher than Google Maps */
-  width: 400px;
-  margin: 45px auto 0;
-margin-right: 70px;
-  padding: 10px;
-  background: black;
-
-
-
+    max-height: 500px;
+    height: 500px;
+      
+    
 
 }
 
-.jumbotron text-center col-md-6 {
-    padding-top: 20px;
-  padding-bottom: 20px;
+col-md-4 {
+    
+}
+.jumbotron text-center col-md-4 {
+    
+
     height: 500px;
      color: #403F63;  
 
-    
+
 }
 
+.jumbotron text-center col-md-8 {
+ 
+    height: 500px;
+     color: #403F63;  
 
+}
 
 .form-group {
     padding-top: 10px; 
@@ -90,22 +93,35 @@ margin-right: 70px;
 }
 
 .post-form {
-    padding-top: 10px;
     width: 300px;
     margin-bottom: 50px;
-    margin-left: 30px;
+    margin-left: 10px;
 
   
 }
-.panel-group {
-             position: absolute;
-    top: 0;
- 
+
+.panel panel-default{
+    max-height:  500px;
+    
+}
+
+.panel {
+
+    max-height:  500px;
+    
 }
 
 #accordion {
                  position: absolute;
     top: 0;
+}
+
+
+select {
+  width: 250px;
+}
+option {
+  width: 250px;
 }
 
 h4 {
@@ -144,6 +160,6 @@ h4 {
 }
 
 
-p {
+#results p {
     font-size: 30px;
 }

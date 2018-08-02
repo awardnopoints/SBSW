@@ -31,10 +31,10 @@
   <body>
 
     <!-- Static navbar -->
-    <nav class="navbar navbar-default navbar-static-top">
-      <div class="container">
+    <nav class="navbar navbar-default navbar-static-top" style=background-color:white; >
+     
         <div class="navbar-header">
-          <h1>Bus App</h1>
+          <h1>Trek Dublin</h1>
         </div>
           <ul class="nav navbar-nav navbar-right">
             <li class="active">   <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
@@ -44,13 +44,13 @@
            
 
           </ul>
-        </div><!--/.nav-collapse -->
-    </nav>        
+       <!--/.nav-collapse -->
+      </nav>      
          
       
 
-        <div class="col-md-4">
-      <div class="jumbotron">
+       
+      <div class="jumbotron text-center col-md-4">
        
         
 
@@ -62,8 +62,8 @@
  
           </a>  
              <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
-    Search by Route
-  </a>      
+    Route Search
+  </a>       
       </div></div>
 
 	     
@@ -112,12 +112,12 @@
         
         <div id="results"><p>  </p></div>
       </div> 
-            </div>  </div>
+            </div>  
       <!-- Main component for a primary marketing message or call to action -->
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-6">> </div>
+        <div id='map' class="jumbotron text-center col-md-8">> </div>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
@@ -256,6 +256,57 @@
         });
         var trafficLayer = new google.maps.TrafficLayer();
 	      trafficLayer.setMap(map);
+          
+            // MY NEW BITS ARE HERE
+    
+   
+       
+    
+    google.maps.event.addListener(map, 'click', function(event) {
+
+alert(event.latLng.lat() + ", " + event.latLng.lng());
+        newLat=event.latLng.lat();
+        newLng=event.latLng.lng();
+        count=0;
+        
+        placeMarker(event.latLng);
+        
+        if (placeMarker(event.latLng)=true) {
+            count+1;
+
+    };
+        alert(count);
+        getDirections();
+        
+        
+        function placeMarker(location) {
+    var marker1 = new google.maps.Marker({
+        position: location, 
+        map: map
+    })};
+        
+ //        new google.maps.Circle({
+   //         map : map,
+    //        center : {lat: newLat, lng: newLng},
+//            strokeColor:'#00FFCC',
+  //          strokeWeight:2,
+//            fillOpacity:0,
+//            radius:1000
+  //      });
+//        function calculateDist(p1, p2) {
+  //          r=google.maps.geometry.spherical.computeDistanceBetween(newLng, newLat);
+    //        return r;
+      //      alert(r);
+        //}
+        
+        //https://stackoverflow.com/questions/14598426/how-to-detect-if-a-point-is-in-a-circle
+});
+    
+   
+    
+    // AND THEY END HERE
+    
+    
 
 	      //autocomplete section on init
         var input_start = document.getElementById('start_address');
@@ -308,12 +359,20 @@
         return new Promise(function(resolve, reject) {	
           var result = []
           var walk_time	
-          var start = document.getElementById("start_address").value;
-          var end = document.getElementById("end_address").value;
+     //     var start = document.getElementById("start_address").value;
+       //   var end = document.getElementById("end_address").value;
+          
+        
         
           var request = {
-            origin: start,
-            destination: end,
+            origin: {
+                "lat": event.latLng.lat(),
+                "lng":  event.latLng.lng(),
+            },
+            destination: {
+              "lat": event.latLng.lat(),
+                "lng":  event.latLng.lng(),
+          },
             travelMode: 'TRANSIT',
             transitOptions: {
               modes: ['BUS'],
@@ -551,7 +610,12 @@
                 map: map,
                 title: context[i][key]["stop"],
                 //icon :  "/static/images/bus-station.svg"
+                  
               });
+                
+                
+                
+               
               markers.push(marker)
             };
 

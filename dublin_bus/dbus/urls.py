@@ -8,7 +8,8 @@ urlpatterns = [
         path('popStops/', views.popStops, name = 'popStops'),
         path('predict_address/' , views.predict_address, name='predict_address'),
         path('get_routes/', views.getRoutes, name = 'getRoutes'),
-        path('get_stops/', views.getStops, name= 'getStops')
+        path('get_stops/', views.getStops, name= 'getStops'),
+        path('get_stop_no/', views.get_stop_no, name= 'get_stop_no'),
 ]
 
 

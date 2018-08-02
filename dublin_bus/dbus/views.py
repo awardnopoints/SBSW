@@ -443,4 +443,15 @@ def predict_address(request):
 
         return JsonResponse(context)
 
+def get_stop_no (request):
+    if request.method=="GET":
+        g=request.GET
+        lat, long=g['lat'], g['long']
+        print (long)
+        print (lat)
+        stops=[]
+        stops=DbusStopsv3.objects.values_list('stop_id', flat=True).filter(lat=lat, longitude=long)
+        return HttpResponse(stops)
+        
+
 
