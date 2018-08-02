@@ -8,7 +8,7 @@
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="../../favicon.ico">
+    <!-- <link rel="icon" href="../../favicon.ico"> -->
 
     <title>Bus App</title>
 
@@ -23,7 +23,8 @@
 <!-- bootstrap-datetimepicker -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-      
+      <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   </head>
 
 
@@ -43,40 +44,68 @@
       
     <div class="container">
       <div class="jumbotron text-center col-md-6">
-	<span id="invalid"><p></p></span>
-        <form method = "POST" class = "post-form" id="post-form1">{% csrf_token %}
-	  Start Address<br>
-	  <input id="start_address" type="text" name="start_address">
-	  <br>
-          End Address<br>
-	  <input id="end_address" type="text" name="end_address">
-	  <br>
-	  <br>
-	  <input id="address_submit" type="submit"></input>
-	  </form>
-	  <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
-          Route:<br>
-            <select id="routes" >
-              <option>Select Route</option>
-            </select>
+        <div class="panel-group" id="accordion">
+            
+    <div class="panel panel-default">
+      <div class="panel-heading">
+      <div class="btn-group btn-group-justified">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Journey Planner
+          </a>  
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    Search by Route
+  </a>      
+      </div></div>
 
-          <br>
-          Start Stop:<br>
-            <select id="start">  
-              <option>Select Route</option>
+	      <span id="invalid"><p></p></span>
+                  <div class="collapse in" id="collapseExample" >
+  <div class="panel-collapse collapse in"><div class="panel-body">
+        <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
+            
+              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
+	  <br>
+         <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
+ <br>
+	        
+	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
+      </form></div></div></div>
+        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
+  <div class="panel-collapse collapse in"> <div class="panel-body">
+        <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
+        <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
+            <select id="routes" required>
+              <option value="">Select Route</option>
             </select><br>
-          End Stop:<br>
-            <select id="end">
-              <option>Select Start Stop</option>
+            
+            <br>
+            
+            <select id="start" required>  
+              <option value="">Select Start Stop</option>
+            </select><br>
+            
+      <br>
+            
+            <select id="end" required>
+              <option value="">Select End Stop</option>
             </select>
             <br>
-          <button type = "submit" class = "save btn btn-default">Go</button>
+            <br>
+            
+            Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
+        <div id='date_input'>
+          <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
+        </div>
+            <br>
+            <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
+    </div></div></div>
+        
         <div id="results"><p> </p></div>
       </div> 
+            </div>   </div> 
       <!-- Main component for a primary marketing message or call to action -->
       <div id='map' class="jumbotron text-center col-md-6"></div>
-    </div> <!-- /container -->
+            </div><!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
@@ -91,6 +120,35 @@
       var directionsDisplay;
       var directionsService;
       var placeSearch, autocomplete_start, autocomplete_end; 
+      var weather_description = "{{weather.description}}";
+      
+      var c = new Date();
+      var f = new Date(c);
+      f.setDate(f.getDate() + 4);
+
+      function stringifyDate(year, month, day, hour, minute, second) {
+        if (++month < 10)
+          month = '0' + month;
+        if (day < 10)
+          day = '0' + day;
+        if (hour < 10)
+          hour = '0' + hour;
+        return year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + second;
+      }
+
+      min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate(), c.getHours(), c.getMinutes(), c.getSeconds());
+      max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate(), f.getHours(), f.getMinutes(), f.getSeconds());
+
+      $('#datetime').attr('min', min_string);
+      $('#datetime').attr('max', max_string);
+
+      if ($('#checkbox').is(':checked')) {
+        $('#date_input').hide();
+      }
+
+      function disappear(){
+        $('#date_input').toggle();
+      }
 
 	    function validateForm() {
 
@@ -108,7 +166,47 @@
 			    return true;
 		    }		
 	    }
-        
+      
+      var icon_code;
+      switch(weather_description) {
+        case 'broken clouds':
+          icon_code = '04';
+          break;
+        case 'clear sky':
+          icon_code = '01';
+          break;
+        case 'few clouds':
+          icon_code = '02';
+          break;
+        case 'scattered clouds': 
+          icon_code = '03';
+          break;
+        case 'shower rain':
+          icon_code = '09';
+          break;
+        case 'rain': 
+          icon_code = '10';
+          break;
+        case 'thunderstorm': 
+          icon_code = '11';
+          break;
+        case 'snow':
+          icon_code = '13';
+          break;
+        case 'mist':
+          icon_code = '50';
+          break;
+        default: 
+          icon_code = '04';
+      }
+      
+      if (7 < new Date().getHours() < 21) {
+        icon_code += 'd';
+      } else {
+        icon_code += 'n';
+      }
+      $("#icon").attr("src","http://openweathermap.org/img/w/" + icon_code + ".png");
+
       function initMap(){
 	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
         directionsService = new google.maps.DirectionsService();
@@ -219,11 +317,11 @@
       var stops = {};
       {% for stop in stops %}
         var mystop = {};
-        mystop["lat"] = "{{stop.lat}}";
-        mystop["long"] = "{{stop.long}}";
-        mystop["stop_name"] = "{{stop.stop_name}}";
+        //mystop["lat"] = "{{stop.lat}}";
+        //mystop["long"] = "{{stop.long}}";
+        //mystop["stop_name"] = "{{stop.stop_name}}";
         mystop["stop_address"] = "{{stop.stop_address}}";
-        mystop["zone"] = "{{stop.zone}}";
+        //mystop["zone"] = "{{stop.zone}}";
         stops['{{stop.stop_id}}'] = mystop;
       {% endfor %}
 
@@ -236,15 +334,11 @@
         var mystop = {}
         mystop['stop_id'] = "{{stop.stop_id}}";
         mystop['sequence'] = "{{stop.sequence}}";
-        mystop['distance'] = "{{stop.distance}}";
+        //mystop['distance'] = "{{stop.distance}}";
         routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
+        if ("{{stop.route_number}}" == "46A"){
+        }
       {% endfor %} 
-
-      //console.log('stops')
-      //console.log(stops)
-      //console.log('routes')
-      //console.log(routes)
-
 
 
       $(document).ready(function(){
@@ -292,6 +386,7 @@
             return;
           }
           $('#start').html('<option>Loading...</option>');
+          $('#end').html('<option>Select Start Stop</option>');
           $('#start').prop('disabled', true);
           var options = "";
           routes[route]['I'].forEach(function(element){
@@ -319,7 +414,6 @@
           var found = false;
 
           routes[route][d].forEach(function(element){
-            //console.log(start, element.stop_id, found)
             if (found){
               options += '<option>' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (" + direction + ")</option>";
             };
@@ -327,7 +421,7 @@
               found = true;
             };
           });
-          //console.log(options);
+
           $('#end').html('<option>Select End Stop</option>');
           $('#end').append(options);
           $('#end').prop('disabled', false);  
@@ -340,11 +434,36 @@
           getPredictions()
         });
 
+        function getInputDate(){
+          if ($('#checkbox').is(':checked')){
+            console.log('actual datetime')
+            return c;
+          } else {
+            console.log('input datetime')
+            return new Date($('#datetime').val());
+          }
+        }
+
+        function getLeap(price){
+          switch (price) {
+            case '€2.10':
+              return ' / €1.50';
+            case '€2.85':
+              return ' / €2.15';
+            case '€3.30':
+              return ' / €2.60';
+            case '€3.65':
+              return ' / €2.90';
+            default:
+              return '';
+          }
+        }
+
         function getPredictions(){
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
           end_stop = $('#end option:selected').text().split(',')[0];
-          date = new Date();
+          date = getInputDate()
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
@@ -357,10 +476,15 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
-              $('#results').html(data);
+              var leap = getLeap(data['price']);
+              var results = "";
+              if ($('#checkbox').is(':checked')) {
+                results = 'Wait time: ' + data['wait'] + '<br>';
+              }
+              results += 'Travel time: ' + data['prediction'] + '<br>Price: ' + data['price'] +  leap;
+              $('#results > p').html(results);
           });
 	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
-            console.log(data)
             popStops(data['stops']);
             drawRoute(data['stops']);
           });
@@ -393,10 +517,9 @@
           }
     
           directionsService.route(request, function(result, status){              
-            if (status == 'OK') {
-              console.log(result);{            
+            if (status == 'OK') {            
               directionsDisplay.setDirections(result);
-              }
+              
             }
           });
         }          
@@ -405,7 +528,8 @@
           console.log(context)
           removeMarkers();
           markers = []
-          for (var i in context) {   
+          for (var i in context) {
+            
               var marker = new google.maps.Marker({
                 position: {lat: Number(context[i][0]["lat"]), lng: Number(context[i][0]["lon"])},
                 map: map,
@@ -413,33 +537,40 @@
                 //icon :  "/static/images/bus-station.svg"
               });
               markers.push(marker)
+
               var length = Object.keys(context[i]).length
-	      console.log(length);
+	      
 	      var marker = new google.maps.Marker({
                 position: {lat: Number(context[i][length-1]["lat"]), lng: Number(context[i][length-1]["lon"])},
                 map: map,
                 title: context[i][length-1]["stop"],
                 //icon :  "/static/images/bus-station.svg"
               });
-              markers.push(marker)
+              markers.push(marker);
+            
 
-	      
+            if ($('#checkbox').is(':checked')){
+
+              var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
+              if (context[0][0]['rtpi']['results'].length == 0) {
+                content = content + '<tr><td>No RTPI Available</td></tr>';
+              } else {
+                for (var j = 0; j < 10 && j < context[0][0]['rtpi']['results'].length; j++){
+                  content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
+                };
+              }
+              
+              var infowindow = new google.maps.InfoWindow({
+                content: content
+              });
             
-          
-            var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-            for (j in context[0][0]["rtpi"]["results"]){
-              content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
-            };
-            
-            var infowindow = new google.maps.InfoWindow({
-              content: content
-            });
-          
-            infowindow.open(map, markers[0]);
-            google.maps.event.addListener(markers[0], 'click', function() {
-              console.log("hello");
               infowindow.open(map, markers[0]);
-            });
+              google.maps.event.addListener(markers[0], 'click', function() {
+                console.log("hello");
+                infowindow.open(map, markers[0]);
+              });
+            }
+
           };
         };
 
@@ -450,11 +581,11 @@
           output.push(context)		
           context = JSON.stringify(output)		
           
-          date = new Date();
-                year = date.getFullYear();
-                      month = date.getMonth() + 1;
-                      day = date.getDate();
-                      hour = date.getHours();
+          date = getInputDate();
+          year = date.getFullYear();
+          month = date.getMonth() + 1;
+          day = date.getDate();
+          hour = date.getHours();
       
           $.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
             if (data["error"] == "0") {
