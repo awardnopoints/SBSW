@@ -37,36 +37,46 @@
           <h1>Bus App</h1>
         </div>
           <ul class="nav navbar-nav navbar-right">
-            <li class="active"><img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
+            <li class="active">   <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
+         
+            {{weather.mainDescription}} {{ weather.temp }} &#8451;
+<img src="/static/images/bus.png"> <img src="/static/images/ucd.png"><span class="sr-only">(current)</span></li>
+           
+
           </ul>
         </div><!--/.nav-collapse -->
     </nav>        
+         
       
-    <div class="container">
-      <div class="jumbotron text-center col-md-6">
-        <div class="panel-group" id="accordion">
-            
+
+        <div class="col-md-4">
+      <div class="jumbotron">
+       
+        
+
     <div class="panel panel-default">
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="showDiv()">
     Journey Planner
+ 
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
     Search by Route
   </a>      
       </div></div>
 
-	      <span id="invalid"><p></p></span>
+	     
                   <div class="collapse in" id="collapseExample" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
               <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
-	  <br>
+	
          <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
  <br>
 	        
+            
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
       </form></div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
@@ -93,19 +103,22 @@
             
             Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
         <div id='date_input'>
-          <input type='datetime-local' id='dateTime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
+          <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
         </div>
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
     </div></div></div>
         
-        <div id="results"><p> </p></div>
+        <div id="results"><p>  </p></div>
       </div> 
-            </div>   </div> 
+            </div>  </div>
       <!-- Main component for a primary marketing message or call to action -->
-      <div id='map' class="jumbotron text-center col-md-6"></div>
-            </div><!-- /container -->
+    <!--   -->
+        
+        
+        <div id='map' class="jumbotron text-center col-md-6">> </div>
+            <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
@@ -146,6 +159,32 @@
         $('#date_input').hide();
       }
 
+   
+       
+//        function disappear1(){
+//        $('#post-form').hide();
+//             $('#post-form').show();
+//               $('#post-form1').hide();
+//      }
+        
+//             function showDiv(){
+//        $('#post-form1').hide();
+//         $('#post-form1').show(); 
+//     }
+        
+       
+        function disappear1(){
+        $('#post-form').show();
+             $('#post-form1').hide();
+            
+      }
+        
+        function showDiv(){
+            $('#post-form').hide();
+             $('#post-form1').show();
+      }
+        
+        
       function disappear(){
         $('#date_input').toggle();
       }
@@ -213,6 +252,7 @@
         map = new google.maps.Map(document.getElementById('map'), {
         	zoom: 12,
           center: {lat: 53.3498, lng: -6.2603}
+            
         });
         var trafficLayer = new google.maps.TrafficLayer();
 	      trafficLayer.setMap(map);

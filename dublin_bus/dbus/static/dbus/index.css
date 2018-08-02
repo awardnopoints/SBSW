@@ -1,7 +1,8 @@
 html body {
-  min-height: 2000px;
+
     background-color: #74B9E0;
- margin-bottom: 0px;
+    margin-bottom: 0px;
+    height: 100%;
 }
 
 
@@ -17,7 +18,7 @@ html body {
 .active img {
     width: 90px;
     height: 90px;
-    margin-left: 15px;
+    margin-left: 20px;
     margin-right: 20px;
     margin-bottom: 10px;
 }
@@ -47,26 +48,45 @@ padding-left: 15px;
     height: 50px;
 }
 #map {
-    height: 500px;  
+ 
+    height: 100%; 
+  width: 100%; 
+  position:absolute; 
+  top: 0; 
+  left: 0; 
+  z-index: 0;
 }
 
 
 .jumbotron  {
-    padding-top: 50px;
-  padding-bottom: 20px;
-    height: 500px;
+   position: relative; 
+  z-index: 1; /* The z-index should be higher than Google Maps */
+  width: 400px;
+  margin: 45px auto 0;
+margin-right: 70px;
+  padding: 10px;
+  background: black;
+
+
+
 
 }
+
 .jumbotron text-center col-md-6 {
-    padding-top: 50px;
+    padding-top: 20px;
   padding-bottom: 20px;
     height: 500px;
      color: #403F63;  
 
+    
 }
 
+
+
 .form-group {
-    padding-top: 10px;    
+    padding-top: 10px; 
+
+
 }
 
 .post-form {
@@ -74,9 +94,19 @@ padding-left: 15px;
     width: 300px;
     margin-bottom: 50px;
     margin-left: 30px;
+
+  
+}
+.panel-group {
+             position: absolute;
+    top: 0;
+ 
 }
 
-
+#accordion {
+                 position: absolute;
+    top: 0;
+}
 
 h4 {
     display: inline-block;
@@ -88,6 +118,15 @@ h4 {
     margin-left: 90px;
     
 }
+
+#box1 {
+    float: left;
+    border:1px solid black;
+    background-image:url(https://www.google.ie/url?sa=i&source=images&cd=&cad=rja&uact=8&ved=2ahUKEwjSnqiywsbcAhWlKsAKHeMYDrQQjRx6BAgBEAU&url=https%3A%2F%2Ffreebiesbug.com%2Fcode-stuff%2Fweather-loading-animation%2F&psig=AOvVaw115UXsyJDcTM6V02ztlcac&ust=1533029587999602);
+    border-radius: 10px;
+    color:#FD3AB7;
+}
+
 
 .form-horizontal {
     width: 600px;
