@@ -286,20 +286,23 @@
             var step_no = 1
             var walk_time = 0;
             if (status == "OK") {
+              console.log(result);
               steps = result.routes[0].legs[0].steps
               for (var i = 0; i<steps.length; i++) {
                 if (steps[i].travel_mode == "TRANSIT") {
                   route = []
-                  
-                  var lat1 = steps[i].path[0].lat()
-                  var lat2 = steps[i].path[steps[i].path. length - 1].lat()
-                  var lng1 = steps[i].path[0].lng()
-                  var lng2 = steps[i].path[steps[i].path.length - 1].lng()
+                  var bus_no = steps[i].transit.line.short_name 
+                  var lat1 = steps[i].transit.departure_stop.location.lat()
+                  var lat2 = steps[i].transit.arrival_stop.location.lat()
+
+                  var lng1 = steps[i].transit.departure_stop.location.lng()
+                  var lng2 = steps[i].transit.arrival_stop.location.lng()
                   
                   route.push(lat1);
                   route.push(lng1)
                   route.push(lat2)
                   route.push(lng2)
+                  route.push(bus_no)
                   context[step_no] = route
                   step_no++
                 } else {
@@ -550,7 +553,7 @@
             
 
             if ($('#checkbox').is(':checked')){
-
+              console.log(context)
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
               if (context[0][0]['rtpi']['results'].length == 0) {
                 content = content + '<tr><td>No RTPI Available</td></tr>';
@@ -579,6 +582,7 @@
           var context = await getDirections();
           output = []
           output.push(context)		
+          console.log(output)
           context = JSON.stringify(output)		
           
           date = getInputDate();
