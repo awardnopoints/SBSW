@@ -260,24 +260,21 @@
             // MY NEW BITS ARE HERE
     
    
-       
+       var count=0;
     
     google.maps.event.addListener(map, 'click', function(event) {
 
 alert(event.latLng.lat() + ", " + event.latLng.lng());
         newLat=event.latLng.lat();
         newLng=event.latLng.lng();
-        count=0;
+        count++;
         
-        placeMarker(event.latLng);
-        
-        if (placeMarker(event.latLng)=true) {
-            count+1;
+        if (count <=2) {
+            placeMarker(event.latLng);
+        }
+       alert(count);
 
-    };
-        alert(count);
-        getDirections();
-        
+            
         
         function placeMarker(location) {
     var marker1 = new google.maps.Marker({
@@ -285,6 +282,38 @@ alert(event.latLng.lat() + ", " + event.latLng.lng());
         map: map
     })};
         
+        
+        var geocoder=new google.maps.Geocoder;
+        geocodeLatLng(geocoder, map);
+        
+        function geocodeLatLng(geocoder, map) {
+        var latlng={lat:newLat, lng: newLng};
+   
+        geocoder.geocode({'location': latlng}, function(results, status) {
+            if (status ==='OK') {
+                 console.log(results);
+     var address = (results[0].formatted_address);
+                
+                alert(address);
+                
+                 if (count%2==0) {
+            document.getElementById('end_address').value=address;
+        }else {
+                document.getElementById('start_address').value=address;
+    }
+    }else {
+        alert("no results found");
+    }
+    // This is checking to see if the Geoeode Status is OK before proceeding
+  
+    }
+  )};
+        //https://developers.google.com/maps/documentation/javascript/examples/geocoding-reverse
+       
+          
+        
+        
+		  //    getDirections();
  //        new google.maps.Circle({
    //         map : map,
     //        center : {lat: newLat, lng: newLng},
@@ -356,23 +385,16 @@ alert(event.latLng.lat() + ", " + event.latLng.lng());
       };
 
       function getDirections() {
-        return new Promise(function(resolve, reject) {	
+
+       return new Promise(function(resolve, reject) {	
           var result = []
           var walk_time	
-     //     var start = document.getElementById("start_address").value;
-       //   var end = document.getElementById("end_address").value;
-          
-        
+          var start = document.getElementById("start_address").value;
+          var end = document.getElementById("end_address").value;
         
           var request = {
-            origin: {
-                "lat": event.latLng.lat(),
-                "lng":  event.latLng.lng(),
-            },
-            destination: {
-              "lat": event.latLng.lat(),
-                "lng":  event.latLng.lng(),
-          },
+            origin: start,
+            destination: end,
             travelMode: 'TRANSIT',
             transitOptions: {
               modes: ['BUS'],
