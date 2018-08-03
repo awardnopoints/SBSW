@@ -62,7 +62,7 @@
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
+              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><input type="checkbox" id="geolocation"> Use Current Location 
 	  <br>
          <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
  <br>
@@ -121,10 +121,12 @@
       var directionsService;
       var placeSearch, autocomplete_start, autocomplete_end; 
       var weather_description = "{{weather.description}}";
-      
+      var current_location;
       var c = new Date();
       var f = new Date(c);
       f.setDate(f.getDate() + 4);
+
+      
 
       function stringifyDate(year, month, day, hour, minute, second) {
         if (++month < 10)
@@ -260,6 +262,7 @@
 			      }
 			    });
 	      }
+				
 
 	      return;
       };
@@ -462,6 +465,62 @@
           }
         }
 
+         document.getElementById("geolocation").onclick = function getLocation(){
+
+		cb = this.checked
+		
+		if (cb) {
+			console.log("checked")
+
+			 if (navigator.geolocation) {
+
+                        navigator.geolocation.getCurrentPosition(function(position) {
+
+                                var pos = {
+
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude,
+                                        
+                                        }
+
+                                console.log(pos)
+
+                                map.setCenter(pos);
+
+                                current_location = new google.maps.Marker({
+                                        position: {lat: pos.lat, lng: pos.lng},
+                                        map: map,
+                                        title: "Current Location"
+                
+                                });
+
+                                markers.push(current_location);
+
+                                var geocoder = new google.maps.Geocoder;
+                                
+                                geocoder.geocode({'location' : pos}, function(result, status) {
+
+                                        if (status == "OK") {
+                                                console.log(result[0].formatted_address);
+                                                $("#start_address").val(result[0].formatted_address)
+                                        }
+
+                                });
+
+                        });
+
+		}
+
+		}
+		else {
+			console.log("unchecked")
+			current_location.setMap(null)
+			$("#start_address").val("")
+		}
+
+	
+	}
+	
         function getPredictions(){
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
@@ -607,8 +666,7 @@
             markers[i].setMap(null);
           };
         };
-      });
-
+	});
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap&libraries=places" type = 'text/javascript'></script>
     <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>   
