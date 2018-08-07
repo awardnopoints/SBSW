@@ -538,13 +538,21 @@
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour}, function(data){
-              var leap = getLeap(data['price']);
-              var results = "";
-              if ($('#checkbox').is(':checked')) {
-                results = 'Wait time: ' + data['wait'] + '<br>';
+              
+              if (typeof data == 'string') {
+                console.log('error')
+                $('#results > p').html(data);
+              } else {
+                console.log('not error')
+                var leap = getLeap(data['price']);
+                var results = "";
+                if ($('#checkbox').is(':checked')) {
+                  results = 'Wait time: ' + data['wait'] + '<br>';
+                }
+                results += 'Travel time: ' + data['prediction'] + '<br>Price: ' + data['price'] +  leap;
+                console.log(data['prediction'], data['price'])
+                $('#results > p').html(results);
               }
-              results += 'Travel time: ' + data['prediction'] + '<br>Price: ' + data['price'] +  leap;
-              $('#results > p').html(results);
           });
 	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
             popStops(data['stops']);
