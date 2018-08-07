@@ -453,9 +453,9 @@ def predict_address(request):
                    route_time = math.inf
        
                    print("getting prediction")
-                   #prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
+                   prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
                    print("prediction",prediction)
-                   prediction = ["00:00", 0]
+                   #prediction = ["00:00", 0]
                    time_prediction = prediction[0].split(":")
                    minute = int(time_prediction[0])
                    second = int(time_prediction[1])
