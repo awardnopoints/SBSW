@@ -1,10 +1,9 @@
 html body {
 
- 
- 
-    height: 100%;
-  
+    height: 100%;  
 }
+
+
 
 .background {
    /*   background-image: url ("/static/images/dublin.png"); */
@@ -166,7 +165,6 @@ h4 {
 #results {
     width: 300px;
     margin-left: 65px;
-
     margin-top: -35px;
 
 }
@@ -176,5 +174,5 @@ h4 {
 
 
 #results p {
-    font-size: 30px;
+    font-size: 10px;
 }

@@ -31,7 +31,7 @@
   <body background="https://cdn.wallpapersafari.com/1/49/qeG3k4.jpg" style="no-repeat">
       <div class="background"></div>
     <!-- Static navbar -->
-    <nav class="navbar navbar-static-top" style=background-color:transparent; style=height:  20px !important; >
+    <nav class="navbar navbar-static-top" style=background-color:transparent; style=height: 20px !important; >
      
         <div class="navbar-header">
           <h1>Bus App</h1>
@@ -64,9 +64,7 @@
              <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
     Route Search
   </a>   
-           <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample2" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear2()">
-    Map Search
-  </a>   
+           
       </div></div>
 
 	     
@@ -111,18 +109,7 @@
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
-         <div class="collapse in" id="collapseExample2" >
-  <div class="panel-collapse collapse in"><div class="panel-body">
-        <form method = "POST" class = "post-form" id="post-form2" required>{% csrf_token %}
-            
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address">
-	
-         <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
- <br>
-	        
-            
-	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
-      </form></div></div></div>
+
     </div></div></div>
         
         <div id="results"><p>  </p></div>
@@ -187,11 +174,10 @@
 //         $('#post-form1').show(); 
 //     }
         
-         $('#post-form2').hide();
         function disappear1(){
         $('#post-form').show();
              $('#post-form1').hide();
-           $('#post-form2').hide();
+
             
       }
         
@@ -201,11 +187,7 @@
              $('#post-form1').show();
       }
         
-          function disappear2(){
-     
-      $('#post-form').hide();
-                 $('#post-form2').show();
-      }
+  
         
         
       function disappear(){
