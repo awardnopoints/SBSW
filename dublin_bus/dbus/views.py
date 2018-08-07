@@ -398,7 +398,7 @@ def predict_address(request):
                 print(key)
                 if key in "012345689":
                    
-                   lat1, lng1, lat2, lng2, bus_no = i[0], i[1], i[2], i[3], i[4]
+                   lat1, lng1, lat2, lng2, bus_no = i[0], i[1], i[2], i[3], i[4].upper()
                    print("bus:",bus_no)
                    print("start:",(lat1,lng1))
                    print("end:",(lat2,lng2))
@@ -453,9 +453,9 @@ def predict_address(request):
                    route_time = math.inf
        
                    print("getting prediction")
-                   #prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
+                   prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
                    print("prediction",prediction)
-                   prediction = ["00:00", 0]
+                   
                    time_prediction = prediction[0].split(":")
                    minute = int(time_prediction[0])
                    second = int(time_prediction[1])
