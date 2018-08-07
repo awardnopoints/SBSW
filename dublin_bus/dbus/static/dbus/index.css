@@ -1,6 +1,6 @@
 html body {
 
-    background-color: #EDC7B7;
+ 
  
     height: 100%;
   
@@ -16,23 +16,24 @@ height: 100%;
 }
 
 .navbar-header {
-    height: 150px;
+
 }
 .navbar navbar-static-top {
-   height: 150px;
+
     
 }
 
 .navbar {
 
-    height: 150px;
+    height: !important 100px ; /*i assume your navbar size 100px*/
+
     margin-bottom: 0;
 }
 
 
 .active img {
     width: 90px;
-    height: 90px;
+
     margin-left: 20px;
     margin-right: 20px;
     margin-bottom: 10px;
@@ -64,7 +65,7 @@ h1 {
 .navbar-header h1 {
     color: black;
     margin-left: 80px;
-    height: 40px;
+
  /*   font-family: "Trebuchet MS", Helvetica, sans-serif;*/
 }
 #map {
