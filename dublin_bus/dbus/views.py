@@ -5,10 +5,9 @@ from django.views.generic import TemplateView
 from django.db import connection
 from dbus.models import DbusStopsv3
 from dbus.models import DbusStopsv4
-from dbus.models import Trip_avg
 from dbus.models import BusStopsSequenceDistance as bssd
 from dbus.models import StopsLatlngZone as sllz
-from dbus.models import forecast
+from dbus.models import forecast, LeapStores
 from dbus.forms import Predictions
 from sklearn.externals import joblib
 from urllib.request import urlopen
@@ -22,21 +21,31 @@ import json
 import requests
 import datetime
 import math
+from functools import lru_cache
 
 
-routes_implemented = ['31','130','140','14','15','16','31','39A','46A','1', '102', '104', '11', '111', '114', '116', '118', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', '17', '17A', '18', '184', '185', '220', '236', '238', '239', '25', '25A', '25B', '25D', '25X', '26', '27', '270', '27A', '27B', '27X', '29A', '31A', '31B', '31D', '32', '32X', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', '40B', '40D', '41', '41B', '41C', '41X', '42', '42D', '43', '44', '44B', '45A', '46E', '47', '49', '51D', '51X', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', '66A', '66B', '66X', '67', '67X', '68', '68A', '68X', '69', '69X', '7', '70', '70D', '75', '757', '76', '76A', '77A', '77X', '79', '79A', '7A', '7B', '7D', '83', '84', '84A', '84X', '9']
+routes_implemented = ('31','130','140','14','15','16','31','39A','46A','1', '102', '104', 
+        '11', '111', '114', '120', '13', '142', '145', '150', '151', '15A', '15B', '161', 
+        '17', '17A', '18', '184', '185', '220', '238', '239', '25', '25A', '25B', 
+        '25X', '26', '27', '270', '27A', '27B', '29A', '31A', '31B', 
+        '32', '33', '33A', '33B', '33X', '37', '38', '38A', '38B', '39', '4', '40', 
+        '40B', '40D', '41', '41B', '41C', '42', '43', '44', '45A', 
+        '47', '49', '53', '54A', '56A', '59', '61', '63', '65', '65B', '66', 
+        '66A', '66B', '66X', '67', '67X', '68', '69', '7', '70', 
+        '75', '757', '76', '77A', '79', '79A', '7A', '7B', '83', '84', 
+        '84A', '84X', '9', '123', '122')
 
-routes_to_be_implemented = ('123', '122')
+routes_to_be_implemented = tuple()
 
 routes_no_longer_in_service = ('83A','16C','41A','14C','38D')
 
 routes_in_service_uncovered = ('7N', '15D', '15N', '25N', '29N', '31N', '33D', '33N', '39X', '39N', '41N', '42N', '46N', '49N', '66N')
 
-routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D','44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
+routes_unsupported_by_data = ('116','118','236','25D','25X','27X','31D','32X','41X','42D',
+        '44B','46E','51D','51X','68A','68X','69X','70D','76A','77X','7D')
 
-for route in routes_unsupported_by_data:
-        routes_implemented.remove(route)
-
+#for route in routes_unsupported_by_data:
+#        routes_implemented.remove(route)
 
 print('building categories')
 stop_cats = sllz.objects.values_list('stop_id', flat=True).distinct()
@@ -44,9 +53,11 @@ day_cats = [i for i in range(7)]
 weather_cats = ['Clouds','Rain','Drizzle','Fog','Clear','Mist','Smoke','Snow','Thunderstorm']
 zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 
+lru_cache(maxsize=1000)
 def price_scrape(route, direction, start_sequence, end_sequence):
         quote_page= 'https://www.dublinbus.ie/Fare-Calculator/Fare-Calculator-Results/?routeNumber=' + str(route).lower() + '&direction=' + str(direction).upper() + '&board=' + str(int(start_sequence)-1) + '&alight=' + str(int(end_sequence)-1)    
-        page = urlopen(quote_page)    
+        page = urlopen(quote_page)   
+        print(quote_page) 
         soup = BeautifulSoup(page, 'html.parser')
         try:
                 name_box = soup.find("span", id="ctl00_FullRegion_MainRegion_ContentColumns_holder_FareListingControl_lblFare").get_text()    
@@ -106,9 +117,9 @@ def stop_and_routes_info():
 
         return(mystops, myroutes)
 
-print('finding models')
-find_models()
-models = load_models()
+#print('finding models')
+#find_models()
+#models = load_models()
 #stops, routes = stop_and_routes_info()
 
 stops = sllz.objects.all()
@@ -128,34 +139,20 @@ def home(request):
 def get_times(json_parsed, user_route):
         
     results=json_parsed['results']
-    i=0
-    length=len(results)
-    while i < length:
+    for each in results:
 
-        each = results[i]
-        additional_info=each['additionalinformation']
-        arrival_time = each['arrivaldatetime']
-        departure_time = each['departuredatetime']
         departing_in = each['departureduetime']
-        destination = each['destination']
-        destination_local=each['destinationlocalized']
-        direction = each['direction']
-        arriving_in = each['duetime']
-        low_floor=each['lowfloorstatus']
-        monitored=each['monitored']
-        operator=each['operator']
-        origin = each['origin']
-        origin_local=each['originlocalized']
         route=each['route']
-        scheduled_arrival = each['scheduledarrivaldatetime']
-        scheduled_departure = each['scheduleddeparturedatetime']
-        timestamp = each['sourcetimestamp']
-        i+=1
 
-        times=""
         if (route==user_route):
-            times+=departing_in
-        return times
+            return departing_in
+    return ""
+
+@lru_cache(maxsize=20)
+def getModels(route):
+        t = joblib.load('dbus/predictive_models/{}_traveltime_model'.format(route))
+        h = joblib.load('dbus/predictive_models/{}_hangtime_model'.format(route))
+        return (t, h)
 
 def predictions_model(start, end, route, year, month, day, hour):
 
@@ -166,7 +163,7 @@ def predictions_model(start, end, route, year, month, day, hour):
         total = 0
         print("route",route)
         stops = bssd.objects.filter(route_number=route) # stop_id, route_number, route_direction, sequence
-        print(len(stops))
+        print('number of stops on route', route + ':', len(stops))
         zones = sllz.objects.all()
         print("start:",start)
         print("end:",end)
@@ -177,7 +174,6 @@ def predictions_model(start, end, route, year, month, day, hour):
         if r:
                 start_stop, end_stop = r[0], r[1]
         else:
-                
                 return False
 
         # Get Price
@@ -190,12 +186,15 @@ def predictions_model(start, end, route, year, month, day, hour):
                                 sequence__gte=start_stop.sequence,
                                 sequence__lt=end_stop.sequence
                                 )
+        print('number of stops:',len(stops))
         for stop in stops:
                 input_list.append((stop.stop_id, stop.distance, zones.get(pk=stop.stop_id).zone))
         date = datetime.datetime(year, month, day, hour)
         weather = forecast.objects.filter(datetime__date=datetime.date(year, month, day),
                                         datetime__hour__lte=hour+1.5
                                         )
+
+        print(input_list)
         #print(len(weather))
         if len(weather) == 0:
                 weather = forecast.objects.all().first()
@@ -220,13 +219,15 @@ def predictions_model(start, end, route, year, month, day, hour):
         df = df[['stop_id','day','before_7am','7am_9am','9am_11am', '11am_3pm', '3pm_6pm', '6pm_midnight','temp','wind_speed','weather_main','zone','distance']]
         df = pd.get_dummies(df, columns=['stop_id','day','weather_main','zone'])
         # Passes tuples into the model, sums up the results, and returns them
-        t_predictions = models[route+'_t'].predict(df)
+        t, h = getModels(route)
+        t_predictions = t.predict(df)
         total += t_predictions.sum()
         del df['distance']
-        h_predictions = models[route+'_h'].predict(df)
+        h_predictions = h.predict(df)
         total += h_predictions.sum()
         minutes = str(int(total/60))
         seconds = int(total%60)
+        
         if seconds < 10:
                 seconds = '0' + str(seconds)
         else:
@@ -234,18 +235,19 @@ def predictions_model(start, end, route, year, month, day, hour):
         prediction = minutes + ':' + seconds
         return prediction, price 
 
+@lru_cache(maxsize=20)
 def inputValidator(start_stop, end_stop):
         # Checks if the inputs are valid, otherwise returns False        
         if len(start_stop) == 0 or len(end_stop) == 0:
-                #print("start_stop length:",len(start_stop),"end_stop length",len(end_stop))
+                
                 return False
         if len(start_stop) > 1 or len(end_stop) > 1:
+                
                 resolved = False
                 for s in start_stop:
                         if resolved:
                                 break
                         for e in end_stop:
-                                #print(s, '\n', e)
                                 if s.sequence < e.sequence and s.route_direction == e.route_direction:
                                         start_stop, end_stop = s, e
                                         resolved = True
@@ -256,7 +258,7 @@ def inputValidator(start_stop, end_stop):
                 start_stop = start_stop.first()
                 end_stop = end_stop.first()
                 
-        if start_stop.route_direction != end_stop.route_direction:
+        if start_stop.route_direction != end_stop.route_direction or start_stop.sequence >= end_stop.sequence:
                 return False
         return(start_stop, end_stop)
 
@@ -297,9 +299,9 @@ def predict_request(request):
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
                 prediction, price = predictions_model(start_stop, end_stop, route, int(year), int(month), int(day), int(hour))
-                #print("Predicted wait time is", prediction)
                 wait = wait_time(route, start_stop)
-                return HttpResponse('<p>Wait Time: ' + wait + ', Travel Time: ' + prediction + ', Price: ' + price + '</p>')
+                #return HttpResponse('<p> Wait Time: ' + wait + '<br>Travel Time: ' + prediction + '<br>Price: ' + price + '</p>')
+                return JsonResponse({'wait':wait, 'prediction':prediction, 'price':price})
 
 def getRoutes(request):
         return HttpResponse(routes)
@@ -311,9 +313,10 @@ def getStops(route, start_stop, end_stop):
     last = False
     response = {}
     i = 0
+    stops = [start_stop, end_stop]
     for stop in stops:
 
-        stop = str(stop.stop_id)
+        #stop = str(stop.stop_id)
 
         if not first and stop == start_stop:
             url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop) + "&format=json"
@@ -323,8 +326,9 @@ def getStops(route, start_stop, end_stop):
             first = True
             latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
 
+
             lat = latlong[0].lat
-            lon = latlong[0].longitude
+            lon = latlong[0].lng
             response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
             i += 1
 
@@ -333,7 +337,7 @@ def getStops(route, start_stop, end_stop):
             latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
 
             lat = latlong[0].lat
-            lon = latlong[0].longitude
+            lon = latlong[0].lng
             response[i] = {'stop': stop,'lat' : lat, 'lon' : lon}
             i += 1
 
@@ -343,10 +347,11 @@ def getStops(route, start_stop, end_stop):
              last = True
              latlong = DbusStopsv3.objects.all().filter(stop_id = stop)
              lat = latlong[0].lat
-             lon = latlong[0].longitude
+             lon = latlong[0].lng
              response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
              break
 
+    
     return response
 
 
@@ -379,71 +384,161 @@ def predict_address(request):
         prediction = 0
         context = {}
         context["stops"] = []
-        context["prediction"] = []
+        context["prediction"] = ""
+        context["price"] = ""
         context["error"] = "0"
 	#context from the front end could include more that one bus journey so loop through all bus journeys
 	#and added on prediction for each one and relevant stops
 
         try:
             for key, i in latlng.items():
+                stop1, stop2 = None, None
+                first_stops = []
+                second_stops = []
+                print(key)
                 if key in "012345689":
-                   #print(key)
-                   #print(i)
-                   lat1, lng1, lat2, lng2 = i[0], i[1], i[2], i[3]
-                   query = "select * from dbus_stopsv3 where lat >= (%f*0.9999) and lat <= (%f*1.0001) and abs(longitude) >= abs(%f*0.9999) and abs(longitude) <= abs(%f*1.0001) order by abs(lat-%f) limit 1;"
-                                
-                   stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))[0].stop_id
 
-                   stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))[0].stop_id
+                   print('starting new leg')
+                   
+                   lat1, lng1, lat2, lng2, bus_no = i[0], i[1], i[2], i[3], i[4].upper()
+                   print("bus:",bus_no)
+                   print("start:",(lat1,lng1))
+                   print("end:",(lat2,lng2))
 
-                   url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + str(stop1) + "&format=json"
-                   req = requests.get(url)
-                   req_text = req.text
-                   json_parsed = json.loads(req_text)
+                   
+                   print('got this far')
+                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.00001)
+                   print('stop1:', stop1)
+                   print(len(list(stop1)))
+                   length = len(list(stop1))
+                   for x in range(length):
+                       
+                       first_stops.append(stop1[x].stop_id)
+
+                   #stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
+                   
+                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.00001)
+                   print('stop2:', stop2)
+
+                   print(len(list(stop2)))
+                   length = len(list(stop1))
+                   for x in range(length):
+                       second_stops.append(stop2[x].stop_id)
+                   
+                   print('List of stops:')
+                   print(first_stops, second_stops)
+
+                   stops = bssd.objects.filter(route_number=bus_no.upper())
+
+                   print("length of stops:",len(list(stops)))
+
+                   for a in first_stops:
+                       #print("stop1:",a)
+                       
+                       for j in second_stops:
+                           
+                           #print("stop2:",j)
+
+                           start_stop = stops.filter(stop_id=a)
+                           end_stop = stops.filter(stop_id=j)
+
+
+                           r = inputValidator(start_stop, end_stop)
+                           if r:
+                               print("validated")
+                               stop1 = a
+                               stop2 = j
+                               break
+                       if r:
+                           break
+                   if not r:
+                           print('Error: Invalid Stops')
+                           return HttpResponse('Error')
+                   
+                   print('this is where we are')
+                   print("start stop:",stop1)
+                   print("end stop:",stop2)
+                   print("route:",bus_no)
 
                    route_time = math.inf
-
-                   route = bssd.objects.raw("select * from (select * from bus_stops_sequence_distance where stop_id = %s) as a join (select * from bus_stops_sequence_distance where stop_id = %s) as b where a.route_number = b.route_number;" % (stop1, stop2))
-        
-                   final_route = route[0].route_number
-
-        #above query could return more than one route so use rtpi to decide which one to use (next one due at the first stop)
- 
-                   for i in route:
-                       results = json_parsed["results"]
-
-
-                       for result in results:
-
-                           if result["route"] == str(i.route_number):  
-
-                               if result["duetime"] == "Due":
-
-                                   route_time = 0
-                                   final_route = result["route"]
-
-                               elif int(result["duetime"]) < route_time:
-                                   route_time = int(result["duetime"])
-                                   final_route = result["route"]     
        
-                   prediction = predictions_model(str(stop1), str(stop2), str(final_route), int(year), int(month), int(day), int(hour))
-                   #print("prediction",prediction)
-                   prediction = prediction + walk_time
-               
-                   stops = getStops(str(final_route), str(stop1), str(stop2))
+                   print("getting prediction")
+                   prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
+                   print("prediction",prediction)
+                   
+                   time_prediction = prediction[0].split(":")
+                   minute = int(time_prediction[0])
+                   second = int(time_prediction[1])
+                   walk_minute = walk_time//60
+                   walk_second = walk_time - walk_minute * 60
+                   minute = minute + walk_minute
+                   second = second + walk_second
+                   if second >= 60:
+                       minute += 1
+                       second = second - 60
 
+                   time_prediction = str(minute) + ":" + str(second)
+                   prediction = (time_prediction, prediction[1])
+                   
+                   print(prediction)
+               
+                   stops = getStops(bus_no, str(stop1), str(stop2))
+                   
                    context["stops"].append(stops)
-                   context["prediction"].append(prediction)
+                   #context["prediction"].append(prediction)
+                   context['prediction'], context['price'] = prediction
 
         except Exception as e:
            context["error"] =  "1"
            print(e)
-
-        #print(context) 
+         
 
         return JsonResponse(context)
 
 
-        
+def leapStores(request):
 
+    response = {}
 
+    if request.method == "GET":
+
+        g = request.GET
+
+        latlng = json.loads(g["context"])[0]
+
+        lat = latlng["lat"]
+        lng = latlng["lng"]
+
+        context = getClose(lat, lng, 'leap_stores', 0.001)
+
+        for i in context:
+            response[i.title] = {"lat" : i.lat, "lng": i.lng}
+
+    return JsonResponse(response)
+
+def getClose(lat, lng, table, magnitude):
+    print('starting getClose')
+    if table not in ('leap_stores', 'dbus_stopsv3'):
+        return False
+
+    tolerance = magnitude
+
+    count = 0
+
+    result = []
+
+    query = "select * from %s where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 10;"
+
+    if table=='leap_stores':
+            mytable = LeapStores
+    elif table=='dbus_stopsv3':
+            mytable = DbusStopsv3
+
+    while len(list(result)) < 10:
+
+        result = mytable.objects.raw(query % (table, float(lat), (tolerance), float(lat), (tolerance), float(lng), (tolerance), float(lng), (tolerance)))
+
+        tolerance += magnitude
+        count += 1
+
+    return result
