@@ -301,3 +301,13 @@ class TripRaw(models.Model):
         managed = False
         db_table = 'trip_raw'
         unique_together = (('index_id', 'date'),)
+
+class LeapStores(models.Model):
+    title = models.CharField(max_length=40, blank=True, null=True, primary_key=True)
+    lat = models.CharField(max_length=10, blank=True, null=True)
+    lng = models.CharField(max_length=10, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'leap_stores'
+

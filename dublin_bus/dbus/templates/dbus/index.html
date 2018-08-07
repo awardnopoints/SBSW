@@ -68,6 +68,8 @@
  <br>
 	        
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
+		<br>
+		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
       </form></div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
   <div class="panel-collapse collapse in"> <div class="panel-body">
@@ -347,6 +349,23 @@
       {% endfor %} 
 
 
+var pos;
+
+	if (navigator.geolocation) {
+
+                        navigator.geolocation.getCurrentPosition(function(position) {
+
+                                pos = {
+
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude,
+                                        
+                                        }
+
+                });
+
+	}
+
       $(document).ready(function(){
 
         /*$.when(
@@ -465,14 +484,9 @@
           }
         }
 
-         document.getElementById("geolocation").onclick = function getLocation(){
+	function geoLocation() {
 
-		cb = this.checked
-		
-		if (cb) {
-			console.log("checked")
-
-			 if (navigator.geolocation) {
+		if (navigator.geolocation) {
 
                         navigator.geolocation.getCurrentPosition(function(position) {
 
@@ -482,6 +496,20 @@
                                         lng: position.coords.longitude,
                                         
                                         }
+
+                });
+	}
+
+	}
+
+         document.getElementById("geolocation").onclick = function getLocation(){
+
+		cb = this.checked
+		
+		if (cb) {
+			console.log("checked")
+
+			geoLocation()
 
                                 console.log(pos)
 
@@ -507,9 +535,9 @@
 
                                 });
 
-                        });
+                        
 
-		}
+		
 
 		}
 		else {
@@ -519,6 +547,47 @@
 		}
 
 	
+	}
+
+	document.getElementById("leap_stores").onclick = function() {
+
+
+		cb = this.checked;
+
+		if (cb){
+			geoLocation()
+			removeMarkers()
+
+			output = []
+          		output.push(pos)          
+          		console.log(output)
+          		context = JSON.stringify(output)   
+			
+			$.get("/leap_stores/", {context}, function(data) {
+
+				for (key in data) {
+					
+					marker = new google.maps.Marker({
+						position: {lat: Number(data[key]["lat"]), lng: Number(data[key]["lng"])},
+						map: map,
+						title: key,	
+
+						});
+
+					markers.push(marker);
+
+				}
+
+			});
+
+		}
+
+		else {
+
+			removeMarkers()
+
+		}
+
 	}
 	
         function getPredictions(){
@@ -587,7 +656,8 @@
           }
     
           directionsService.route(request, function(result, status){              
-            if (status == 'OK') {            
+            if (status == 'OK') {
+              console.log(result);           
               directionsDisplay.setDirections(result);
               
             }
