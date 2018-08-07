@@ -5,10 +5,9 @@ from django.views.generic import TemplateView
 from django.db import connection
 from dbus.models import DbusStopsv3
 from dbus.models import DbusStopsv4
-from dbus.models import Trip_avg
 from dbus.models import BusStopsSequenceDistance as bssd
 from dbus.models import StopsLatlngZone as sllz
-from dbus.models import forecast
+from dbus.models import forecast, LeapStores
 from dbus.forms import Predictions
 from sklearn.externals import joblib
 from urllib.request import urlopen
@@ -60,7 +59,8 @@ zone_cats = sllz.objects.values_list('zone', flat=True).distinct()
 lru_cache(maxsize=1000)
 def price_scrape(route, direction, start_sequence, end_sequence):
         quote_page= 'https://www.dublinbus.ie/Fare-Calculator/Fare-Calculator-Results/?routeNumber=' + str(route).lower() + '&direction=' + str(direction).upper() + '&board=' + str(int(start_sequence)-1) + '&alight=' + str(int(end_sequence)-1)    
-        page = urlopen(quote_page)    
+        page = urlopen(quote_page)   
+        print(quote_page) 
         soup = BeautifulSoup(page, 'html.parser')
         try:
                 name_box = soup.find("span", id="ctl00_FullRegion_MainRegion_ContentColumns_holder_FareListingControl_lblFare").get_text()    
@@ -356,7 +356,7 @@ def getStops(route, start_stop, end_stop):
              response[i] = {'stop': stop, 'lat' : lat, 'lon' : lon}
              break
 
-    print(response)
+    
     return response
 
 
@@ -411,7 +411,7 @@ def predict_address(request):
                    
 
 
-                   #above query will sometime give the incorrect stop so instead of taking one stop from query, take two and then try and get a route from that             
+                   #above query will sometime give the incorrect stop so instead of taking one stop from query, take 10 and then try and match the correct start stop with the correct end stop          
                    stop1 = DbusStopsv3.objects.raw(query % (float(lat1), float(lat1), float(lng1), float(lng1), float(lat1)))
                    print(len(list(stop1)))
                    length = len(list(stop1))
@@ -447,6 +447,8 @@ def predict_address(request):
                                stop1 = a
                                stop2 = j
                                break
+                       if r:
+                           break
 
                    print("start stop:",stop1)
                    print("end stop:",stop2)
@@ -486,3 +488,43 @@ def predict_address(request):
          
 
         return JsonResponse(context)
+
+
+def leapStores(request):
+
+    response = {}
+
+    if request.method == "GET":
+
+        g = request.GET
+
+        latlng = json.loads(g["context"])[0]
+
+        lat = latlng["lat"]
+        lng = latlng["lng"]
+
+        context = getCloseStores(lat, lng)
+
+        for i in context:
+            response[i.title] = {"lat" : i.lat, "lng": i.lng}
+
+    return JsonResponse(response)
+
+def getCloseStores(lat, lng):
+
+    tolerance = 0.001
+
+    count = 0
+
+    result = []
+
+    query = "select * from leap_stores where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 5;"
+
+    while len(list(result)) < 5:
+
+        result = LeapStores.objects.raw(query % (float(lat), (tolerance), float(lat), (tolerance), float(lng), (tolerance), float(lng), (tolerance)))
+
+        tolerance += 0.001
+        count += 1
+
+    return result
