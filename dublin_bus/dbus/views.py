@@ -145,9 +145,8 @@ def get_times(json_parsed, user_route):
         route=each['route']
 
         if (route==user_route):
-            times=departing_in
-            return times
-        return ""
+            return departing_in
+    return ""
 
 @lru_cache(maxsize=20)
 def getModels(route):
