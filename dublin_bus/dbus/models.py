@@ -119,6 +119,19 @@ class BusStopsSequenceDistance(models.Model):
         unique_together = ('stop_id','route_number','route_direction')
         db_table = 'bus_stops_sequence_distance'
 
+class BusSchedule(models.Model):
+    route = models.TextField(blank=True, null=True)
+    direction = models.TextField(blank=True, null=True)
+    departure_time = models.TextField(blank=True, null=True)
+    stop_id = models.BigIntegerField(blank=True, null=True)
+    weekday = models.BigIntegerField(blank=True, null=True)
+    saturday = models.BigIntegerField(blank=True, null=True)
+    sunday = models.BigIntegerField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'bus_schedule'
+
 class StopsLatlngZone(models.Model):
     stop_id = models.BigIntegerField(primary_key=True)
     lat = models.FloatField()
