@@ -262,10 +262,29 @@ def inputValidator(start_stop, end_stop):
                 return False
         return(start_stop, end_stop)
 
+def datifyString(datestring):
+        code = '%Y-%m-%dT%H:%M:%S'
+        return datetime.datetime.strptime(datestring, code)
 
-def wait_time(route, stop_id):
+def deltafyDatetime(d):
+        return datetime.timedelta(years=d.year, months=d.month, days=d.day, hours=d.hour, minutes=d.minute, seconds=d.second)
+
+def wait_time(route, stop_id, time, direction):
+        now = datetime.datetime.now()
+        d_now = deltafyDatetime(now)
+        d_time = deltafyDatetime(now)
         
+        if (d_time - d_now) < 60:
+                result = get_rtpi(route, stop_id)
+                if result != "Unknown":
+                        return result
+        
+        
+
+
        # returns real time info from api based on user selected stop id - refers to function in bus_realtime file
+
+def get_rtpi(route, stop_id):
         url="https://data.smartdublin.ie/cgi-bin/rtpi/realtimebusinformation?stopid=" + stop_id + "&format=json"
         rt.delete_current_rtpi()
         data = rt.call_api(url)
@@ -278,7 +297,7 @@ def wait_time(route, stop_id):
         elif realtime:
             wait = realtime + ':00'
         else:
-                wait = "Unknown"
+            wait = "Unknown"
        
         return wait
         

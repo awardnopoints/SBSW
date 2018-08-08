@@ -145,8 +145,15 @@
 
       
 
-      function stringifyDate(year, month, day, hour, minute, second) {
-        if (++month < 10)
+      function stringifyDate(d) {
+        var year = d.getFullYear();
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        var hour = d.getHours();
+        var minute = d.getMinutes();
+        var second = d.getSeconds();
+
+        if (month < 10)
           month = '0' + month;
         if (day < 10)
           day = '0' + day;
@@ -155,8 +162,8 @@
         return year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + second;
       }
 
-      min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate(), c.getHours(), c.getMinutes(), c.getSeconds());
-      max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate(), f.getHours(), f.getMinutes(), f.getSeconds());
+      min_string = stringifyDate(c);
+      max_string = stringifyDate(f);
 
       $('#datetime').attr('min', min_string);
       $('#datetime').attr('max', max_string);
