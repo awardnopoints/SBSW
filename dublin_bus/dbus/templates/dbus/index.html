@@ -10,7 +10,7 @@
     <meta name="author" content="">
     <!-- <link rel="icon" href="../../favicon.ico"> -->
 
-    <title>Bus App</title>
+    <title>SBSW</title>
 
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'dbus/index.css' %}">
@@ -28,27 +28,27 @@
   </head>
 
 
-  <body background="https://cdn.wallpapersafari.com/1/49/qeG3k4.jpg" style="no-repeat">
+  <body background="https://oscarsinternational.com/wp-content/uploads/2017/02/Oscars-Intenational-Dublin-Ireland.jpg" style="no-repeat">
       <div class="background"></div>
     <!-- Static navbar -->
-    <nav class="navbar navbar-static-top" style=background-color:transparent; style=height: 20px !important; >
+    <nav class="navbar" style=background-color:transparent;  >
      
         <div class="navbar-header">
-          <h1>Bus App</h1>
+          <h1>SBSW</h1>
         </div>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="active">   <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
-         
-            {{weather.mainDescription}} {{ weather.temp }} &#8451;
-<span class="sr-only">(current)</span></li>
+        <div class="weather">
+          <ul>
+            <li class="active">  <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
+      Dublin, Ireland {{ weather.temp }} &#8451;
+</li>
            
 
-          </ul>
+          </ul></div>
        <!--/.nav-collapse -->
       </nav>      
          
       
-
+<div class="container1">
        
       <div class="jumbotron text-center col-md-4">
        
@@ -80,7 +80,7 @@
             
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
 		<br>
-		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
+		<input type="checkbox" id="leap_stores"> Show leap stores
       </form></div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
   <div class="panel-collapse collapse in"> <div class="panel-body">
@@ -121,7 +121,8 @@
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8">> </div>
+        <div id='map' class="jumbotron text-center col-md-8"> </div></div>
+      <footer> <p></p></footer>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>

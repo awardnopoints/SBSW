@@ -1,56 +1,50 @@
 html body {
-
     height: 100%;  
 }
 
-
-
-.background {
-   /*   background-image: url ("/static/images/dublin.png"); */
-    background-image: url("http://trinitybarvenue.ie/wp-content/uploads/2016/05/OCH_Alex__Dublin_Grand_Canal_4d5d4de1.jpg");
-height: 100%;
-        background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
+html {
+    background: url ('https://en.aegeanair.com/-/media/TRFX_Images/city/dublin') no-repeat center center fixed;
+    -webkit-background-size: cover;
+-moz-background-size: cover;
+-o-background-size: cover;
+background-size: cover;
 }
 
-.navbar-header {
-
-}
-.navbar navbar-static-top {
-
-    
-}
 
 .navbar {
 
-    height: !important 100px ; /*i assume your navbar size 100px*/
-
+    height: 40px; /*i assume your navbar size 100px*/
+    min-height: 20px;
     margin-bottom: 0;
+}
+
+.navbar navbar-static-top {
+        min-height: 20px;
+        line-height: 2px;
 }
 
 
 .active img {
-    width: 90px;
-
+    width: 60px;
+    height: 20px;
     margin-left: 20px;
     margin-right: 20px;
-    margin-bottom: 10px;
-}
 
+}
+.weather {
+    float: right;
+    position: relative;
+}
 
 .container {
- padding-top: 0;
-    border-radius: 10px;
-padding-left: 15px;
-    padding-right: 15px;
-    color: #403F63;
-    background-color: white;
-    
 
-
-    
+    max-height: 700px;
+    margin-top: 0px;
+    max-width: 2000px;
+    min-width: 2000px;
 }
+
+
 
  .active h3 {
      color: black;
@@ -60,69 +54,62 @@ padding-left: 15px;
 
 h1 {
     color: black;
+    float: right;
 }
+
 .navbar-header h1 {
     color: black;
     margin-left: 80px;
-
+    float: right;
  /*   font-family: "Trebuchet MS", Helvetica, sans-serif;*/
 }
+
 #map {
-  height: 500px;
+  height: 450px;
+min-width: 2000px;
 
 }
 
+footer {
+
+    max-height: 100px;
+}
 
 .jumbotron  {
-    max-height: 500px;
-    height: 500px;
-      
-    
-
+    max-height: 450px;
+    height: 450px; 
 }
 
 col-md-4 {
     
 }
 .jumbotron text-center col-md-4 {
-    
-
-    height: 500px;
+    height: 450px;
      color: #403F63;  
-
-
 }
 
 .jumbotron text-center col-md-8 {
- 
-    height: 500px;
+    height: 450px;
      color: #403F63;  
-
 }
 
 .form-group {
-  
-
-
 }
+
 
 .post-form {
     width: 300px;
     margin-bottom: 50px;
     margin-left: 10px;
-
-  
 }
 
+
 .panel panel-default{
-    max-height:  500px;
-    
+    max-height:  500px;  
 }
 
 .panel {
-
     max-height:  500px;
-    
 }
 
 #accordion {
@@ -174,5 +161,5 @@ h4 {
 
 
 #results p {
-    font-size: 10px;
+    font-size: 20px;
 }
