@@ -14,6 +14,7 @@
 
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'dbus/index.css' %}">
+      <link href="https://fonts.googleapis.com/css?family=Kirang+Haerang|Lato:400,700,700i|Montserrat:400,500,600,700,700i,800|Rubik:400,700,700i" rel="stylesheet">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.standalone.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -33,17 +34,18 @@
     <!-- Static navbar -->
     <nav class="navbar" style=background-color:transparent;  >
      
-        <div class="navbar-header">
-          <h1>SBSW</h1>
+        <div class="navbar-header" style="float: right; margin-right: 20px;">
+          <h1>Strategic Bus Solutions Worldwide</h1>
         </div>
-        <div class="weather">
-          <ul>
-            <li class="active">  <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
-      Dublin, Ireland {{ weather.temp }} &#8451;
+        
+         
+          <div class="image"> <img id="icon" src="http://openweathermap.org/img/w/10d.png" /></div>
+           <div class="other"><ul style="margin-top: -60px;"><li>  Dublin, Ireland </li>
+         <br>    <li>     {{ weather.temp }} &#8451;
 </li>
            
 
-          </ul></div>
+          </ul></div> 
        <!--/.nav-collapse -->
       </nav>      
          
@@ -72,15 +74,19 @@
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><input type="checkbox" id="geolocation"> Use Current Location 
+              <h4>From</h4>
+      
+              <input id="start_address" type="text" name="start_address" style="width: 220px;">
+            <br><input id="geolocation" type="checkbox" style="margin-left: 50px; margin-top: 10px; margin-bottom: 10px;"> Use Current Location 
 	  <br>
-         <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
+         <h4> To</h4>
+          <input id="end_address" type="text" name="end_address" required style="margin-right: -24px;width: 220px;">
  <br>
 	        
-            
-	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
+            <input type="checkbox" id="leap_stores"style="margin-left: 50px; margin-top: 10px;" > Show leap stores
+	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right; margin-right: -40px;">Go</button>
 		<br>
-		<input type="checkbox" id="leap_stores"> Show leap stores
+		
       </form></div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
   <div class="panel-collapse collapse in"> <div class="panel-body">
@@ -110,7 +116,8 @@
         </form>
 
     </div></div></div>
-    Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
+    <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+        <br>
     <div id='date_input'>
       <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
     </div>
