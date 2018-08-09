@@ -68,7 +68,7 @@
       </div></div>
 
 	     
-                  <div class="collapse in" id="collapseExample" data-parent="accordian" >
+                  <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
@@ -81,7 +81,10 @@
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
 		<br>
 		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
-      </form></div></div></div>
+      </form>
+	<div id = "text_results"></div>
+        <div id = "price"></div>
+	</div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="accordian">
   <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
@@ -108,7 +111,7 @@
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
-
+	<div id = "results"><p></p></div>
     </div></div></div>
     Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
     <div id='date_input'>
@@ -116,15 +119,14 @@
     </div>
 	<br>
 	<br>
-        <div id="results"><p>  </p></div>
-	<div id="price"></div>	
+		
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8">> </div>
+        <div id='map' class="jumbotron text-center col-md-8"> </div>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
@@ -169,41 +171,7 @@
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
       }
-
-   
-       
-//        function disappear1(){
-//        $('#post-form').hide();
-//             $('#post-form').show();
-//               $('#post-form1').hide();
-//      }
-        
-//             function showDiv(){
-//        $('#post-form1').hide();
-//         $('#post-form1').show(); 
-//     }
-        
-        function disappear1(){
-        $('#post-form1').hide();
-        
-	$('#post-form').show()
-            
-      }
-        
-        function showDiv(){
-	    $('#post-form').hide();
-           
-            $('#post-form1').show();
-      }
-        
-  
-        
-        
-      function disappear(){
-        $('#date_input').toggle();
-      }
-
-        
+      
 	    function validateForm() {
 
 		    start = document.getElementById("start_address").value;
@@ -752,7 +720,7 @@ var pos;
           event.preventDefault()
           valid = validateForm()
 			    if (valid) {
-			      $('#results').text('waiting...');
+			      $('#text_results').text('waiting...');
 			      $('#price').text("");
 			      getPredictionsAddress();
 		      }
@@ -864,7 +832,7 @@ var pos;
 	      console.log(data) 
               popStops(data["stops"])
               drawRoute(data["stops"])
-	      $('#results').html(table);
+	      $('#text_results').html(table);
 	      var count = 0
 	      var price = 0
 	      for (i in data["prediction"]) {
