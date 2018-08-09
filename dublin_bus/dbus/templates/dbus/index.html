@@ -50,25 +50,25 @@
       
 
        
-      <div class="jumbotron text-center col-md-4">
+      <div class="jumbotron text-center col-md-4" id='accordian'>
        
         
 
     <div class="panel panel-default">
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="showDiv()">
+    <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Journey Planner
  
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
+             <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Route Search
   </a>   
            
       </div></div>
 
 	     
-                  <div class="collapse in" id="collapseExample" >
+                  <div class="collapse in" id="collapseExample" data-parent="accordian" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
@@ -82,7 +82,7 @@
 		<br>
 		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
       </form></div></div></div>
-        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
+        <div class="collapse" id="collapseExample1" data-parent="accordian">
   <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
         <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
@@ -184,16 +184,16 @@
 //     }
         
         function disappear1(){
-        $('#post-form').show();
-             $('#post-form1').hide();
-
+        $('#post-form1').hide();
+        
+	$('#post-form').show()
             
       }
         
         function showDiv(){
-            $('#post-form').hide();
-          
-             $('#post-form1').show();
+	    $('#post-form').hide();
+           
+            $('#post-form1').show();
       }
         
   
