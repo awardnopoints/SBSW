@@ -69,9 +69,15 @@ h1 {
 }
 #map {
   height: 500px;
+  position: relative
 
 }
 
+#addressToAddress {
+
+   max-height: 500px;
+   overflow-y: scroll;
+}
 
 .jumbotron  {
     max-height: 500px;
@@ -126,7 +132,7 @@ col-md-4 {
 }
 
 #accordion {
-                 position: absolute;
+                 position: relative;
     top: 0;
 }
 
@@ -175,4 +181,15 @@ h4 {
 
 #results p {
     font-size: 10px;
+}
+
+#collapseExample {
+
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+#text_directions td, #text_directions tr {
+    height: 30px;
+    text-align: left;
 }
