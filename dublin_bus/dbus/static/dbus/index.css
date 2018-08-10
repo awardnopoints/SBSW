@@ -148,7 +148,7 @@ col-md-4 {
 .post-form {
     width: 300px;
     height: 180px;
-    margin-left: 10px;
+    margin-left: 0px;
 
 }
 
@@ -180,7 +180,7 @@ h4 {
 
 #inputs {
 padding: 0px;
-    margin-left: 90px;
+    margin-left: 60px;
     
 }
 
