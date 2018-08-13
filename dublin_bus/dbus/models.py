@@ -71,7 +71,7 @@ class forecast (models.Model):
     description=models.TextField()
     mainDescription=models.TextField()
     wind_speed=models.FloatField()
-    wind_direction=models.FloatField()    
+#    wind_direction=models.FloatField()    
     humidity=models.FloatField()
 #    pressure=models.FloatField()
 #    cloudiness=models.FloatField()
@@ -180,7 +180,7 @@ class DbusForecast(models.Model):
     description = models.TextField()
     maindescription = models.TextField(db_column='mainDescription')  # Field name made lowercase.
     wind_speed = models.FloatField()
-    wind_direction = models.FloatField()
+    #wind_direction = models.FloatField()
     humidity = models.FloatField()
 
     class Meta:
