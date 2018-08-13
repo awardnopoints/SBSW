@@ -122,11 +122,20 @@ class BusStopsSequenceDistance(models.Model):
 class BusSchedule(models.Model):
     route = models.TextField(blank=True, null=True)
     direction = models.TextField(blank=True, null=True)
-    departure_time = models.TextField(blank=True, null=True)
+    hour = models.BigIntegerField(blank=True, null=True)
+    minute = models.BigIntegerField(blank=True, null=True)
     stop_id = models.BigIntegerField(blank=True, null=True)
-    weekday = models.BigIntegerField(blank=True, null=True)
-    saturday = models.BigIntegerField(blank=True, null=True)
-    sunday = models.BigIntegerField(blank=True, null=True)
+    monday = models.BooleanField(blank=True, null=True)
+    tuesday = models.BooleanField(blank=True, null=True)
+    wednesday = models.BooleanField(blank=True, null=True)
+    thursday = models.BooleanField(blank=True, null=True)
+    friday = models.BooleanField(blank=True, null=True)
+    saturday = models.BooleanField(blank=True, null=True)
+    sunday = models.BooleanField(blank=True, null=True)
+
+    def __str__(self):
+        return self.route + ', ' + self.direction + ', ' + str(self.hour) + ':' + str(self.minute)
+
 
     class Meta:
         managed = False

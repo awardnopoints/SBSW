@@ -305,7 +305,7 @@ def get_rtpi(route, stop_id):
 def predict_request(request):
         if request.method=='GET':
                 g = request.GET
-                start_stop, end_stop, route, year, month, day, hour = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour']
+                start_stop, end_stop, route, year, month, day, hour, minute = g['start_stop'],g['end_stop'],g['route'],g['year'],g['month'],g['day'],g['hour'],g['minute']
                 
                 if route in routes_to_be_implemented:
                         return HttpResponse('<p>Predictions for route ' + route + ' have yet to be implemented.</p>')
