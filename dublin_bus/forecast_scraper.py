@@ -61,7 +61,7 @@ class weather:
             i+=1
             
             
-            insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity)
+            insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, dt_txt, humidity)
     #http://pythonda.com/collecting-storing-tweets-python-mysql
 
 
@@ -88,7 +88,7 @@ class weather:
         timestamp_current=datetime.datetime.fromtimestamp(dt_current, pytz.timezone('Europe/Dublin'))
 
   
-        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current)
+        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current)
 
 
         #http://pythonda.com/collecting-storing-tweets-python-mysql
@@ -128,25 +128,22 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
-def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current):
+def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s,%s, %s, %s, %s, %s);",
-            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current))
-    except: 
-        connection = engine.connect()
-        connection.execute(
-            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);",
+            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, datetime, humidity) VALUES (%s, %s, %s,%s, %s, %s, %s, %s);",
             (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current))
+    except Exception as e:
+        print("An error occurred inserting data into current_weather table: ", e)
     return
 
-def insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity):
+def insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, dt_txt, humidity):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity))
+            "INSERT INTO dbus_forecast (temp, min_temp, max_temp, description, mainDescription, wind_speed, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);",
+            (temp, temp_min, temp_max, description, mainDescription, speed, dt_txt, humidity))
         
     except Exception as e:
         print("An error occurred inserting data into forecast_weather table: ", e)
