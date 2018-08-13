@@ -125,9 +125,9 @@ def stop_and_routes_info():
 stops = sllz.objects.all()
 routes = bssd.objects.all()
 route_numbers = routes.values_list('route_number', flat=True).distinct()
-weather = forecast.objects.all().first()
 
 def home(request):
+        weather = forecast.objects.all().first()
         context = {
                 'route_numbers':route_numbers,
                 'stops':stops,
@@ -403,8 +403,8 @@ def predict_address(request):
         prediction = 0
         context = {}
         context["stops"] = []
-        context["prediction"] = ""
-        context["price"] = ""
+        context["prediction"] = {}
+        context["price"] = {}
         context["error"] = "0"
 	#context from the front end could include more that one bus journey so loop through all bus journeys
 	#and added on prediction for each one and relevant stops
@@ -436,7 +436,7 @@ def predict_address(request):
 
                    #stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
                    
-                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.00001)
+                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.0001)
                    print('stop2:', stop2)
 
                    print(len(list(stop2)))
@@ -482,21 +482,15 @@ def predict_address(request):
                    route_time = math.inf
        
                    print("getting prediction")
-                   prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
+                   prediction = ("00:00", "0.00")
+                   #prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
                    print("prediction",prediction)
                    
                    time_prediction = prediction[0].split(":")
                    minute = int(time_prediction[0])
                    second = int(time_prediction[1])
-                   walk_minute = walk_time//60
-                   walk_second = walk_time - walk_minute * 60
-                   minute = minute + walk_minute
-                   second = second + walk_second
-                   if second >= 60:
-                       minute += 1
-                       second = second - 60
-
-                   time_prediction = str(minute) + ":" + str(second)
+                   
+                   time_prediction = str(minute) + " mins " + str(second) + " secs"
                    prediction = (time_prediction, prediction[1])
                    
                    print(prediction)
@@ -504,8 +498,9 @@ def predict_address(request):
                    stops = getStops(bus_no, str(stop1), str(stop2))
                    
                    context["stops"].append(stops)
-                   #context["prediction"].append(prediction)
-                   context['prediction'], context['price'] = prediction
+                   print(context)
+                   context['prediction'][int(key)-1] = prediction[0]
+                   context['price'][int(key)-1] = prediction[1]
 
         except Exception as e:
            context["error"] =  "1"
