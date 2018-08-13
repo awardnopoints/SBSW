@@ -50,25 +50,25 @@
       
 
        
-      <div class="jumbotron text-center col-md-4" id='accordian'>
+      <div class="jumbotron text-center col-md-4">
        
         
 
     <div class="panel panel-default">
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="showDiv()">
     Journey Planner
  
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
     Route Search
   </a>   
            
       </div></div>
 
 	     
-                  <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
+                  <div class="collapse in" id="collapseExample" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
@@ -81,11 +81,8 @@
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
 		<br>
 		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
-      </form>
-	<div id = "text_results"></div>
-        <div id = "price"></div>
-	</div></div></div>
-        <div class="collapse" id="collapseExample1" data-parent="accordian">
+      </form></div></div></div>
+        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
   <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
         <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
@@ -111,22 +108,20 @@
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
-	<div id = "results"><p></p></div>
+
     </div></div></div>
     Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
     <div id='date_input'>
       <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
     </div>
-	<br>
-	<br>
-		
+        <div id="results"><p>  </p></div>
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8"> </div>
+        <div id='map' class="jumbotron text-center col-md-8">> </div>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
@@ -147,9 +142,7 @@
       var c = new Date();
       var f = new Date(c);
       f.setDate(f.getDate() + 4);
-      var table;
-      var geocoder;
-      var click_count = 0;
+
       
 
       function stringifyDate(d) {
@@ -178,7 +171,41 @@
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
       }
-      
+
+   
+       
+//        function disappear1(){
+//        $('#post-form').hide();
+//             $('#post-form').show();
+//               $('#post-form1').hide();
+//      }
+        
+//             function showDiv(){
+//        $('#post-form1').hide();
+//         $('#post-form1').show(); 
+//     }
+        
+        function disappear1(){
+        $('#post-form').show();
+             $('#post-form1').hide();
+
+            
+      }
+        
+        function showDiv(){
+            $('#post-form').hide();
+          
+             $('#post-form1').show();
+      }
+        
+  
+        
+        
+      function disappear(){
+        $('#date_input').toggle();
+      }
+
+        
 	    function validateForm() {
 
 		    start = document.getElementById("start_address").value;
@@ -239,7 +266,6 @@
       function initMap(){
 	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
         directionsService = new google.maps.DirectionsService();
-        geocoder = new google.maps.Geocoder;
         map = new google.maps.Map(document.getElementById('map'), {
         	zoom: 12,
           center: {lat: 53.3498, lng: -6.2603}
@@ -248,7 +274,87 @@
         var trafficLayer = new google.maps.TrafficLayer();
 	      trafficLayer.setMap(map);
           
+            // MY NEW BITS ARE HERE
     
+   
+       var count=0;
+    
+    google.maps.event.addListener(map, 'click', function(event) {
+
+//alert(event.latLng.lat() + ", " + event.latLng.lng());
+        newLat=event.latLng.lat();
+        newLng=event.latLng.lng();
+        count++;
+        
+        if (count <=2) {
+            placeMarker(event.latLng);
+        }
+     
+ //      alert(count);
+
+            
+        
+        function placeMarker(location) {
+    var marker1 = new google.maps.Marker({
+        position: location, 
+        map: map
+    })};
+        
+        
+        var geocoder=new google.maps.Geocoder;
+        geocodeLatLng(geocoder, map);
+        
+        function geocodeLatLng(geocoder, map) {
+        var latlng={lat:newLat, lng: newLng};
+   
+        geocoder.geocode({'location': latlng}, function(results, status) {
+            if (status ==='OK') {
+                 console.log(results);
+     var address = (results[0].formatted_address);
+                
+       //         alert(address);
+                
+                 if (count%2==0) {
+            document.getElementById('end_address').value=address;
+        }else {
+                document.getElementById('start_address').value=address;
+    }
+    }else {
+        alert("no results found");
+    }
+    // This is checking to see if the Geoeode Status is OK before proceeding
+  
+    }
+  )};
+        //https://developers.google.com/maps/documentation/javascript/examples/geocoding-reverse
+       
+          
+        
+        
+		  //    getDirections();
+ //        new google.maps.Circle({
+   //         map : map,
+    //        center : {lat: newLat, lng: newLng},
+//            strokeColor:'#00FFCC',
+  //          strokeWeight:2,
+//            fillOpacity:0,
+//            radius:1000
+  //      });
+//        function calculateDist(p1, p2) {
+  //          r=google.maps.geometry.spherical.computeDistanceBetween(newLng, newLat);
+    //        return r;
+      //      alert(r);
+        //}
+        
+        //https://stackoverflow.com/questions/14598426/how-to-detect-if-a-point-is-in-a-circle
+});
+    
+   
+    
+    // AND THEY END HERE
+    
+    
+
 	      //autocomplete section on init
         var input_start = document.getElementById('start_address');
 	      var input_end = document.getElementById('end_address');
@@ -292,70 +398,11 @@
 			      }
 			    });
 	      }
-
-	google.maps.event.addListener(map, 'click', async function(event) {
-
-        newLat=event.latLng.lat();
-        newLng=event.latLng.lng();
-        
-        
-        if (click_count == 0) {
-            removeMarkers()
-	    $('#start_address').val("")
-            $('#end_address').val("")
-            placeMarker(event.latLng);
-            var address =  await geocodeLatLng(event.latLng)
-            
-            $('#start_address').val(address)
-            click_count++
-        }
-        else if (click_count == 1) {
-            placeMarker(event.latLng);
-            click_count = 0
-	    var address = await geocodeLatLng(event.latLng)
-            $('#end_address').val(address)
-        }
-        
-	console.log(click_count);
-
-});
-
-function removeMarkers(){
-          for (var i = 0; i < markers.length; i++){
-            markers[i].setMap(null);
-          };
-        };
-
-
 				
 
 	      return;
       };
-            
-    function placeMarker(latlng){
-    var marker1 = new google.maps.Marker({
-        position: latlng, 
-        map: map
-    })
-        markers.push(marker1)
 
-};
-                
-        function geocodeLatLng(latlng) {
-        
-	return new Promise(function(resolve, reject) {
-
-        console.log(latlng)
-        geocoder.geocode({'location': latlng}, function(results, status) {
-            if (status ==='OK') {
-                 console.log(results)
-     var address = (results[0].formatted_address);
-     
-     resolve(address);
-		}
-	})
-    });
-}
       function getDirections() {
 
        return new Promise(function(resolve, reject) {	
@@ -377,17 +424,13 @@ function removeMarkers(){
           directionsService.route(request, function(result, status){
             var context = {}
             var step_no = 1
-	    var no_bus = 0
             var walk_time = 0;
-	    table = "<table id = text_directions><tr><th>Step</th><th>Estimate Time</th></tr>"
             if (status == "OK") {
               console.log(result);
               steps = result.routes[0].legs[0].steps
               for (var i = 0; i<steps.length; i++) {
                 if (steps[i].travel_mode == "TRANSIT") {
                   route = []
-		  table+="<tr><td>"+steps[i].transit.line.short_name+" "+steps[i].instructions+" for "+steps[i].transit.num_stops+" stops"+"<td id=step_"+no_bus+"></td></tr>"
-		  no_bus += 1
                   var bus_no = steps[i].transit.line.short_name 
                   var lat1 = steps[i].transit.departure_stop.location.lat()
                   var lat2 = steps[i].transit.arrival_stop.location.lat()
@@ -404,11 +447,9 @@ function removeMarkers(){
                   step_no++
                 } else {
                     walk_time += steps[i].duration.value;
-		    table += "<tr><td>"+steps[i].instructions+"</td><td>"+steps[i].duration.text+"</td></tr>"
                 }
               }
-              table+="</table>"
-	      //document.getElementById("results").innerHTML = table
+              
               context["walk_time"] = walk_time
               resolve(context);	
             }
@@ -429,7 +470,7 @@ function removeMarkers(){
 
       var routes = {};
       {% for rn in route_numbers %}
-        routes["{{rn}}"] = {'I':[],'O':[]};
+        routes["{{rn}}" + ' '] = {'I':[],'O':[]};
       {% endfor %}
 
       {% for stop in routes %}
@@ -437,9 +478,7 @@ function removeMarkers(){
         mystop['stop_id'] = "{{stop.stop_id}}";
         mystop['sequence'] = "{{stop.sequence}}";
         //mystop['distance'] = "{{stop.distance}}";
-        routes['{{stop.route_number}}']['{{stop.route_direction}}'].push(mystop)
-        if ("{{stop.route_number}}" == "46A"){
-        }
+        routes['{{stop.route_number}}' + ' ']['{{stop.route_direction}}'].push(mystop)
       {% endfor %} 
 
 
@@ -492,10 +531,10 @@ var pos;
 
         route=JSON.parse(routes)
         stops=JSON.parse(stops)*/
-
         $('#routes').html('<option>Select Route</option>');
+
         Object.keys(routes).forEach(function(element){
-          $('#routes').append('<option>' + element + '</option>');
+          $('#routes').append('<option>' + element.substr(0, element.length-1) + '</option>');
           $('#routes').prop('disabled', false)
         })        
           
@@ -508,10 +547,10 @@ var pos;
           $('#end').html('<option>Select Start Stop</option>');
           $('#start').prop('disabled', true);
           var options = "";
-          routes[route]['I'].forEach(function(element){
+          routes[route + ' ']['I'].forEach(function(element){
             options += '<option value="Incoming">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Incoming)</option>";
           });
-          routes[route]['O'].forEach(function(element){
+          routes[route + ' ']['O'].forEach(function(element){
             options += '<option value="Outgoing">' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (Outgoing)</option>";
           });
           $('#start').html('<option>Select Start Stop</option>');
@@ -532,7 +571,7 @@ var pos;
           var options = "";
           var found = false;
 
-          routes[route][d].forEach(function(element){
+          routes[route + ' '][d].forEach(function(element){
             if (found){
               options += '<option>' + element.stop_id + ", " + stops[element.stop_id]['stop_address'] + " (" + direction + ")</option>";
             };
@@ -618,7 +657,7 @@ var pos;
 
                                 markers.push(current_location);
 
-                                geocoder = new google.maps.Geocoder;
+                                var geocoder = new google.maps.Geocoder;
                                 
                                 geocoder.geocode({'location' : pos}, function(result, status) {
 
@@ -651,7 +690,7 @@ var pos;
 		if (cb){
 			geoLocation()
 			removeMarkers()
-			directionsDisplay.setMap(null);
+
 			output = []
           		output.push(pos)          
           		console.log(output)
@@ -727,8 +766,7 @@ var pos;
           event.preventDefault()
           valid = validateForm()
 			    if (valid) {
-			      $('#text_results').text('waiting...');
-			      $('#price').text("");
+			      $('#results > p').text('waiting...');
 			      getPredictionsAddress();
 		      }
 		    });
@@ -790,7 +828,7 @@ var pos;
             
 
             if ($('#checkbox').is(':checked')){
-              
+              console.log(context)
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
               if (context[0][0]['rtpi']['results'].length == 0) {
                 content = content + '<tr><td>No RTPI Available</td></tr>';
@@ -819,7 +857,7 @@ var pos;
           var context = await getDirections();
           output = []
           output.push(context)		
-          
+          console.log(output)
           context = JSON.stringify(output)		
           
           date = getInputDate();
@@ -827,48 +865,12 @@ var pos;
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
-          
+      
           $.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
-	    var x = [0,1,2,3,4]
-            for (y in x) {
-
-		$("#step_"+x).html("Getting Prediction")
-
-		}
             if (data["error"] == "0") {
-	      console.log(data) 
               popStops(data["stops"])
               drawRoute(data["stops"])
-	      $('#text_results').html(table);
-	      var count = 0
-	      var price = 0
-	      for (i in data["prediction"]) {
-			
-			var step = "step_"+count
-			$("#"+step).html(data["prediction"][i]);
-			count += 1
-	      }
-
-	      for (i in data["price"]) {
-			
-			var price_split = data["price"][i]
-			
-			price_split = price_split.split(".")
-			
-			var euro = Number(price_split[0])*100
-			
-			var cent = Number(price_split[1])
-			total = euro + cent
-			price += total
-			
-			
-
-		}
-
-		price = "€"+price/100
-		leap = getLeap(price)
-		$("#price").html(price + " \\ " + leap)
-              
+              $('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
             } else {
               $('#results > p').html("Oops, something went wrong enter a different route and please try again");
             }
@@ -880,7 +882,6 @@ var pos;
             markers[i].setMap(null);
           };
         };
-
 	});
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap&libraries=places" type = 'text/javascript'></script>
