@@ -125,9 +125,9 @@ def stop_and_routes_info():
 stops = sllz.objects.all()
 routes = bssd.objects.all()
 route_numbers = routes.values_list('route_number', flat=True).distinct()
-weather = forecast.objects.all().first()
 
 def home(request):
+        weather = forecast.objects.all().first()
         context = {
                 'route_numbers':route_numbers,
                 'stops':stops,
