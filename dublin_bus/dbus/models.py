@@ -71,7 +71,7 @@ class forecast (models.Model):
     description=models.TextField()
     mainDescription=models.TextField()
     wind_speed=models.FloatField()
-#    wind_direction=models.FloatField()    
+    wind_direction=models.FloatField()    
     humidity=models.FloatField()
 #    pressure=models.FloatField()
 #    cloudiness=models.FloatField()

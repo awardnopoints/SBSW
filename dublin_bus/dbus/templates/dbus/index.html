@@ -47,32 +47,31 @@
        <!--/.nav-collapse -->
       </nav>      
          
-      
-
        
       <div class="jumbotron text-center col-md-4">
        
-        
+       <span id ="info">hello</span>
 
-    <div class="panel panel-default">
+    <div class="panel panel-default" id="panel">
+       
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="showDiv()">
+    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Journey Planner
  
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
+             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Route Search
   </a>   
            
       </div></div>
 
 	     
-                  <div class="collapse in" id="collapseExample" >
+                  <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><input type="checkbox" id="geolocation"> Use Current Location 
+              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><button type="button" id="geolocation" class = "save btn btn-default"> Use Current Location</button> 
 	  <br>
          <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
  <br>
@@ -81,7 +80,10 @@
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
 		<br>
 		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
-      </form></div></div></div>
+      </form>
+      <div id = "text_results"></div>
+      <div id = "price"></div>
+    </div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="#userOptions">
   <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
@@ -115,6 +117,9 @@
       <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
     </div>
         <div id="results"><p>  </p></div>
+	<br>
+	<br>
+	<button type="submit" class = "save btn btn-default" id="clear_all">Clear All</button>	
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
@@ -142,8 +147,10 @@
       var c = new Date();
       var f = new Date(c);
       f.setDate(f.getDate() + 4);
-
-      
+      var table;
+      var geocoder;
+      var click_count = 0;
+      var using_current = false
 
       function stringifyDate(d) {
         var year = d.getFullYear();
@@ -171,32 +178,6 @@
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
       }
-
-   
-       
-//        function disappear1(){
-//        $('#post-form').hide();
-//             $('#post-form').show();
-//               $('#post-form1').hide();
-//      }
-        
-//             function showDiv(){
-//        $('#post-form1').hide();
-//         $('#post-form1').show(); 
-//     }
-        
-        function disappear1(){
-        $('#post-form').show();
-             $('#post-form1').hide();
-
-            
-      }
-        
-        function showDiv(){
-            $('#post-form').hide();
-          
-             $('#post-form1').show();
-      }
         
   
         
@@ -205,7 +186,14 @@
         $('#date_input').toggle();
       }
 
-        
+	document.getElementById("clear_all").onclick = function clearAll() {
+		console.log("clearing")
+		removeMarkers()
+		directionsDisplay.setMap(null);
+
+	}
+
+      
 	    function validateForm() {
 
 		    start = document.getElementById("start_address").value;
@@ -398,6 +386,51 @@
 			      }
 			    });
 	      }
+
+	google.maps.event.addListener(map, 'click', async function(event) {
+
+        newLat=event.latLng.lat();
+        newLng=event.latLng.lng();
+        
+        
+        if (click_count == 0 && !using_current) {
+            removeMarkers()
+            directionsDisplay.setMap(null);
+	    $('#start_address').val("")
+            $('#end_address').val("")
+            placeMarker(event.latLng);
+            var address =  await geocodeLatLng(event.latLng)
+            $('#start_address').val(address)
+            click_count++
+        }
+        else if (click_count == 1 && !using_current) {
+            placeMarker(event.latLng);
+            click_count = 0
+	    var address = await geocodeLatLng(event.latLng)
+            $('#end_address').val(address)
+        }
+
+	else if (click_count == 0 && using_current) {
+            console.log(using_current);
+	    placeMarker(event.latLng);
+	    click_count = 0
+            using_current = false;
+	    var address = await geocodeLatLng(event.latLng)
+            $('#end_address').val(address)	
+
+	}
+        
+	console.log(click_count);
+
+});
+
+function removeMarkers(){
+          for (var i = 0; i < markers.length; i++){
+            markers[i].setMap(null);
+          };
+        };
+
+
 				
 
 	      return;
@@ -424,13 +457,17 @@
           directionsService.route(request, function(result, status){
             var context = {}
             var step_no = 1
+            var no_bus = 0
             var walk_time = 0;
+            table = "<table id = text_directions><tr><th>Step</th><th>Estimate Time</th></tr>"
             if (status == "OK") {
               console.log(result);
               steps = result.routes[0].legs[0].steps
               for (var i = 0; i<steps.length; i++) {
                 if (steps[i].travel_mode == "TRANSIT") {
                   route = []
+                  table+="<tr><td>"+steps[i].transit.line.short_name+" "+steps[i].instructions+" for "+steps[i].transit.num_stops+" stops"+"<td id=step_"+no_bus+"></td></tr>"
+		              no_bus += 1
                   var bus_no = steps[i].transit.line.short_name 
                   var lat1 = steps[i].transit.departure_stop.location.lat()
                   var lat2 = steps[i].transit.arrival_stop.location.lat()
@@ -446,10 +483,11 @@
                   context[step_no] = route
                   step_no++
                 } else {
-                    walk_time += steps[i].duration.value;
+                  walk_time += steps[i].duration.value;
+                  table += "<tr><td>"+steps[i].instructions+"</td><td>"+steps[i].duration.text+"</td></tr>"
                 }
               }
-              
+              table += '</table>'
               context["walk_time"] = walk_time
               resolve(context);	
             }
@@ -500,6 +538,24 @@ var pos;
 	}
 
       $(document).ready(function(){
+
+
+
+	 document.getElementById("clear_all").onclick = function clearAll() {
+                $('#start_address').val("")
+		$('#end_address').val("")
+		$('#results').html("")
+		$('#text_results').html("")
+		$('#price').html("")
+		$('#leap_stores').prop('checked', false);
+		$('#geolocation').prop('checked', false);
+                removeMarkers()
+                using_current = false;
+                directionsDisplay.setMap(null);
+
+        }
+
+
 
         /*$.when(
           $.get('/get_routes/', function(data){
@@ -637,11 +693,8 @@ var pos;
 
          document.getElementById("geolocation").onclick = function getLocation(){
 
-		cb = this.checked
-		
-		if (cb) {
-			console.log("checked")
-
+			removeMarkers()
+			directionsDisplay.setMap(null);
 			geoLocation()
 
                                 console.log(pos)
@@ -664,6 +717,7 @@ var pos;
                                         if (status == "OK") {
                                                 console.log(result[0].formatted_address);
                                                 $("#start_address").val(result[0].formatted_address)
+						using_current = true;
                                         }
 
                                 });
@@ -673,14 +727,8 @@ var pos;
 		
 
 		}
-		else {
-			console.log("unchecked")
-			current_location.setMap(null)
-			$("#start_address").val("")
-		}
 
 	
-	}
 
 	document.getElementById("leap_stores").onclick = function() {
 
@@ -689,6 +737,7 @@ var pos;
 
 		if (cb){
 			geoLocation()
+	                map.setCenter(pos);
 			removeMarkers()
 
 			output = []
@@ -869,10 +918,42 @@ var pos;
           hour = date.getHours();
       
           $.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
+            var x = [0,1,2,3,4]
+            for (y in x) {
+		          $("#step_"+x).html("Getting Prediction")
+		        }
             if (data["error"] == "0") {
               popStops(data["stops"])
               drawRoute(data["stops"])
-              $('#results > p').html("Estimated Journey Time:<br>" + data["prediction"]);
+              $('#text_results').html(table);
+              var myDiv = document.getElementById('collapseExample')
+              myDiv.scrollTop = myDiv.scrollHeight
+              var count = 0
+              var price = 0
+              for (i in data["prediction"]) {
+                console.log(i)		
+                var step = "step_"+count
+                $("#"+step).html(data["prediction"][i]);
+                count += 1
+              }
+
+              for (i in data["price"]) {		
+                var price_split = data["price"][i]
+                price_split = price_split.split(".")
+                var euro = Number(price_split[0])*100
+                var cent = Number(price_split[1])
+                total = euro + cent
+                price += total
+              }
+              
+              euro = Math.floor(price/100);
+              cent = price%100;
+              if (cent < 10)
+                cent = "0" + cent;
+
+              price = "€" + euro + "." + cent
+              $("#price").html(price)
+              
             } else {
               $('#results > p').html("Oops, something went wrong enter a different route and please try again");
             }

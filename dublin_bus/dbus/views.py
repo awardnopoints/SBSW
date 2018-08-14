@@ -530,8 +530,8 @@ def predict_address(request):
                            r = inputValidator(start_stop, end_stop)
                            if r:
                                #print("validated")
-                               stop1 = a
-                               stop2 = j
+                               stop1 = r[0]
+                               stop2 = r[1]
                                break
                        if r:
                            break
@@ -544,23 +544,27 @@ def predict_address(request):
                    #print("end stop:",stop2)
                    #print("route:",bus_no)
 
-                   route_time = math.inf
+                   #route_time = math.inf
        
                    #print("getting prediction")
-                   prediction = ("00:00", "0.00")
+                   prediction = predictions_model(stop1, stop2, bus_no, int(year), int(month), int(day), int(hour))
+                   prediction = format_prediction(prediction)
+
+                   price = price_scrape(bus_no, stop1.route_direction, stop1.sequence, stop2.sequence)
+                   #prediction = ("00:00", "0.00")
                    #prediction = predictions_model(str(stop1), str(stop2), bus_no, int(year), int(month), int(day), int(hour))
                    #print("prediction",prediction)
                    
-                   time_prediction = prediction[0].split(":")
+                   time_prediction = prediction.split(":")
                    minute = int(time_prediction[0])
                    second = int(time_prediction[1])
                    
                    time_prediction = str(minute) + " mins " + str(second) + " secs"
-                   prediction = (time_prediction, prediction[1])
+                   prediction = (time_prediction, price[1:])
                    
                    #print(prediction)
                
-                   stops = getStops(bus_no, str(stop1), str(stop2))
+                   stops = getStops(bus_no, str(stop1.stop_id), str(stop2.stop_id))
                    
                    context["stops"].append(stops)
                    #print(context)
@@ -571,7 +575,7 @@ def predict_address(request):
            context["error"] =  "1"
            print(e)
          
-
+        #print(context)
         return JsonResponse(context)
 
 
