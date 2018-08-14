@@ -26,6 +26,8 @@
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
       <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+      
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   </head>
 
 
@@ -118,8 +120,9 @@
     </div></div></div>
     <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
         <br>
-    <div id='date_input'>
-      <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
+    <div id='date_input' style="margin-top: -30px;">
+<input type="text" id="datepicker">
+        <input type="text" id="timepicker"/>
     </div>
         <div id="results"><p>  </p></div>
       </div> 
@@ -134,8 +137,20 @@
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
-    <script type = "text/javascript">
+       <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+     <script type="text/javascript" src="https://jonthornton.github.io/jquery-timepicker/jquery.timepicker.js"></script>
+      <link rel="stylesheet" type="text/css" href="https://jonthornton.github.io/jquery-timepicker/jquery.timepicker.css">
+      <script type="text/javascript" src="https://jonthornton.github.io/jquery-timepicker/lib/bootstrap-datepicker.js"></script>
+<link rel="stylesheet" type="text/css" href="https://jonthornton.github.io/jquery-timepicker/lib/bootstrap-datepicker.css">
 
+    <script type = "text/javascript">
+         
+  $(document).ready(function() {
+        $("#datepicker").datepicker();
+      $('#timepicker').timepicker({ 'scrollDefault': 'now' });
+  });
+ 
       $('#routes').prop('disabled', true);
       $('#routes').html('<option>Loading...</option>');
       $('#end').prop('disabled', true);
@@ -151,23 +166,24 @@
       var f = new Date(c);
       f.setDate(f.getDate() + 4);
 
-      
+     
 
-      function stringifyDate(year, month, day, hour, minute, second) {
+      function stringifyDate(year, month, day) {
         if (++month < 10)
           month = '0' + month;
         if (day < 10)
           day = '0' + day;
-        if (hour < 10)
-          hour = '0' + hour;
-        return year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + second;
+        //if (hour < 10)
+    //      hour = '0' + hour;
+        return year + '-' + month + '-' + day;
       }
 
-      min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate(), c.getHours(), c.getMinutes(), c.getSeconds());
-      max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate(), f.getHours(), f.getMinutes(), f.getSeconds());
+      min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate());
+      max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate());
+   
 
-      $('#datetime').attr('min', min_string);
-      $('#datetime').attr('max', max_string);
+      $('#datepicker').attr('min', min_string);
+      $('#datepicker').attr('max', max_string);
 
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
@@ -601,7 +617,14 @@ var pos;
             return c;
           } else {
             console.log('input datetime')
-            return new Date($('#datetime').val());
+            var time = document.getElementById('timepicker').value;
+            var timeSplit = time.split(':');
+            var hr = (timeSplit[0]);
+            if (hr < 10)
+           hr = '0' + hr;
+            alert (hr);
+              
+            return new Date($('#datepicker').val());
           }
         }
 
@@ -727,6 +750,9 @@ var pos;
 	}
 	
         function getPredictions(){
+            
+          
+            
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
           end_stop = $('#end option:selected').text().split(',')[0];
@@ -734,7 +760,8 @@ var pos;
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
-          hour = date.getHours();
+          hour=date.getHours();
+
           console.log("Route =", route)
           console.log("Start Stop =", start_stop)
           console.log("End Stop =", end_stop)
