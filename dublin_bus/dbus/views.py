@@ -491,7 +491,7 @@ def predict_address(request):
 
                    
                    #print('got this far')
-                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.00001)
+                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.0001)
                    #print('stop1:', stop1)
                    #print(len(list(stop1)))
                    length = len(list(stop1))
