@@ -48,7 +48,7 @@
       </nav>      
          
        
-      <div class="jumbotron text-center col-md-4">
+      <div class="jumbotron text-center col-md-4" id='accordian'>
        
        <span id ="info">hello</span>
 
@@ -56,11 +56,11 @@
        
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Journey Planner
  
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  href="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+             <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
     Route Search
   </a>   
            
@@ -84,7 +84,7 @@
       <div id = "text_results"></div>
       <div id = "price"></div>
     </div></div></div>
-        <div class="collapse" id="collapseExample1" data-parent="#userOptions">
+        <div class="collapse" id="collapseExample1" data-parent="accordian">
   <div class="panel-collapse collapse in"> <div class="panel-body">
         <!--  https://getbootstrap.com/docs/4.0/components/collapse/ --> 
         <form method = "POST" class = "post-form" id = "post-form">{% csrf_token %}
@@ -254,6 +254,7 @@
       function initMap(){
 	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
         directionsService = new google.maps.DirectionsService();
+        geocoder = new googel.maps.Geocoder;
         map = new google.maps.Map(document.getElementById('map'), {
         	zoom: 12,
           center: {lat: 53.3498, lng: -6.2603}
@@ -817,7 +818,8 @@ var pos;
           event.preventDefault()
           valid = validateForm()
 			    if (valid) {
-			      $('#results > p').text('waiting...');
+            $('#text_results').text('waiting...');
+            $('#price').text("");
 			      getPredictionsAddress();
 		      }
 		    });
