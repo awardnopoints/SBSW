@@ -47,14 +47,13 @@
        <!--/.nav-collapse -->
       </nav>      
          
-      
-
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
        
-        
+       <span id ="info">hello</span>
 
-    <div class="panel panel-default">
+    <div class="panel panel-default" id="panel">
+       
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
     <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
@@ -72,7 +71,7 @@
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><input type="checkbox" id="geolocation"> Use Current Location 
+              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><button type="button" id="geolocation" class = "save btn btn-default"> Use Current Location</button> 
 	  <br>
          <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
  <br>
@@ -119,7 +118,7 @@
     </div>
 	<br>
 	<br>
-		
+	<button type="submit" class = "save btn btn-default" id="clear_all">Clear All</button>	
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
@@ -150,7 +149,7 @@
       var table;
       var geocoder;
       var click_count = 0;
-      
+      var using_current = false
 
       function stringifyDate(year, month, day, hour, minute, second) {
         if (++month < 10)
@@ -171,6 +170,18 @@
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
       }
+
+      function disappear(){
+        $('#date_input').toggle();
+      }
+
+	document.getElementById("clear_all").onclick = function clearAll() {
+		console.log("clearing")
+		removeMarkers()
+		directionsDisplay.setMap(null);
+
+	}
+
       
 	    function validateForm() {
 
@@ -292,22 +303,32 @@
         newLng=event.latLng.lng();
         
         
-        if (click_count == 0) {
+        if (click_count == 0 && !using_current) {
             removeMarkers()
+            directionsDisplay.setMap(null);
 	    $('#start_address').val("")
             $('#end_address').val("")
             placeMarker(event.latLng);
             var address =  await geocodeLatLng(event.latLng)
-            
             $('#start_address').val(address)
             click_count++
         }
-        else if (click_count == 1) {
+        else if (click_count == 1 && !using_current) {
             placeMarker(event.latLng);
             click_count = 0
 	    var address = await geocodeLatLng(event.latLng)
             $('#end_address').val(address)
         }
+
+	else if (click_count == 0 && using_current) {
+            console.log(using_current);
+	    placeMarker(event.latLng);
+	    click_count = 0
+            using_current = false;
+	    var address = await geocodeLatLng(event.latLng)
+            $('#end_address').val(address)	
+
+	}
         
 	console.log(click_count);
 
@@ -455,6 +476,24 @@ var pos;
 
       $(document).ready(function(){
 
+
+
+	 document.getElementById("clear_all").onclick = function clearAll() {
+                $('#start_address').val("")
+		$('#end_address').val("")
+		$('#results').html("")
+		$('#text_results').html("")
+		$('#price').html("")
+		$('#leap_stores').prop('checked', false);
+		$('#geolocation').prop('checked', false);
+                removeMarkers()
+                using_current = false;
+                directionsDisplay.setMap(null);
+
+        }
+
+
+
         /*$.when(
           $.get('/get_routes/', function(data){
             routes=JSON.parse(data);
@@ -591,11 +630,8 @@ var pos;
 
          document.getElementById("geolocation").onclick = function getLocation(){
 
-		cb = this.checked
-		
-		if (cb) {
-			console.log("checked")
-
+			removeMarkers()
+			directionsDisplay.setMap(null);
 			geoLocation()
 
                                 console.log(pos)
@@ -618,6 +654,7 @@ var pos;
                                         if (status == "OK") {
                                                 console.log(result[0].formatted_address);
                                                 $("#start_address").val(result[0].formatted_address)
+						using_current = true;
                                         }
 
                                 });
@@ -627,14 +664,8 @@ var pos;
 		
 
 		}
-		else {
-			console.log("unchecked")
-			current_location.setMap(null)
-			$("#start_address").val("")
-		}
 
 	
-	}
 
 	document.getElementById("leap_stores").onclick = function() {
 
@@ -643,6 +674,7 @@ var pos;
 
 		if (cb){
 			geoLocation()
+	                map.setCenter(pos);
 			removeMarkers()
 			directionsDisplay.setMap(null);
 			output = []
@@ -833,6 +865,8 @@ var pos;
               popStops(data["stops"])
               drawRoute(data["stops"])
 	      $('#text_results').html(table);
+              var myDiv = document.getElementById('collapseExample')
+	      myDiv.scrollTop = myDiv.scrollHeight
 	      var count = 0
 	      var price = 0
 	      for (i in data["prediction"]) {
@@ -860,7 +894,7 @@ var pos;
 
 		price = "€"+price/100
 		leap = getLeap(price)
-		$("#price").html(price + " \\ " + leap)
+		$("#price").html(price + leap)
               
             } else {
               $('#results > p').html("Oops, something went wrong enter a different route and please try again");
