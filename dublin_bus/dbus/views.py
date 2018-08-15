@@ -392,14 +392,15 @@ def getRoutes(request):
 
 def getStops(route, start_stop, end_stop, key):
     print("key:",key)
-    stops = bssd.objects.all().filter(route_number = route)
+    print("route:",route)
+    #stops = bssd.objects.all().filter(route_number = route)
     first = False
     last = False
     response = {}
     i = 0
     stops = [start_stop, end_stop]
     for stop in stops:
-
+        print(stop)
         #stop = str(stop.stop_id)
 
         if not first and stop == start_stop:
@@ -566,11 +567,10 @@ def predict_address(request):
                    prediction = (time_prediction, price[1:])
                    
                    #print(prediction)
-                   stops = getStops(bus_no, str(stop1), str(stop2), key)
-                   
-                   context["stops"].append(stops)
-                   stops = getStops(bus_no, str(stop1.stop_id), str(stop2.stop_id))
-                   
+                   print("stop1:",stop1.stop_id)
+                   print("stop2:",stop2.stop_id)
+                   stops = getStops(bus_no, str(stop1.stop_id), str(stop2.stop_id), key)
+         
                    context["stops"].append(stops)
                    #print(context)
                    context['prediction'][int(key)-1] = prediction[0]
