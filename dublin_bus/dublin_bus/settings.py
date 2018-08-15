@@ -25,7 +25,7 @@ SECRET_KEY = '+z$!ay5s)rm1zen5v9yxyn!!5=y!s-uh4ox!53)v)!y&0jti+$'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['137.43.49.47', '.example.com', '127.0.0.1', 'csi420-01-vm1.ucd.ie']
+ALLOWED_HOSTS = ['137.43.49.47', '.example.com', '127.0.0.1', 'csi420-01-vm1.ucd.ie', 'testserver']
 
 
 # Application definition
