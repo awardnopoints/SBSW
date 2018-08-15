@@ -10,10 +10,11 @@
     <meta name="author" content="">
     <!-- <link rel="icon" href="../../favicon.ico"> -->
 
-    <title>Bus App</title>
+    <title>SBSW</title>
 
    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       <link rel="stylesheet" type="text/css" href="{% static 'dbus/index.css' %}">
+      <link href="https://fonts.googleapis.com/css?family=Kirang+Haerang|Lato:400,700,700i|Montserrat:400,500,600,700,700i,800|Rubik:400,700,700i" rel="stylesheet">
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script> 
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.0/css/bootstrap-datepicker3.standalone.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -25,28 +26,33 @@
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
       <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+      
+<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
   </head>
 
 
-  <body background="https://cdn.wallpapersafari.com/1/49/qeG3k4.jpg" style="no-repeat">
+  <body background="https://oscarsinternational.com/wp-content/uploads/2017/02/Oscars-Intenational-Dublin-Ireland.jpg" style="no-repeat">
       <div class="background"></div>
     <!-- Static navbar -->
-    <nav class="navbar navbar-static-top" style=background-color:transparent; style=height: 20px !important; >
+    <nav class="navbar" style=background-color:transparent;  >
      
-        <div class="navbar-header">
-          <h1>Bus App</h1>
+        <div class="navbar-header" style="float: right; margin-right: 50px;">
+          <h1>SBSW</h1>
         </div>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="active">   <img id="icon" src="http://openweathermap.org/img/w/10d.png" />
+        
          
-            {{weather.mainDescription}} {{ weather.temp }} &#8451;
-<span class="sr-only">(current)</span></li>
+          <div class="image"> <img id="icon" src="http://openweathermap.org/img/w/10d.png" /></div>
+           <div class="other"><ul style="margin-top: -60px;"><li>  Dublin, Ireland </li>
+         <br>    <li>     {{ weather.temp }} &#8451;
+</li>
            
 
-          </ul>
+          </ul></div> 
        <!--/.nav-collapse -->
       </nav>      
          
+      
+<div class="container1">
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
        
@@ -71,15 +77,16 @@
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
             
-              <h4>Start Address: </h4><input id="start_address" type="text" name="start_address"><button type="button" id="geolocation" class = "save btn btn-default"> Use Current Location</button> 
+              <h4>From </h4>
+              <input id="start_address" type="text" name="start_address" style="margin-left: 0px;width: 220px;">
+              <button type="button" id="geolocation" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;"> Use Current Location</button> 
 	  <br>
-         <h4> End Address: </h4><input id="end_address" type="text" name="end_address" required>
+         <h4> To</h4>
+          <input id="end_address" type="text" name="end_address" required style="margin-right: -24px;width: 220px;">
  <br>
 	        
-            
-	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required>Go</button>
-		<br>
-		<input type="checkbox" id="leap_stores">Click here for all leap stores near your location
+	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right">Go</button>
+    <br>
       </form>
       <div id = "text_results"></div>
       <div id = "price"></div>
@@ -109,14 +116,16 @@
             
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
-        </form>
-        <div id = "results"></div>
+            <div id="results"><p>  </p></div>
+          </form>
     </div></div></div>
-    Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
-    <div id='date_input'>
-      <input type='datetime-local' id='datetime' data-date-inline-picker="true" pattern="[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}" placeholder="YYYY/MM/DD HH:MM" />
+    <button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;" > Show leap stores nearby</button><br>
+    <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+        <br>
+    <div id='date_input' style="margin-top: -30px;">
+<input type="text" id="datepicker">
+        <input type="text" id="timepicker"/>
     </div>
-        <div id="results"><p>  </p></div>
 	<br>
 	<br>
 	<button type="submit" class = "save btn btn-default" id="clear_all">Clear All</button>	
@@ -126,13 +135,26 @@
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8"> </div>
+        <div id='map' class="jumbotron text-center col-md-8"> </div></div>
+      <footer> <p></p></footer>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
     <script src="{% static 'dbus/jquery-3.3.1.min.js' %}"></script>
-    <script type = "text/javascript">
+       <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+     <script type="text/javascript" src="https://jonthornton.github.io/jquery-timepicker/jquery.timepicker.js"></script>
+      <link rel="stylesheet" type="text/css" href="https://jonthornton.github.io/jquery-timepicker/jquery.timepicker.css">
+      <script type="text/javascript" src="https://jonthornton.github.io/jquery-timepicker/lib/bootstrap-datepicker.js"></script>
+<link rel="stylesheet" type="text/css" href="https://jonthornton.github.io/jquery-timepicker/lib/bootstrap-datepicker.css">
 
+    <script type = "text/javascript">
+         
+  $(document).ready(function() {
+        $("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
+      $('#timepicker').timepicker({ 'scrollDefault': 'now', 'timeFormat': 'H:i'});
+  });
+ 
       $('#routes').prop('disabled', true);
       $('#routes').html('<option>Loading...</option>');
       $('#end').prop('disabled', true);
@@ -148,6 +170,7 @@
       var c = new Date();
       var f = new Date(c);
       f.setDate(f.getDate() + 4);
+      console.log(c < f)
       var table;
       var geocoder;
       var click_count = 0;
@@ -165,16 +188,16 @@
           month = '0' + month;
         if (day < 10)
           day = '0' + day;
-        if (hour < 10)
-          hour = '0' + hour;
-        return year + '-' + month + '-' + day + 'T' + hour + ':' + minute + ':' + second;
+        //if (hour < 10)
+    //      hour = '0' + hour;
+        return year + '-' + month + '-' + day;
       }
 
-      min_string = stringifyDate(c);
-      max_string = stringifyDate(f);
+      //min_string = stringifyDate(c);
+      //max_string = stringifyDate(f);
 
-      $('#datetime').attr('min', min_string);
-      $('#datetime').attr('max', max_string);
+   //   $('#datepicker').attr('minDate', min_string);
+     // $('#datepicker').attr('maxDate', max_string);
 
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
@@ -488,7 +511,7 @@ var pos;
 		$('#results').html("")
 		$('#text_results').html("")
 		$('#price').html("")
-		$('#leap_stores').prop('checked', false);
+		//$('#leap_stores').prop('checked', false);
 		$('#geolocation').prop('checked', false);
                 removeMarkers()
                 using_current = false;
@@ -595,20 +618,32 @@ var pos;
             return [c, true];
           } else {
             console.log('input datetime')
-            return [new Date($('#datetime').val()), false];
+            var time = document.getElementById('timepicker').value;
+            var timeSplit = time.split(':');
+            var hr = parseInt(timeSplit[0]);
+            var min = parseInt(timeSplit[1]);                      
+
+            var date = $('#datepicker').val(); 
+            var dateSplit = date.split('/');
+            var day=parseInt(dateSplit[1]);
+            var month = parseInt(dateSplit[0])-1;
+            var year = parseInt(dateSplit[2]);
+
+            d=new Date(year, month, day, hr, min);
+            return [d, false];
           }
         }
 
         function getLeap(price){
           switch (price) {
             case '€2.10':
-              return ' / €1.50';
+              return ' / €1.50 (Leap)';
             case '€2.85':
-              return ' / €2.15';
+              return ' / €2.15 (Leap)';
             case '€3.30':
-              return ' / €2.60';
+              return ' / €2.60 (Leap)';
             case '€3.65':
-              return ' / €2.90';
+              return ' / €2.90 (Leap)';
             default:
               return '';
           }
@@ -674,9 +709,9 @@ var pos;
 	document.getElementById("leap_stores").onclick = function() {
 
 
-		cb = this.checked;
+		//cb = this.checked;
 
-		if (cb){
+		//if (cb){
 			geoLocation()
 	                map.setCenter(pos);
 			removeMarkers()
@@ -705,18 +740,22 @@ var pos;
 
 		}
 
-		else {
+		//else {
 
-			removeMarkers()
+			//removeMarkers()
 
-		}
+		//}
 
-	}
+	//}
 	
-        function getPredictions(){
+        function getPredictions(){  
           route = $("#routes option:selected").text();
           start_stop = $('#start option:selected').text().split(',')[0];
           end_stop = $('#end option:selected').text().split(',')[0];
+          if (route == 'Select Route' || start_stop == 'Select Start Stop' || end_stop == 'Select End Stop' || end_stop == 'Select Start Stop') {
+            $('#results > p').html("Please fill out all sections");
+            return
+          }
           date = getInputDate()[0];
           year = date.getFullYear();
           month = date.getMonth() + 1;
@@ -724,16 +763,14 @@ var pos;
           hour = date.getHours();
           minute = date.getMinutes();
           now = getInputDate()[1];
-          console.log("Route =", route);
-          console.log("Start Stop =", start_stop);
-          console.log("End Stop =", end_stop);
-          console.log("Day =", day);
-          console.log("Hour =", hour);
-          console.log("Minute =", minute);
-          console.log("Now =", now);
+          console.log("Route =", route, "Start Stop =", start_stop, "End Stop =", end_stop, "Day =", day, "Hour =", hour, "Minute =", minute, "Now =", now);
+
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour, minute: minute, now: now}, function(data){
+
+              var myDiv = document.getElementById('collapseExample1')
+              myDiv.scrollTop = myDiv.scrollHeight
               
               if (typeof data == 'string') {
                 console.log('error')
@@ -896,7 +933,8 @@ var pos;
                 cent = "0" + cent;
 
               price = "€" + euro + "." + cent
-              $("#price").html(price)
+              leap = getLeap(price)
+              $("#price").html('Journey Cost: ' + price + leap)
               
             } else {
               $('#results > p').html("Oops, something went wrong enter a different route and please try again");
