@@ -31,31 +31,7 @@ def write_file (data):
     return json_parsed
 
 class weather:
-    def current_weather(self):
-
-#        list1=json_parsed['list']
-#        first = list1[0]
-        main=json_parsed2['main']
-        temp = main['temp']
-        temp_min = main['temp_min']
-        temp_max = main['temp_max']
-        humidity = main['humidity']
-        pressure = main['pressure']
-        weather = json_parsed2['weather']
-        weather_desc = weather[0]
-        description = weather_desc['description']
-        mainDescription = weather_desc['main']
-        wind = json_parsed2['wind']
-        speed = wind['speed']
-        deg = wind['deg']
-        cloud=json_parsed2['clouds']
-        cloudiness=cloud['all']
-        dt = json_parsed2['dt']
-        timestamp=datetime.datetime.fromtimestamp(dt, pytz.timezone('Europe/Dublin'))
-
-#        delete_current();
-#       insert_current(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt, timestamp, humidity, pressure, cloudiness)
-        
+ 
     def forecast_weather(self):
         """Selects and creates variables that will be stored in dynamic forecast weather table"""
 
@@ -105,14 +81,14 @@ class weather:
         mainDescription_current = weather_desc_current['main']
         wind_current = json_parsed2['wind']
         speed_current = wind_current['speed']
-#        deg_current = wind_current['deg']
+        deg_current = wind_current['deg']
         cloud_current=json_parsed2['clouds']
         cloudiness_current=cloud_current['all']
         dt_current = json_parsed2['dt']
         timestamp_current=datetime.datetime.fromtimestamp(dt_current, pytz.timezone('Europe/Dublin'))
 
   
-        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current)
+        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current)
 
 
         #http://pythonda.com/collecting-storing-tweets-python-mysql
@@ -152,12 +128,12 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
-def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current,  timestamp_current, humidity_current):
+def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);",
-            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, timestamp_current, humidity_current))
+            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s,%s, %s, %s, %s, %s);",
+            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current))
     except Exception as e:
         print("An error occurred inserting data into current_weather table: ", e)
     return
@@ -185,4 +161,3 @@ run = weather()
 delete_forecast()
 run.current_weather()
 run.forecast_weather()
-
