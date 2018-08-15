@@ -306,8 +306,8 @@ def predict_request(request):
 def getRoutes(request):
         return HttpResponse(routes)
 
-def getStops(route, start_stop, end_stop):
-
+def getStops(route, start_stop, end_stop, key):
+    print("key:",key)
     stops = bssd.objects.all().filter(route_number = route)
     first = False
     last = False
@@ -329,7 +329,10 @@ def getStops(route, start_stop, end_stop):
 
             lat = latlong[0].lat
             lon = latlong[0].lng
-            response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
+            if key == "1":
+                response[i] = {'stop': stop,'lat' : lat, 'lon' : lon, "rtpi" : json_parsed}
+            else:
+                response[i] = {'stop' : stop, 'lat' : lat, 'lon': lon}
             i += 1
 
         elif first and not last and stop != end_stop:
@@ -476,10 +479,10 @@ def predict_address(request):
                    
                    print(prediction)
                
-                   stops = getStops(bus_no, str(stop1), str(stop2))
+                   stops = getStops(bus_no, str(stop1), str(stop2), key)
                    
                    context["stops"].append(stops)
-                   print(context)
+                   
                    context['prediction'][int(key)-1] = prediction[0]
                    context['price'][int(key)-1] = prediction[1]
 
@@ -487,7 +490,7 @@ def predict_address(request):
            context["error"] =  "1"
            print(e)
          
-
+        print(latlng) 
         return JsonResponse(context)
 
 
