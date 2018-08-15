@@ -122,11 +122,20 @@ class BusStopsSequenceDistance(models.Model):
 class BusSchedule(models.Model):
     route = models.TextField(blank=True, null=True)
     direction = models.TextField(blank=True, null=True)
-    departure_time = models.TextField(blank=True, null=True)
+    hour = models.BigIntegerField(blank=True, null=True)
+    minute = models.BigIntegerField(blank=True, null=True)
     stop_id = models.BigIntegerField(blank=True, null=True)
-    weekday = models.BigIntegerField(blank=True, null=True)
-    saturday = models.BigIntegerField(blank=True, null=True)
-    sunday = models.BigIntegerField(blank=True, null=True)
+    monday = models.BooleanField()
+    tuesday = models.BooleanField()
+    wednesday = models.BooleanField()
+    thursday = models.BooleanField()
+    friday = models.BooleanField()
+    saturday = models.BooleanField()
+    sunday = models.BooleanField()
+
+    def __str__(self):
+        return self.route + ', ' + self.direction + ', ' + str(self.hour) + ':' + str(self.minute)
+
 
     class Meta:
         managed = False
@@ -171,7 +180,7 @@ class DbusForecast(models.Model):
     description = models.TextField()
     maindescription = models.TextField(db_column='mainDescription')  # Field name made lowercase.
     wind_speed = models.FloatField()
-    wind_direction = models.FloatField()
+    #wind_direction = models.FloatField()
     humidity = models.FloatField()
 
     class Meta:
