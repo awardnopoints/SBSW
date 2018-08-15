@@ -140,6 +140,7 @@
       var markers = []
       var directionsDisplay;
       var directionsService;
+      var directions;
       var placeSearch, autocomplete_start, autocomplete_end; 
       var weather_description = "{{weather.description}}";
       var current_location;
@@ -396,6 +397,7 @@ function removeMarkers(){
 	    table = "<table id = text_directions><tr><th>Step</th><th>Estimate Time</th></tr>"
             if (status == "OK") {
               console.log(result);
+              directions = result
               steps = result.routes[0].legs[0].steps
               for (var i = 0; i<steps.length; i++) {
                 if (steps[i].travel_mode == "TRANSIT") {
@@ -760,12 +762,15 @@ var pos;
 
         function drawRoute(data){
           directionsDisplay.setMap(map);
-          var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]));
-          for ( i in data ) {
+	  //var start = $('#start_address').val;
+          //var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]));
+          /*for ( i in data ) {
             var len = Object.keys(data[i]).length
             var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
-          }
-          var request = {
+          }*/
+          //var end = $('#end_address').val;
+          directionsDisplay.setDirections(directions);
+          /*var request = {
             origin: start,
             destination: end,
             travelMode: 'TRANSIT',
@@ -781,7 +786,7 @@ var pos;
               directionsDisplay.setDirections(result);
               
             }
-          });
+          });*/
         }          
 
         function popStops(context){
@@ -789,7 +794,7 @@ var pos;
           removeMarkers();
           markers = []
           for (var i in context) {
-            
+              console.log(i); 
               var marker = new google.maps.Marker({
                 position: {lat: Number(context[i][0]["lat"]), lng: Number(context[i][0]["lon"])},
                 map: map,
@@ -814,14 +819,14 @@ var pos;
               markers.push(marker);
             
 
-            if ($('#checkbox').is(':checked')){
+            if ($('#checkbox').is(':checked') && i == 0){
               
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-              if (context[0][0]['rtpi']['results'].length == 0) {
+              if (context[i][0]['rtpi']['results'].length == 0) {
                 content = content + '<tr><td>No RTPI Available</td></tr>';
               } else {
-                for (var j = 0; j < 10 && j < context[0][0]['rtpi']['results'].length; j++){
-                  content = content + "<tr> <td>" + context[0][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[0][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
+                for (var j = 0; j < 10 && j < context[i][0]['rtpi']['results'].length; j++){
+                  content = content + "<tr> <td>" + context[i][0]["rtpi"]["results"][j]["route"] + "</td> <td>" + context[i][0]["rtpi"]["results"][j]["duetime"] + "</td> </tr>"
                 };
               }
               
@@ -852,7 +857,7 @@ var pos;
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
-          
+          console.log(context) 
           $.get('/predict_address/', {context: context, year: year, month: month, day: day, hour: hour}, function(data) {
 	    var x = [0,1,2,3,4]
             for (y in x) {
