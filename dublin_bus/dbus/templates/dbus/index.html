@@ -110,7 +110,7 @@
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
         </form>
-
+        <div id = "results"></div>
     </div></div></div>
     Leave Now <input type="checkbox" id="checkbox" onclick="disappear()" checked><br>
     <div id='date_input'>
@@ -126,7 +126,7 @@
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8">> </div>
+        <div id='map' class="jumbotron text-center col-md-8"> </div>
             <!-- /container -->
 
     <script src="{% static 'dbus/markerclusterer.js' %}"></script>
@@ -254,95 +254,14 @@
       function initMap(){
 	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
         directionsService = new google.maps.DirectionsService();
-        geocoder = new googel.maps.Geocoder;
+        geocoder = new google.maps.Geocoder;
         map = new google.maps.Map(document.getElementById('map'), {
         	zoom: 12,
           center: {lat: 53.3498, lng: -6.2603}
             
         });
         var trafficLayer = new google.maps.TrafficLayer();
-	      trafficLayer.setMap(map);
-          
-            // MY NEW BITS ARE HERE
-    
-   
-       var count=0;
-    
-    google.maps.event.addListener(map, 'click', function(event) {
-
-//alert(event.latLng.lat() + ", " + event.latLng.lng());
-        newLat=event.latLng.lat();
-        newLng=event.latLng.lng();
-        count++;
-        
-        if (count <=2) {
-            placeMarker(event.latLng);
-        }
-     
- //      alert(count);
-
-            
-        
-        function placeMarker(location) {
-    var marker1 = new google.maps.Marker({
-        position: location, 
-        map: map
-    })};
-        
-        
-        var geocoder=new google.maps.Geocoder;
-        geocodeLatLng(geocoder, map);
-        
-        function geocodeLatLng(geocoder, map) {
-        var latlng={lat:newLat, lng: newLng};
-   
-        geocoder.geocode({'location': latlng}, function(results, status) {
-            if (status ==='OK') {
-                 console.log(results);
-     var address = (results[0].formatted_address);
-                
-       //         alert(address);
-                
-                 if (count%2==0) {
-            document.getElementById('end_address').value=address;
-        }else {
-                document.getElementById('start_address').value=address;
-    }
-    }else {
-        alert("no results found");
-    }
-    // This is checking to see if the Geoeode Status is OK before proceeding
-  
-    }
-  )};
-        //https://developers.google.com/maps/documentation/javascript/examples/geocoding-reverse
-       
-          
-        
-        
-		  //    getDirections();
- //        new google.maps.Circle({
-   //         map : map,
-    //        center : {lat: newLat, lng: newLng},
-//            strokeColor:'#00FFCC',
-  //          strokeWeight:2,
-//            fillOpacity:0,
-//            radius:1000
-  //      });
-//        function calculateDist(p1, p2) {
-  //          r=google.maps.geometry.spherical.computeDistanceBetween(newLng, newLat);
-    //        return r;
-      //      alert(r);
-        //}
-        
-        //https://stackoverflow.com/questions/14598426/how-to-detect-if-a-point-is-in-a-circle
-});
-    
-   
-    
-    // AND THEY END HERE
-    
-    
+	      trafficLayer.setMap(map);    
 
 	      //autocomplete section on init
         var input_start = document.getElementById('start_address');
@@ -436,6 +355,25 @@ function removeMarkers(){
 
 	      return;
       };
+
+      function placeMarker(latlng){
+        var marker1 = new google.maps.Marker({
+          position: latlng,
+          map: map 
+        })
+        markers.push(marker1)
+      }
+
+      function geocodeLatLng(latlng) {
+        return new Promise(function(resolve, reject) {
+          geocoder.geocode({'location':latlng}, function(results, status) {
+            if (status === "OK") {
+              var address = (results[0].formatted_address);
+              resolve(address);
+            }
+          })
+        })
+      }
 
       function getDirections() {
 
