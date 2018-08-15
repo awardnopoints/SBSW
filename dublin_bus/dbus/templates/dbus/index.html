@@ -147,8 +147,8 @@
     <script type = "text/javascript">
          
   $(document).ready(function() {
-        $("#datepicker").datepicker();
-      $('#timepicker').timepicker({ 'scrollDefault': 'now' });
+        $("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
+      $('#timepicker').timepicker({ 'scrollDefault': 'now', 'timeFormat': 'H:i'});
   });
  
       $('#routes').prop('disabled', true);
@@ -178,12 +178,12 @@
         return year + '-' + month + '-' + day;
       }
 
-      min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate());
-      max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate());
+      //min_string = stringifyDate(c.getFullYear(), c.getMonth(), c.getDate());
+      //max_string = stringifyDate(f.getFullYear(), f.getMonth(), f.getDate());
    
 
-      $('#datepicker').attr('min', min_string);
-      $('#datepicker').attr('max', max_string);
+   //   $('#datepicker').attr('minDate', min_string);
+     // $('#datepicker').attr('maxDate', max_string);
 
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
@@ -618,13 +618,25 @@ var pos;
           } else {
             console.log('input datetime')
             var time = document.getElementById('timepicker').value;
+              alert(time);
             var timeSplit = time.split(':');
-            var hr = (timeSplit[0]);
-            if (hr < 10)
-           hr = '0' + hr;
-            alert (hr);
+            var hr = parseInt(timeSplit[0]);
+            var min = parseInt(timeSplit[1]);
+          
+            console.log(hr);
+            
+            var date = $('#datepicker').val(); 
+              console.log(min);
+              console.log(date);
+              var dateSplit = date.split('/');
+              var day=parseInt(dateSplit[1]);
+              var month = parseInt(dateSplit[0])-1;
+              var year = parseInt(dateSplit[2]);
+              console.log(day, month, year);
               
-            return new Date($('#datepicker').val());
+            d=new Date(year, month, day, hr, min);
+              console.log(d);
+            return d;
           }
         }
 
