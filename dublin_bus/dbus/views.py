@@ -134,7 +134,7 @@ def home(request):
                 'route_numbers':route_numbers,
                 'stops':stops,
                 'routes':routes,
-                'weather':weathFer
+                'weather':weather
         }
         return render(request, 'dbus/index.html', context)
 
@@ -186,15 +186,28 @@ def predictions_model(start_stop, end_stop, route, year, month, day, hour):
         #print(input_list)
         #print(len(weather))
         if len(weather) == 0:
-                weather = forecast.objects.all().first()
+                weather = forecast.objects.all()
+                if len(weather) == 0:
+                        weathermain = 'Clouds'
+                        temp = 15
+                        speed = 6
+                else:
+                        weather = weather.last()
+                        weathermain = weather.mainDescription
+                        temp = weather.temp
+                        speed = weather.wind_speed
         else:
-                weather = weather.last()
+                weather = weather.first()
+                weathermain = weather.mainDescription
+                temp = weather.temp
+                speed = weather.wind_speed
+
         #print(weather)
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
         df['day'] = date.weekday()
-        df['weather_main'] = weather.mainDescription
-        df['temp'] = weather.temp
-        df['wind_speed'] = weather.wind_speed
+        df['weather_main'] = weathermain
+        df['temp'] = temp
+        df['wind_speed'] = speed
 
         hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
                         (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
