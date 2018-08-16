@@ -119,6 +119,7 @@ p {
 
 }
 
+
 #addressToAddress {
 
    max-height: 500px;
@@ -317,4 +318,14 @@ padding: 0px;
 
 #title {
 
+}
+
+#datepicker {
+    width: 220px;
+    margin-left: 0px;
+}
+
+#timepicker {
+    width: 220px;
+    margin-left: 0px
 }

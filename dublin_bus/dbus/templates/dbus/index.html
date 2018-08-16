@@ -77,7 +77,7 @@
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
 
-    <div class="panel panel-default" id="panel">
+   <div class="panel panel-default" id="panel" style="margin-top: -40px;">
        
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
@@ -90,15 +90,22 @@
   </a>   
            
       </div></div>
-
+ <div id="leaveNow"  style="margin-top: 10px; margin-left: -40%"> <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+       </div>
+    <div id='date_input' style="">
+ <h4>Date </h4><input type="text" id="datepicker">
+        <br>
+       <h4>Time </h4> <input type="text" id="timepicker"/>
+    </div>
 	     
                   <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
   <div class="panel-collapse collapse in"><div class="panel-body">
+      
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
-            
+    
               <h4>From </h4>
               <input id="start_address" type="text" name="start_address" style="margin-left: 0px;width: 220px;">
-              <button type="button" id="geolocation" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;"> Use Current Location</button> 
+              <button type="button" id="geolocation" class = "save btn btn-default" style=""> Use Current Location</button> 
 	  <br>
          <h4> To</h4>
           <input id="end_address" type="text" name="end_address" required style="margin-right: -24px;width: 220px;">
@@ -107,8 +114,7 @@
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right">Go</button>
     <br>
       </form>
-      <div id = "text_results"></div>
-      <div id = "price"></div>
+      
     </div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="accordian">
   <div class="panel-collapse collapse in"> <div class="panel-body">
@@ -135,26 +141,23 @@
             
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
-            <div id="results"><p>  </p></div>
+           
           </form>
     </div></div></div>
-    <button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;" > Show leap stores nearby</button><br>
-    <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
-        <br>
-    <div id='date_input' style="margin-top: -30px;">
-<input type="text" id="datepicker">
-        <input type="text" id="timepicker"/>
-    </div>
-	<br>
-	<br>
-	<button type="submit" class = "save btn btn-default" id="clear_all">Clear All</button>	
+      <div id="buttons"><button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: -60px; margin-top: 10px;" > Show leap stores nearby</button>
+                <br><button type="submit" class = "save btn btn-default" id="clear_all" style="margin-left: -170px; margin-top: 10px;">Clear All</button> </div> 
+    
+ <br> 	 <div id="results"><p>  </p></div>
+        <div id = "text_results"></div>
+      <div id = "price"></div>
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8"> </div></div>
+        <div id='map' class="jumbotron text-center col-md-8">
+          </div></div>
       <footer> <p></p></footer>
             <!-- /container -->
 
@@ -305,7 +308,61 @@
         });
         var trafficLayer = new google.maps.TrafficLayer();
 	      trafficLayer.setMap(map);    
+     var controlDiv = document.createElement('div');
+          
+       var controlMarkerUI = document.createElement('div');
+           var controlMarker1UI = document.createElement('div');
+          
+      controlMarkerUI.style.cursor = 'pointer';
+      controlMarkerUI.style.backgroundColor = '#fff';
+        controlMarkerUI.style.border='2px solid #fff';
+          controlMarkerUI.style.borderRadius='3px';
+          controlMarkerUI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
+      controlMarkerUI.style.marginTop = '10px';
+          controlMarkerUI.style.marginBottom = '22px';
+          controlMarkerUI.style.marginLeft = '-10px';
+      controlMarkerUI.title = 'Click to show leap stores';
+            controlMarkerUI.style.color = 'rgb(25,25,25)';
+        controlMarkerUI.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlMarkerUI.style.fontSize = '16px';
+        controlMarkerUI.style.lineHeight = '34px';
+        controlMarkerUI.style.paddingLeft = '5px';
+        controlMarkerUI.style.paddingRight = '5px';
+        controlMarkerUI.innerHTML = 'Show Leap Stores';
+          
+          
+              controlMarker1UI.style.cursor = 'pointer';
+      controlMarker1UI.style.backgroundColor = '#fff';
+        controlMarker1UI.style.border='2px solid #fff';
+          controlMarker1UI.style.borderRadius='3px';
+          controlMarker1UI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
+      controlMarker1UI.style.marginTop = '-20px';
+          controlMarker1UI.style.marginBottom = '2px';
+          controlMarker1UI.style.marginLeft = '-10px';
+      controlMarker1UI.title = 'Click to clear all inputs';
+            controlMarker1UI.style.color = 'rgb(25,25,25)';
+        controlMarker1UI.style.fontFamily = 'Roboto,Arial,sans-serif';
+        controlMarker1UI.style.fontSize = '16px';
+        controlMarker1UI.style.lineHeight = '34px';
+        controlMarker1UI.style.paddingLeft = '5px';
+        controlMarker1UI.style.paddingRight = '5px';
+        controlMarker1UI.innerHTML = 'Clear All';
+          
+      controlDiv.appendChild(controlMarkerUI);
+          
+      controlDiv.appendChild(controlMarker1UI);
+          
+            controlMarkerUI.addEventListener('click', function() {
+          map.setCenter(chicago);
+        });
+          
+          // https://developers.google.com/maps/documentation/javascript/examples/control-custom
+          
+          
 
+      map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
+          
+          
 	      //autocomplete section on init
         var input_start = document.getElementById('start_address');
 	      var input_end = document.getElementById('end_address');
