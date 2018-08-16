@@ -56,9 +56,9 @@
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
        
-       <span id ="info">hello</span>
+     
 
-    <div class="panel panel-default" id="panel">
+    <div class="panel panel-default" id="panel" style="margin-top: -40px;">
        
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
@@ -79,7 +79,7 @@
             
               <h4>From </h4>
               <input id="start_address" type="text" name="start_address" style="margin-left: 0px;width: 220px;">
-              <button type="button" id="geolocation" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;"> Use Current Location</button> 
+              <button type="button" id="geolocation" class = "save btn btn-default" style=""> Use Current Location</button> 
 	  <br>
          <h4> To</h4>
           <input id="end_address" type="text" name="end_address" required style="margin-right: -24px;width: 220px;">
@@ -88,8 +88,7 @@
 	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right">Go</button>
     <br>
       </form>
-      <div id = "text_results"></div>
-      <div id = "price"></div>
+      
     </div></div></div>
         <div class="collapse" id="collapseExample1" data-parent="accordian">
   <div class="panel-collapse collapse in"> <div class="panel-body">
@@ -116,19 +115,21 @@
             
             <br>
             <button type = "submit" class = "save btn btn-default">Go</button>
-            <div id="results"><p>  </p></div>
+           
           </form>
     </div></div></div>
-    <button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: 50px; margin-top: 10px;" > Show leap stores nearby</button><br>
-    <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+   
+    <div id="leaveNow"  style="margin-top: -10px; margin-left: -40%"> <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+       </div>
+    <div id='date_input' style="">
+ <h4>Date </h4><input type="text" id="datepicker">
         <br>
-    <div id='date_input' style="margin-top: -30px;">
-<input type="text" id="datepicker">
-        <input type="text" id="timepicker"/>
+       <h4>Time </h4> <input type="text" id="timepicker"/>
     </div>
-	<br>
-	<br>
-	<button type="submit" class = "save btn btn-default" id="clear_all">Clear All</button>	
+ <br> <button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: -60px; margin-top: 10px;" > Show leap stores nearby</button>
+	<br><button type="submit" class = "save btn btn-default" id="clear_all" style="margin-left: -170px; margin-top: 10px;">Clear All</button>	 <div id="results"><p>  </p></div>
+        <div id = "text_results"></div>
+      <div id = "price"></div>
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
@@ -201,6 +202,13 @@
 
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
+          
+        $('#leaveNow').show();
+
+      }else {
+               $('#date_input').show();
+     $('#leaveNow').hide();
+       
       }
         
   
@@ -208,6 +216,7 @@
         
       function disappear(){
         $('#date_input').toggle();
+           $('#leaveNow').toggle();
       }
 
 	document.getElementById("clear_all").onclick = function clearAll() {

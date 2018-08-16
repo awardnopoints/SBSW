@@ -179,6 +179,19 @@ option {
   width: 200px;
 }
 
+
+
+#datepicker {
+    width: 220px;
+    margin-left: 0px;
+}
+
+#timepicker {
+    width: 220px;
+    margin-left: 0px
+}
+
+
 h4 {
     display: inline-block;
     padding-right: 10px;
