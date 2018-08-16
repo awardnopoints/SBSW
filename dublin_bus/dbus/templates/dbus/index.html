@@ -788,7 +788,29 @@ var pos;
           });
 	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
             popStops(data['stops']);
-            drawRoute(data['stops']);
+            console.log(data['stops']);
+            var s = data['stops'][0][0]
+            console.log('s:',s)
+            var start = {lat: Number(s['lat']), lng: Number(s['lon'])}
+            var e = data['stops'][0][1]
+            console.log('e:',e)
+            var end = {lat: Number(e['lat']), lng: Number(e['lon'])}
+            var request = {
+              origin: start,
+              destination: end,
+              travelMode: 'TRANSIT',
+              transitOptions: {
+                modes: ['BUS'],
+                routingPreference: 'FEWER_TRANSFERS'
+              },
+            }
+            directionsService.route(request, function(result, status){
+              if (status == 'OK'){
+                directions = result;
+                console.log('status:', status)
+              }
+              drawRoute(data['stops']);
+            })
           });
         };
 
@@ -804,31 +826,7 @@ var pos;
 
         function drawRoute(data){
           directionsDisplay.setMap(map);
-	  //var start = $('#start_address').val;
-          //var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]));
-          /*for ( i in data ) {
-            var len = Object.keys(data[i]).length
-            var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
-          }*/
-          //var end = $('#end_address').val;
           directionsDisplay.setDirections(directions);
-          /*var request = {
-            origin: start,
-            destination: end,
-            travelMode: 'TRANSIT',
-            transitOptions: {
-              modes : ['BUS'],
-              routingPreference : 'FEWER_TRANSFERS'
-            },       
-          }
-    
-          directionsService.route(request, function(result, status){              
-            if (status == 'OK') {
-              console.log(result);           
-              directionsDisplay.setDirections(result);
-              
-            }
-          });*/
         }          
 
         function popStops(context){

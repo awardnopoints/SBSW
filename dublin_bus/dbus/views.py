@@ -375,7 +375,7 @@ def predict_request(request):
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
 
-                stops = bssd.objects.filter(route)
+                stops = bssd.objects.filter(route_number = route)
                 start_stop = stops.filter(stop_id=start)
                 end_stop = stops.filter(stop_id=end)
 
@@ -462,7 +462,7 @@ def popStops(request):
         if request.method=='GET':
                 g = request.GET
                 start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
-                response = getStops(route, start_stop, end_stop)
+                response = getStops(route, start_stop, end_stop, '1')
 
         #print(response)
 
