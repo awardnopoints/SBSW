@@ -448,7 +448,7 @@ def popStops(request):
         if request.method=='GET':
                 g = request.GET
                 start_stop, end_stop, route = str(g['start_stop']), str(g['end_stop']), g['route']
-                response = getStops(route, start_stop, end_stop)
+                response = getStops(route, start_stop, end_stop, '1')
 
         #print(response)
 

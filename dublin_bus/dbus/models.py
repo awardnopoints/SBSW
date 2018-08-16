@@ -64,15 +64,11 @@ class current_weather (models.Model):
 
 class forecast (models.Model):
 
+
     datetime=models.DateTimeField(primary_key=True)
-    temp=models.FloatField()
-    min_temp=models.FloatField()
-    max_temp=models.FloatField()           
-    description=models.TextField()
+    temp=models.FloatField()         
     mainDescription=models.TextField()
     wind_speed=models.FloatField()
-    wind_direction=models.FloatField()    
-    humidity=models.FloatField()
 #    pressure=models.FloatField()
 #    cloudiness=models.FloatField()
 
@@ -175,13 +171,9 @@ class DbusCurrentWeather(models.Model):
 class DbusForecast(models.Model):
     datetime = models.DateTimeField(primary_key=True)
     temp = models.FloatField()
-    min_temp = models.FloatField()
-    max_temp = models.FloatField()
-    description = models.TextField()
     maindescription = models.TextField(db_column='mainDescription')  # Field name made lowercase.
     wind_speed = models.FloatField()
     #wind_direction = models.FloatField()
-    humidity = models.FloatField()
 
     class Meta:
         managed = False
