@@ -66,13 +66,13 @@ class forecast (models.Model):
 
     datetime=models.DateTimeField(primary_key=True)
     temp=models.FloatField()
-    min_temp=models.FloatField()
-    max_temp=models.FloatField()           
-    description=models.TextField()
+    #min_temp=models.FloatField()
+    #max_temp=models.FloatField()           
+    #description=models.TextField()
     mainDescription=models.TextField()
     wind_speed=models.FloatField()
-    wind_direction=models.FloatField()    
-    humidity=models.FloatField()
+    #wind_direction=models.FloatField()    
+    #humidity=models.FloatField()
 #    pressure=models.FloatField()
 #    cloudiness=models.FloatField()
 

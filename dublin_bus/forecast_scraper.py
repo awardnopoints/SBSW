@@ -41,27 +41,42 @@ class weather:
         length=len(list)
         while i < length:
 
-       	    first = list[i]
-            main=first['main']
-            temp = main['temp']
-            temp_min = main['temp_min']
-            temp_max = main['temp_max']
-            humidity = main['humidity']
-            pressure = main['pressure']
-            weather = first['weather']
-            weather_desc = weather[0]
-            description = weather_desc['description']
-            mainDescription = weather_desc['main']
-            wind = first['wind']
-            speed = wind['speed']
-            deg = wind['deg']
-            cloud=first['clouds']
-            cloudiness=cloud['all']
-            dt_txt = first['dt_txt']
+            try:
+       	        first = list[i]
+                main = first['main']
+                temp = main['temp']
+            except Exception as e:
+                temp = '15.99'
+            #temp_min = main['temp_min']
+            #temp_max = main['temp_max']
+            #humidity = main['humidity']
+            #pressure = main['pressure']
+            try:
+                weather = first['weather']
+                weather_desc = weather[0]
+                mainDescription = weather_desc['main']
+            except Exception as e:
+                mainDescription = 'Clouds'
+            #description = weather_desc['description']
+            try:
+                wind = first['wind']
+                speed = wind['speed']
+            except Exception as e:
+                speed = '6'
+            #deg = wind['deg']
+            #cloud=first['clouds']
+            #cloudiness=cloud['all']
+            try:
+                dt_txt = first['dt_txt']
+            except:
+                dt_txt = '2018-08-16 12:00:00'
             i+=1
             
-            
-            insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity)
+            try:
+                insert_forecast(temp, mainDescription, speed, dt_txt)
+            except Exception as e:
+                pass
+
     #http://pythonda.com/collecting-storing-tweets-python-mysql
 
 
@@ -69,27 +84,41 @@ class weather:
 
     #        list1=json_parsed['list']
     #        first = list1[0]
-        main1_current=json_parsed2['main']
-        temp_current = main1_current['temp']
-        temp_min_current = main1_current['temp_min']
-        temp_max_current = main1_current['temp_max']
-        humidity_current = main1_current['humidity']
-        pressure_current = main1_current['pressure']
-        weather_current = json_parsed2['weather']
-        weather_desc_current = weather_current[0]
-        description_current = weather_desc_current['description']
-        mainDescription_current = weather_desc_current['main']
-        wind_current = json_parsed2['wind']
-        speed_current = wind_current['speed']
-        deg_current = wind_current['deg']
-        cloud_current=json_parsed2['clouds']
-        cloudiness_current=cloud_current['all']
-        dt_current = json_parsed2['dt']
+        try:
+            main1_current=json_parsed2['main']
+            temp_current = main1_current['temp']
+        except Exception as e:
+            temp_current = '15.99'
+        #temp_min_current = main1_current['temp_min']
+        #temp_max_current = main1_current['temp_max']
+        #humidity_current = main1_current['humidity']
+        #pressure_current = main1_current['pressure']
+        try:
+            weather_current = json_parsed2['weather']
+            weather_desc_current = weather_current[0]
+            mainDescription_current = weather_desc_current['main']
+        except Exception as e:
+            mainDescription_current = 'Clouds'
+            
+        #description_current = weather_desc_current['description']
+        try:
+            wind_current = json_parsed2['wind']
+            speed_current = wind_current['speed']
+        except Exception as e:
+            speed_current = '6'
+        #deg_current = wind_current['deg']
+        #cloud_current=json_parsed2['clouds']
+        #cloudiness_current=cloud_current['all']
+        try:
+            dt_current = json_parsed2['dt']
+        except Exception as e:
+            dt_current = '1534417200'
         timestamp_current=datetime.datetime.fromtimestamp(dt_current, pytz.timezone('Europe/Dublin'))
 
-  
-        insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current)
-
+        try:
+            insert_current(temp_current, mainDescription_current, speed_current, timestamp_current)
+        except Exception as e:
+            pass
 
         #http://pythonda.com/collecting-storing-tweets-python-mysql
 
@@ -128,36 +157,35 @@ def delete_forecast():
         print("An error occurred when deleting forecast rows: ", e)
         
         
-def insert_current(temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current):
+def insert_current(temp_current, mainDescription_current, speed_current, timestamp_current):
     try:
         connection = engine.connect()
         connection.execute(
-            "INSERT INTO dbus_forecast  (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s,%s, %s, %s, %s, %s);",
-            (temp_current, temp_min_current, temp_max_current, description_current, mainDescription_current, speed_current, deg_current, timestamp_current, humidity_current))
+            "INSERT INTO dbus_forecast  (temp, mainDescription, wind_speed, datetime) VALUES (%s, %s, %s, %s);",
+            (temp_current, mainDescription_current, speed_current, timestamp_current))
     except Exception as e:
         print("An error occurred inserting data into current_weather table: ", e)
     return
 
-def insert_forecast(temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity):
-    try:
-        connection = engine.connect()
-        connection.execute(
-            "INSERT INTO dbus_forecast (temp, min_temp, max_temp, description, mainDescription, wind_speed, wind_direction, datetime, humidity) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);",
-            (temp, temp_min, temp_max, description, mainDescription, speed, deg, dt_txt, humidity))
-    except Exception as e:
-        print("An error occurred inserting data into forecast_weather table: ", e)
+def insert_forecast(temp, mainDescription, speed, dt_txt):
+    connection = engine.connect()
+    connection.execute(
+        "INSERT INTO dbus_forecast (temp, mainDescription, wind_speed, datetime) VALUES (%s, %s, %s, %s);",
+        (temp, mainDescription, speed, dt_txt))
+    print("An error occurred inserting data into forecast_weather table: ", e)
     return
 
-url1="http://api.openweathermap.org/data/2.5/forecast?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
-url2="http://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
-engine = connect()
+if __name__ == "__main__":
+    url1="http://api.openweathermap.org/data/2.5/forecast?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
+    url2="http://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&APPID=bb260f441e7da59a28734895b6574b4d"
+    engine = connect()
 
-data1 = call_api(url1)
-data2 = call_api(url2)
-json_parsed1=write_file(data1)
-json_parsed2=write_file(data2)
+    data1 = call_api(url1)
+    data2 = call_api(url2)
+    json_parsed1=write_file(data1)
+    json_parsed2=write_file(data2)
 
-run = weather()
-delete_forecast()
-run.current_weather()
-run.forecast_weather()
+    run = weather()
+    delete_forecast()
+    run.current_weather()
+    run.forecast_weather()

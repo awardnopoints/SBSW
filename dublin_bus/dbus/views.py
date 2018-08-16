@@ -124,11 +124,11 @@ def stop_and_routes_info():
 #models = load_models()
 #stops, routes = stop_and_routes_info()
 
-stops = sllz.objects.all()
-routes = bssd.objects.all()
-route_numbers = routes.values_list('route_number', flat=True).distinct()
 
 def home(request):
+        stops = sllz.objects.all()
+        routes = bssd.objects.all()
+        route_numbers = routes.values_list('route_number', flat=True).distinct()
         weather = forecast.objects.all().first()
         context = {
                 'route_numbers':route_numbers,
@@ -186,15 +186,28 @@ def predictions_model(start_stop, end_stop, route, year, month, day, hour):
         #print(input_list)
         #print(len(weather))
         if len(weather) == 0:
-                weather = forecast.objects.all().first()
+                weather = forecast.objects.all()
+                if len(weather) == 0:
+                        weathermain = 'Clouds'
+                        temp = 15
+                        speed = 6
+                else:
+                        weather = weather.last()
+                        weathermain = weather.mainDescription
+                        temp = weather.temp
+                        speed = weather.wind_speed
         else:
-                weather = weather.last()
+                weather = weather.first()
+                weathermain = weather.mainDescription
+                temp = weather.temp
+                speed = weather.wind_speed
+
         #print(weather)
         df = pd.DataFrame(input_list, columns=['stop_id','distance','zone'])
         df['day'] = date.weekday()
-        df['weather_main'] = weather.mainDescription
-        df['temp'] = weather.temp
-        df['wind_speed'] = weather.wind_speed
+        df['weather_main'] = weathermain
+        df['temp'] = temp
+        df['wind_speed'] = speed
 
         hours_tuple = ((hour < 7),(7 <= hour < 9),(9 <= hour <= 11),
                         (11 <= hour < 15), (15 <= hour < 18), (18 <= hour))
@@ -362,8 +375,9 @@ def predict_request(request):
                 elif route not in routes_implemented:
                         return HttpResponse('<p>Route ' + route + ' not recognised</p>')
 
-                start_stop = routes.filter(stop_id=start)
-                end_stop = routes.filter(stop_id=end)
+                stops = bssd.objects.filter(route)
+                start_stop = stops.filter(stop_id=start)
+                end_stop = stops.filter(stop_id=end)
 
                 r = inputValidator(start_stop, end_stop)
                 if r:
