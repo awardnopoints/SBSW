@@ -40,9 +40,30 @@
           <h1>SBSW</h1>
         </div>
         
-         
-          <div class="image"> <img id="icon" src="http://openweathermap.org/img/w/10d.png" /></div>
-           <div class="other"><ul style="margin-top: -60px;"><li>  Dublin, Ireland </li>
+         <img id = "info_icon" src = {% static 'images/info.png'%}>
+	<div class = "info_modal">
+		<div class="modal-content">
+		<span id = "close_modal">x</span>
+		<br>
+		<h1>Hello and welcome to Strategic Bus Solutions Worldwide</h1>
+		<div id="site-description">
+		<span id = "title">Below you will find two main options:</span>
+		<ul>
+			<li>Journey Planner</li><br>
+			<div class="functions">For this option you maybe enter your desired start and stop destinations and click go.
+			Alternatively you may select "Use Current Location" to use your current location as your start point
+			or select start and end point by clicking on the map itself. Once you have finished and clicked go, 
+			scroll down to find a breakdown of you journey as well as the price of you journey</div>
+
+			<li>Search By Route</li><br>
+			<div class="functions">Use this option if you know the exact bus number you want to use as well as the number or general address
+			of the start and end stop</div>
+		</ul>
+		</div>
+		</div>
+	</div>
+          <div class="image"> <img id="icon" src="http://openweathermap.org/img/w/10d.png" ></div>
+           <div class="other" id="city"><ul style="margin-top: -60px;"><li>  Dublin, Ireland </li>
          <br>    <li>     {{ weather.temp }} &#8451;
 </li>
            
@@ -55,8 +76,11 @@
 <div class="container1">
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
+<<<<<<< HEAD
        
      
+=======
+>>>>>>> 44b6968b2f78803e7940f680116f12d009d8dd13
 
     <div class="panel panel-default" id="panel" style="margin-top: -40px;">
        
@@ -162,6 +186,18 @@
       $('#end').prop('disabled', true);
       $('#start').prop('disabled', true);
       var map; 
+        
+        
+     var controlMarkerUI = document.createElement('leap_stores');
+      controlMarkerUI.style.cursor = 'pointer';
+      controlMarkerUI.style.backgroundImage = "url(http://localhost/marker.png)";
+      controlMarkerUI.style.height = '28px';
+      controlMarkerUI.style.width = '25px';
+      controlMarkerUI.style.top = '11px';
+      controlMarkerUI.style.left = '120px';
+      controlMarkerUI.title = 'Click to set the map to Home';
+      //myLocationControlDiv.appendChild(controlUI);
+        
       var markers = []
       var directionsDisplay;
       var directionsService;
@@ -798,7 +834,29 @@ var pos;
           });
 	        $.get('/popStops/', {route: route, start_stop: start_stop, end_stop: end_stop}, function(data){
             popStops(data['stops']);
-            drawRoute(data['stops']);
+            console.log(data['stops']);
+            var s = data['stops'][0][0]
+            console.log('s:',s)
+            var start = {lat: Number(s['lat']), lng: Number(s['lon'])}
+            var e = data['stops'][0][1]
+            console.log('e:',e)
+            var end = {lat: Number(e['lat']), lng: Number(e['lon'])}
+            var request = {
+              origin: start,
+              destination: end,
+              travelMode: 'TRANSIT',
+              transitOptions: {
+                modes: ['BUS'],
+                routingPreference: 'FEWER_TRANSFERS'
+              },
+            }
+            directionsService.route(request, function(result, status){
+              if (status == 'OK'){
+                directions = result;
+                console.log('status:', status)
+              }
+              drawRoute(data['stops']);
+            })
           });
         };
 
@@ -814,31 +872,7 @@ var pos;
 
         function drawRoute(data){
           directionsDisplay.setMap(map);
-	  //var start = $('#start_address').val;
-          //var start = new google.maps.LatLng(Number(data[0][0]["lat"]), Number(data[0][0]["lon"]));
-          /*for ( i in data ) {
-            var len = Object.keys(data[i]).length
-            var end = new google.maps.LatLng(Number(data[i][len - 1]["lat"]), Number(data[i][len - 1]["lon"]))
-          }*/
-          //var end = $('#end_address').val;
           directionsDisplay.setDirections(directions);
-          /*var request = {
-            origin: start,
-            destination: end,
-            travelMode: 'TRANSIT',
-            transitOptions: {
-              modes : ['BUS'],
-              routingPreference : 'FEWER_TRANSFERS'
-            },       
-          }
-    
-          directionsService.route(request, function(result, status){              
-            if (status == 'OK') {
-              console.log(result);           
-              directionsDisplay.setDirections(result);
-              
-            }
-          });*/
         }          
 
         function popStops(context){
@@ -958,6 +992,42 @@ var pos;
             markers[i].setMap(null);
           };
         };
+
+        var modal = document.querySelector(".info_modal");
+        modal.style.display = "none";
+
+	document.querySelector("#info_icon").onclick = function(){
+	        console.log(modal)
+		toggleModal()
+              
+	}
+
+	document.querySelector("#close_modal").onclick = function() {
+
+		toggleModal()	
+
+	}
+
+	window.onclick = function(event) {
+		
+		if (event.target == modal) {
+
+			toggleModal()
+
+		}
+
+	}
+
+	function toggleModal() {
+		console.log("toggle")
+		if (modal.style.display == 'none'){
+			modal.style.display = "block";
+		}
+		else {
+			modal.style.display = "none";
+		}
+	}
+
 	});
     </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyADAq7_ArNs1g_fzNE-tLB0scnM5UtXXSM&callback=initMap&libraries=places" type = 'text/javascript'></script>
