@@ -76,7 +76,13 @@
                   <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
   <div class="panel-collapse collapse in"><div class="panel-body">
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
-            
+            <div id="leaveNow"  style="margin-top: -10px; margin-left: -40%"> <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+       </div>
+    <div id='date_input' style="">
+ <h4>Date </h4><input type="text" id="datepicker">
+        <br>
+       <h4>Time </h4> <input type="text" id="timepicker"/>
+    </div>
               <h4>From </h4>
               <input id="start_address" type="text" name="start_address" style="margin-left: 0px;width: 220px;">
               <button type="button" id="geolocation" class = "save btn btn-default" style=""> Use Current Location</button> 
@@ -119,15 +125,8 @@
           </form>
     </div></div></div>
    
-    <div id="leaveNow"  style="margin-top: -10px; margin-left: -40%"> <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
-       </div>
-    <div id='date_input' style="">
- <h4>Date </h4><input type="text" id="datepicker">
-        <br>
-       <h4>Time </h4> <input type="text" id="timepicker"/>
-    </div>
- <br> <button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: -60px; margin-top: 10px;" > Show leap stores nearby</button>
-	<br><button type="submit" class = "save btn btn-default" id="clear_all" style="margin-left: -170px; margin-top: 10px;">Clear All</button>	 <div id="results"><p>  </p></div>
+    
+ <br> 	 <div id="results"><p>  </p></div>
         <div id = "text_results"></div>
       <div id = "price"></div>
       </div> 
@@ -136,7 +135,9 @@
     <!--   -->
         
         
-        <div id='map' class="jumbotron text-center col-md-8"> </div></div>
+        <div id='map' class="jumbotron text-center col-md-8">
+            <div id="buttons"><button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: -60px; margin-top: 10px;" > Show leap stores nearby</button>
+                <br><button type="submit" class = "save btn btn-default" id="clear_all" style="margin-left: -170px; margin-top: 10px;">Clear All</button> </div></div></div>
       <footer> <p></p></footer>
             <!-- /container -->
 
