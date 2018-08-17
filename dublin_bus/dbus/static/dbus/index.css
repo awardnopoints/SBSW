@@ -234,7 +234,6 @@ margin-top: 30px;
 #collapseExample {
 
     max-height: 300px;
-    overflow-y: scroll;
 }
 
 #text_directions td, #text_directions tr {
