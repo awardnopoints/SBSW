@@ -122,7 +122,8 @@ p {
 
 #addressToAddress {
 
-   max-height: 500px;
+   max-height: 450px;
+height: 450px;
    overflow-y: scroll;
 }
 footer {
@@ -175,10 +176,10 @@ col-md-4 {
 
 
 select {
-  width: 200px;
+  width: 290px;
 }
 option {
-  width: 200px;
+  width: 290px;
 }
 
 h4 {
@@ -201,7 +202,9 @@ padding: 0px;
     color:#FD3AB7;
 }
 
-
+#routes, #start, #end {
+    margin-left: 40px;
+}
 
 .form-horizontal {
     width: 600px;
@@ -209,9 +212,10 @@ padding: 0px;
 }
 
 #results {
-    width: 300px;
-    margin-left: 65px;
 
+    margin-left: 10px;
+    margin-right: 50px;
+margin-top: 30px;
 
 }
 
@@ -249,7 +253,16 @@ padding: 0px;
 #panel {
 
     margin-top: 10px;
-    max-height: 450px;
+    max-height: 480px;
+    height: 480px;
+}
+
+.panel panel-default
+{
+
+    margin-top: 10px;
+    max-height: 480px;
+    height: 480px;
 }
 
 #info {
@@ -259,6 +272,15 @@ padding: 0px;
 
 }
 
+#text_results {
+    margin-left: 30px;
+    margin-right: 40px;
+}
+
+#price {
+        margin-left: 0px;
+    
+}
 #info_icon {
 
    position: relative;
@@ -321,11 +343,11 @@ padding: 0px;
 }
 
 #datepicker {
-    width: 220px;
+    width: 270px;
     margin-left: 0px;
 }
 
 #timepicker {
-    width: 220px;
+    width: 270px;
     margin-left: 0px
 }

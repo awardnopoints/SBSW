@@ -31,16 +31,16 @@
   </head>
 
 
-  <body background="https://oscarsinternational.com/wp-content/uploads/2017/02/Oscars-Intenational-Dublin-Ireland.jpg" style="no-repeat">
+  <body background="https://www.toshiba.com/tai/img/3_Industrial/industrial_carousel3.jpg" style="no-repeat">
       <div class="background"></div>
     <!-- Static navbar -->
     <nav class="navbar" style=background-color:transparent;  >
      
         <div class="navbar-header" style="float: right; margin-right: 50px;">
-          <h1>SBSW</h1>
+          <h1>SBSW Worldwide</h1>
         </div>
         
-         <img id = "info_icon" src = {% static 'images/info.png'%}>
+         <img id = "info_icon" src = {% static 'images/info.png'%} style="margin-right: -40px;">
 	<div class = "info_modal">
 		<div class="modal-content">
 		<span id = "close_modal">x</span>
@@ -63,7 +63,7 @@
 		</div>
 	</div>
           <div class="image"> <img id="icon" src="http://openweathermap.org/img/w/10d.png" ></div>
-           <div class="other" id="city"><ul style="margin-top: -60px;"><li>  Dublin, Ireland </li>
+           <div class="other" id="city"><ul style="margin-top: -60px; margin-left: 140px;"><li>  Dublin, Ireland </li>
          <br>    <li>     {{ weather.temp }} &#8451;
 </li>
            
@@ -77,41 +77,41 @@
        
       <div class="jumbotron text-center col-md-4" id='accordian'>
 
-   <div class="panel panel-default" id="panel" style="margin-top: -40px;">
+   <div class="panel panel-default" style="margin-top: -40px;" id="addressToAddress">
        
       <div class="panel-heading">
       <div class="btn-group btn-group-justified">
-    <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+    <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear2()">
     Journey Planner
  
           </a>  
-             <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample">
+             <a class="btn btn-primary active" data-toggle="collapse"  data-target="#collapseExample1" data-parent="#accordian" role="button" aria-expanded="false" aria-controls="collapseExample" onclick="disappear1()">
     Route Search
   </a>   
            
       </div></div>
- <div id="leaveNow"  style="margin-top: 10px; margin-left: -40%"> <input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-right: 2px;">Leave Now
+ <div id="leaveNow"  style="margin-top: 10px; margin-left: -10%">Leave Now<input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-left: 5px;">
        </div>
-    <div id='date_input' style="">
- <h4>Date </h4><input type="text" id="datepicker">
+    <div id='date_input' style="margin-left: -40px;">
+ <h4>Date </h4><input type="text" id="datepicker" style="margin-left: 5px;width: 270px;">
         <br>
-       <h4>Time </h4> <input type="text" id="timepicker"/>
+       <h4>Time </h4> <input type="text" id="timepicker" style="margin-left: 0px;width: 270px;"/>
     </div>
 	     
-                  <div class="collapse in" id="collapseExample" data-parent="accordian" id="addressToAddress" >
+                  <div class="collapse in" id="collapseExample" data-parent="accordian"  >
   <div class="panel-collapse collapse in"><div class="panel-body">
       
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
     
               <h4>From </h4>
-              <input id="start_address" type="text" name="start_address" style="margin-left: 0px;width: 220px;">
+              <input id="start_address" type="text" name="start_address" style="margin-right: -30px;width: 270px;">
               <button type="button" id="geolocation" class = "save btn btn-default" style=""> Use Current Location</button> 
 	  <br>
          <h4> To</h4>
-          <input id="end_address" type="text" name="end_address" required style="margin-right: -24px;width: 220px;">
+          <input id="end_address" type="text" name="end_address" required style="margin-right: -44px; margin-left: 15px;width: 270px;">
  <br>
 	        
-	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right">Go</button>
+	       <br> <button id = "address_submit" type = "submit" class = "save btn btn-default" required style="float: right; margin-right: -30px;">Go</button>
     <br>
       </form>
       
@@ -140,16 +140,15 @@
             
             
             <br>
-            <button type = "submit" class = "save btn btn-default">Go</button>
+            <button type = "submit" class = "save btn btn-default" style="float: right; margin-right: -30px;">Go</button>
            
           </form>
     </div></div></div>
-      <div id="buttons"><button type="button" id="leap_stores" class = "save btn btn-default" style="margin-left: -60px; margin-top: 10px;" > Show leap stores nearby</button>
-                <br><button type="submit" class = "save btn btn-default" id="clear_all" style="margin-left: -170px; margin-top: 10px;">Clear All</button> </div> 
+      
     
- <br> 	 <div id="results"><p>  </p></div>
-        <div id = "text_results"></div>
-      <div id = "price"></div>
+ <br> 	 <div id="results" class="panel panel-default" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;" ></div>
+       <div id = "text_results" class="panel panel-default" style="margin-top: -30px;" ></div>
+      <div id = "price" style="margin-top: 5px; margin-bottom: 10px"></div>
       </div> 
             </div>  
       <!-- Main component for a primary marketing message or call to action -->
@@ -175,6 +174,8 @@
   $(document).ready(function() {
         $("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
       $('#timepicker').timepicker({ 'scrollDefault': 'now', 'timeFormat': 'H:i'});
+      
+        $('#results').hide();
   });
  
       $('#routes').prop('disabled', true);
@@ -232,12 +233,19 @@
         $('#date_input').toggle();
       }
 
-	document.getElementById("clear_all").onclick = function clearAll() {
-		console.log("clearing")
-		removeMarkers()
-		directionsDisplay.setMap(null);
 
-	}
+          function disappear1(){
+        $('#results').show();
+              $('#text_results').hide();
+             $('#price').hide();
+      }
+        
+         function disappear2(){
+        $('#results').hide();
+              $('#text_results').show();
+             $('#price').show();
+ 
+      }
 
       
 	    function validateForm() {
@@ -318,9 +326,10 @@
         controlMarkerUI.style.border='2px solid #fff';
           controlMarkerUI.style.borderRadius='3px';
           controlMarkerUI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
-      controlMarkerUI.style.marginTop = '10px';
+      controlMarkerUI.style.marginTop = '90px';
           controlMarkerUI.style.marginBottom = '22px';
-          controlMarkerUI.style.marginLeft = '-10px';
+          controlMarkerUI.style.marginLeft = '-160px';
+           controlMarkerUI.style.marginRight = '200px';
       controlMarkerUI.title = 'Click to show leap stores';
             controlMarkerUI.style.color = 'rgb(25,25,25)';
         controlMarkerUI.style.fontFamily = 'Roboto,Arial,sans-serif';
@@ -331,16 +340,17 @@
         controlMarkerUI.innerHTML = 'Show Leap Stores';
           
           
-              controlMarker1UI.style.cursor = 'pointer';
+             controlMarker1UI.style.cursor = 'pointer';
       controlMarker1UI.style.backgroundColor = '#fff';
         controlMarker1UI.style.border='2px solid #fff';
           controlMarker1UI.style.borderRadius='3px';
           controlMarker1UI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
       controlMarker1UI.style.marginTop = '-20px';
-          controlMarker1UI.style.marginBottom = '2px';
-          controlMarker1UI.style.marginLeft = '-10px';
+          controlMarker1UI.style.marginBottom = '22px';
+          controlMarker1UI.style.marginLeft = '-160px';
+          controlMarker1UI.style.marginRight = '200px';
       controlMarker1UI.title = 'Click to clear all inputs';
-            controlMarker1UI.style.color = 'rgb(25,25,25)';
+             controlMarker1UI.style.color = 'rgb(25,25,25)';
         controlMarker1UI.style.fontFamily = 'Roboto,Arial,sans-serif';
         controlMarker1UI.style.fontSize = '16px';
         controlMarker1UI.style.lineHeight = '34px';
@@ -498,7 +508,7 @@ function removeMarkers(){
             var step_no = 1
             var no_bus = 0
             var walk_time = 0;
-            table = "<table id = text_directions><tr><th>Step</th><th>Estimate Time</th></tr>"
+            table = "<table id = text_directions><tr><th>Steps</th><th>Time</th></tr>"
             if (status == "OK") {
               console.log(result);
               directions = result
@@ -581,20 +591,7 @@ var pos;
 
 
 
-	 document.getElementById("clear_all").onclick = function clearAll() {
-                $('#start_address').val("")
-		$('#end_address').val("")
-		$('#results').html("")
-		$('#text_results').html("")
-		$('#price').html("")
-		//$('#leap_stores').prop('checked', false);
-		$('#geolocation').prop('checked', false);
-                removeMarkers()
-                using_current = false;
-                directionsDisplay.setMap(null);
-
-        }
-
+	
 
 
         /*$.when(
@@ -684,7 +681,7 @@ var pos;
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
-          $('#results > p').text('waiting...');
+          $('#results').text('searching...');
           getPredictions()
         });
 
@@ -782,41 +779,6 @@ var pos;
 
 	
 
-	document.getElementById("leap_stores").onclick = function() {
-
-
-		//cb = this.checked;
-
-		//if (cb){
-			geoLocation()
-	                map.setCenter(pos);
-			removeMarkers()
-			directionsDisplay.setMap(null);
-
-			output = []
-          		output.push(pos)          
-          		console.log(output)
-          		context = JSON.stringify(output)   
-			
-			$.get("/leap_stores/", {context}, function(data) {
-
-				for (key in data) {
-					
-					marker = new google.maps.Marker({
-						position: {lat: Number(data[key]["lat"]), lng: Number(data[key]["lng"])},
-						map: map,
-						title: key,	
-
-						});
-
-					markers.push(marker);
-
-				}
-
-			});
-
-		}
-
 		//else {
 
 			//removeMarkers()
@@ -894,7 +856,7 @@ var pos;
           event.preventDefault()
           valid = validateForm()
 			    if (valid) {
-            $('#text_results').text('waiting...');
+            $('#text_results').text('searching...');
             $('#price').text("");
 			      getPredictionsAddress();
 		      }
