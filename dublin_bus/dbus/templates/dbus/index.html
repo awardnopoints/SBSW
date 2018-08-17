@@ -1113,12 +1113,13 @@ var pos;
               price = "€" + euro + "." + cent
               if (price.isNaN()){
 		price = "Fare Calculator Unresponsive";
+                $('#price').html(price)
 	      }
               else{
               leap = getLeap(price)
-              }
-              $("#price").html('Journey Cost: ' + price + leap)
               
+              $("#price").html('Journey Cost: ' + price + leap)
+              }
             } else if (data["error"] == "0") {
               $('#text_results').html("Oops, something went wrong. Enter a different route and please try again.");
             } else if (data["error"] == "tbi") {
