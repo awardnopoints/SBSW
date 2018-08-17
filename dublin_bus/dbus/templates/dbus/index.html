@@ -883,7 +883,7 @@ var pos;
 
             if ($('#checkbox').is(':checked') && i == 0){
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-              if (context[i][0]['rtpi']['results'].length == 0) {
+              if (!('rtpi' in context[i][0]) || context[i][0]['rtpi']['results'].length == 0) {
                 content = content + '<tr><td>No RTPI Available</td></tr>';
               } else {
                 for (var j = 0; j < 10 && j < context[i][0]['rtpi']['results'].length; j++){
