@@ -526,7 +526,7 @@ def predict_address(request):
 
                    
                    #print('got this far')
-                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.0001)
+                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.0002)
                    #print('stop1:', stop1)
                    #print(len(list(stop1)))
                    length = len(list(stop1))
@@ -535,8 +535,8 @@ def predict_address(request):
                        first_stops.append(stop1[x].stop_id)
 
                    #stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
-                   
-                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.0001)
+                   	
+                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.0002)
                    #print('stop2:', stop2)
 
                    #print(len(list(stop2)))
@@ -646,7 +646,7 @@ def getClose(lat, lng, table, magnitude):
 
     result = []
 
-    query = "select * from %s where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 10;"
+    query = "select * from %s where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 7;"
 
     if table=='leap_stores':
             mytable = LeapStores
