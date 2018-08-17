@@ -37,7 +37,7 @@
     <nav class="navbar" style=background-color:transparent;  >
      
         <div class="navbar-header" style="float: right; margin-right: 50px;">
-          <h1>SBSW</h1>
+          <h1>SBSW Worldwide</h1>
         </div>
         
          <img id = "info_icon" src = {% static 'images/info.png'%} style="margin-right: -40px;">
@@ -101,7 +101,7 @@
        <h4>Time </h4> <input type="text" id="timepicker" style="margin-left: 0px;width: 270px;"/>
     </div>
 	     
-                  <div class="collapse in"  data-parent="accordian"  >
+                  <div class="collapse in" id="collapseExample" data-parent="accordian"  >
   <div class="panel-collapse collapse in"><div class="panel-body">
       
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
@@ -905,8 +905,8 @@ var pos;
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour, minute: minute, now: now}, function(data){
 
-              //var myDiv = document.getElementById('collapseExample1')
-              //myDiv.scrollTop = myDiv.scrollHeight
+              var myDiv = document.getElementById('collapseExample1')
+              myDiv.scrollTop = myDiv.scrollHeight
               
               if (typeof data == 'string') {
                 console.log('error')
@@ -997,7 +997,7 @@ var pos;
 
             if ($('#checkbox').is(':checked') && i == 0){
               var content = "<table> <tr> <th> Route </th> <th style = 'padding : 5px'> ETA(mins) </th> </tr> " 
-              if (!('rtpi' in context[i][0]) || context[i][0]['rtpi']['results'].length == 0) {
+              if (context[i][0]['rtpi']['results'].length == 0) {
                 content = content + '<tr><td>No RTPI Available</td></tr>';
               } else {
                 for (var j = 0; j < 10 && j < context[i][0]['rtpi']['results'].length; j++){
@@ -1042,8 +1042,8 @@ var pos;
               popStops(data["stops"])
               drawRoute(data["stops"])
               $('#text_results').html(table);
-              //var myDiv = document.getElementById('collapseExample')
-              //myDiv.scrollTop = myDiv.scrollHeight
+              var myDiv = document.getElementById('collapseExample')
+              myDiv.scrollTop = myDiv.scrollHeight
               var count = 0
               var price = 0
               for (i in data["prediction"]) {
