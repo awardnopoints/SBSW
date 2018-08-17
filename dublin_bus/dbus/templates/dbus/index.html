@@ -101,7 +101,7 @@
        <h4>Time </h4> <input type="text" id="timepicker" style="margin-left: 0px;width: 270px;"/>
     </div>
 	     
-                  <div class="collapse in" id="collapseExample" data-parent="accordian"  >
+                  <div class="collapse in"  data-parent="accordian"  >
   <div class="panel-collapse collapse in"><div class="panel-body">
       
         <form method = "POST" class = "post-form" id="post-form1" required>{% csrf_token %}
@@ -905,8 +905,8 @@ var pos;
             end_stop: end_stop, year: year, month: month, day: day, 
             hour: hour, minute: minute, now: now}, function(data){
 
-              var myDiv = document.getElementById('collapseExample1')
-              myDiv.scrollTop = myDiv.scrollHeight
+              //var myDiv = document.getElementById('collapseExample1')
+              //myDiv.scrollTop = myDiv.scrollHeight
               
               if (typeof data == 'string') {
                 console.log('error')
@@ -1042,8 +1042,8 @@ var pos;
               popStops(data["stops"])
               drawRoute(data["stops"])
               $('#text_results').html(table);
-              var myDiv = document.getElementById('collapseExample')
-              myDiv.scrollTop = myDiv.scrollHeight
+              //var myDiv = document.getElementById('collapseExample')
+              //myDiv.scrollTop = myDiv.scrollHeight
               var count = 0
               var price = 0
               for (i in data["prediction"]) {
@@ -1072,17 +1072,17 @@ var pos;
               $("#price").html('Journey Cost: ' + price + leap)
               
             } else if (data["error"] == "0") {
-              $('#results > p').html("Oops, something went wrong. Enter a different route and please try again.");
+              $('#text_results').html("Oops, something went wrong. Enter a different route and please try again.");
             } else if (data["error"] == "tbi") {
-              $('#results > p').html("Error: One or more routes not yet implemented.");
+              $('#text_results').html("Error: One or more routes not yet implemented.");
             } else if (data["error"] == "uncovered") {
-              $('#results > p').html("Error: One or more routes not covered by our data.");
+              $('#text_results').html("Error: One or more routes not covered by our data.");
             } else if (data["error"] == "nis") {
-              $('#results > p').html("Error: One or more routes not in service.");
+              $('#text_results').html("Error: One or more routes not in service.");
             } else if (data["error"] == "unsupported") {
-              $('#results > p').html("Error: One or more routes not supported by our data.");
+              $('#text_results').html("Error: One or more routes not supported by our data.");
             } else if (data["error"] == "nim") {
-              $('#results > p').html("Error: One or more routes not implemented in our application.");
+              $('#text_results').html("Error: One or more routes not implemented in our application.");
             }
           });
         };
