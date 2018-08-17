@@ -1095,7 +1095,7 @@ var pos;
                 $("#"+step).html(data["prediction"][i]);
                 count += 1
               }
-
+	      console.log(data["price"]);
               for (i in data["price"]) {		
                 var price_split = data["price"][i]
                 price_split = price_split.split(".")
@@ -1111,7 +1111,12 @@ var pos;
                 cent = "0" + cent;
 
               price = "€" + euro + "." + cent
+              if (price.isNaN()){
+		price = "Fare Calculator Unresponsive";
+	      }
+              else{
               leap = getLeap(price)
+              }
               $("#price").html('Journey Cost: ' + price + leap)
               
             } else if (data["error"] == "0") {
