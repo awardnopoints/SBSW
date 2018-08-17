@@ -477,7 +477,7 @@ def popStops(request):
 
 
 def predict_address(request):
-
+    print("predict_request")
     if request.method=="GET":
         g = request.GET
         year, month, day, hour = g['year'], g['month'], g['day'], g['hour']
@@ -525,8 +525,8 @@ def predict_address(request):
                    #print("end:",(lat2,lng2))
 
                    
-                   #print('got this far')
-                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.0002)
+                   print('got this far')
+                   stop1 = getClose(lat1,lng1,'dbus_stopsv3', 0.0001)
                    #print('stop1:', stop1)
                    #print(len(list(stop1)))
                    length = len(list(stop1))
@@ -536,7 +536,7 @@ def predict_address(request):
 
                    #stop2 = DbusStopsv3.objects.raw(query % (float(lat2), float(lat2), float(lng2), float(lng2), float(lat2)))
                    	
-                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.0002)
+                   stop2 = getClose(lat2,lng2,'dbus_stopsv3', 0.0001)
                    #print('stop2:', stop2)
 
                    #print(len(list(stop2)))
@@ -636,7 +636,7 @@ def leapStores(request):
     return JsonResponse(response)
 
 def getClose(lat, lng, table, magnitude):
-    #print('starting getClose')
+    print('starting getClose')
     if table not in ('leap_stores', 'dbus_stopsv3'):
         return False
 
@@ -646,14 +646,14 @@ def getClose(lat, lng, table, magnitude):
 
     result = []
 
-    query = "select * from %s where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 7;"
+    query = "select * from %s where lat >= (%f-%f) and lat <= (%f+%f) and abs(lng) >= abs(%f)-%f and abs(lng) <= abs(%f)+%f limit 5;"
 
     if table=='leap_stores':
             mytable = LeapStores
     elif table=='dbus_stopsv3':
             mytable = DbusStopsv3
 
-    while len(list(result)) < 10:
+    while len(list(result)) < 5:
 
         result = mytable.objects.raw(query % (table, float(lat), (tolerance), float(lat), (tolerance), float(lng), (tolerance), float(lng), (tolerance)))
 
