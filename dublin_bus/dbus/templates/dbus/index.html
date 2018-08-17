@@ -54,7 +54,7 @@
 			<li>Journey Planner</li><br>
 			<div class="functions">For this option you maybe enter your desired start and stop destinations and click go.
 			Alternatively you may select "Use Current Location" to use your current location as your start point
-			or select start and end point by clicking on the map itself. Once you have finished and clicked go, 
+			or select start and end point by clicking on the map itself and then dragging the markers as you see fit. Once you have finished and clicked go, 
 			scroll down to find a breakdown of you journey as well as the price of you journey</div>
 			<br>
 			<li>Search By Route</li><br>
@@ -200,7 +200,8 @@
       var table;
       var geocoder;
       var click_count = 0;
-      var using_current = false
+      var using_current = false;
+      var start_marker = true;
 
       function stringifyDate(d) {
         var year = d.getFullYear();
@@ -529,10 +530,33 @@ function removeMarkers(){
       };
 
       function placeMarker(latlng){
+	if (start_marker) {
+
+		var icon = "/static/images/green_MarkerA.png";
+		var form = '#start_address'
+                start_marker = false;
+	}
+	else {
+		var icon = "/static/images/red_MarkerB.png"
+ 		var form = '#end_address'
+		start_marker = true;
+                
+	}
         var marker1 = new google.maps.Marker({
           position: latlng,
-          map: map 
+          map: map,
+	  icon: icon,
+	  draggable: true,
         })
+
+	google.maps.event.addListener(marker1, 'dragend', async function() {
+                	
+		var position = marker1.getPosition()
+		var address = await geocodeLatLng(position)
+		$(form).val(address)
+	
+	});
+
         markers.push(marker1)
       }
 
@@ -827,10 +851,21 @@ var pos;
                                 current_location = new google.maps.Marker({
                                         position: {lat: pos.lat, lng: pos.lng},
                                         map: map,
-                                        title: "Current Location"
+                                        title: "Current Location",
+					icon: "/static/images/green_MarkerA.png",
+					draggable: true
                 
                                 });
 
+				google.maps.event.addListener(current_location, 'dragend', async function() {
+                        
+        			        var position = current_location.getPosition()
+	               			var address = await geocodeLatLng(position)
+                			$('#start_address').val(address)
+        
+       				 });
+
+				start_marker = false;
                                 markers.push(current_location);
 
                                 var geocoder = new google.maps.Geocoder;
@@ -959,23 +994,24 @@ var pos;
 			      getPredictionsAddress();
 		      }
 		    });
-
         function drawRoute(data){
           directionsDisplay.setMap(map);
           directionsDisplay.setDirections(directions);
         }          
 
-        function popStops(context){
+        function popStops(context) {
           console.log(context)
           removeMarkers();
           markers = []
+          
           for (var i in context) {
+
               console.log(i); 
               var marker = new google.maps.Marker({
                 position: {lat: Number(context[i][0]["lat"]), lng: Number(context[i][0]["lon"])},
                 map: map,
                 title: context[i][0]["stop"],
-                //icon :  "/static/images/bus-station.svg"
+                icon : "/static/images/green_MarkerA.png"
                   
               });
                 
@@ -990,7 +1026,8 @@ var pos;
                 position: {lat: Number(context[i][length-1]["lat"]), lng: Number(context[i][length-1]["lon"])},
                 map: map,
                 title: context[i][length-1]["stop"],
-                //icon :  "/static/images/bus-station.svg"
+                icon :  "/static/images/red_MarkerB.png"
+
               });
               markers.push(marker);
             
