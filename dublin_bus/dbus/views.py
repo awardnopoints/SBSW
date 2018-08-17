@@ -328,6 +328,10 @@ def wait_predict(route, stop, year, month, day, hour, minute):
         zerotime = datetime.timedelta()
 
         terminal = bssd.objects.filter(route_number = route, route_direction = stop.route_direction, sequence = 1).first()
+        print('Stops:', stop.sequence, terminal.sequence)
+
+        if stop.sequence == 0 or stop.sequence == terminal.sequence:
+                return "Could Not Estimate"
         
         for time in c:
                 print('trying', time)
