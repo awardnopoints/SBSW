@@ -388,7 +388,9 @@
           
           clearButton.addEventListener('click', function clearAll() {
 		console.log("clearing")
+		click_count = 0;
 		removeMarkers()
+                start_marker = true;
 		directionsDisplay.setMap(null);
                $('#start_address').val("")
 		$('#end_address').val("")
@@ -412,6 +414,7 @@
 	                map.setCenter(pos);
 			removeMarkers()
 			directionsDisplay.setMap(null);
+			start_marker = true;
 			output = []
           		output.push(pos)          
           		console.log(output)
@@ -486,6 +489,7 @@
         
         if (click_count == 0 && !using_current) {
             removeMarkers()
+	    start_marker = true;
             directionsDisplay.setMap(null);
 	    $('#start_address').val("")
             $('#end_address').val("")
@@ -841,6 +845,7 @@ var pos;
          document.getElementById("geolocation").onclick = function getLocation(){
 
 			removeMarkers()
+			start_marker = true;
 			directionsDisplay.setMap(null);
 			geoLocation()
 
@@ -1002,6 +1007,7 @@ var pos;
         function popStops(context) {
           console.log(context)
           removeMarkers();
+          start_marker = true;
           markers = []
           
           for (var i in context) {
