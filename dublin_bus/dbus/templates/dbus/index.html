@@ -45,20 +45,23 @@
 		<div class="modal-content">
 		<span id = "close_modal">x</span>
 		<br>
-		<h1>Hello and welcome to Strategic Bus Solutions Worldwide</h1>
+		<div>
+		<h2 id="info-title">Hello and welcome to Strategic Bus Solutions Worldwide</h2>
 		<div id="site-description">
 		<span id = "title">Below you will find two main options:</span>
-		<ul>
+                <br>
+		<ul id="info-list">
 			<li>Journey Planner</li><br>
 			<div class="functions">For this option you maybe enter your desired start and stop destinations and click go.
 			Alternatively you may select "Use Current Location" to use your current location as your start point
 			or select start and end point by clicking on the map itself. Once you have finished and clicked go, 
 			scroll down to find a breakdown of you journey as well as the price of you journey</div>
-
+			<br>
 			<li>Search By Route</li><br>
 			<div class="functions">Use this option if you know the exact bus number you want to use as well as the number or general address
 			of the start and end stop</div>
 		</ul>
+		</div>
 		</div>
 		</div>
 	</div>
@@ -146,7 +149,7 @@
     </div></div></div>
       
     
- <br> 	 <div id="results" class="panel panel-default" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;" ></div>
+ <br> 	 <div id="results" class="panel panel-default" style="margin-top: 10px; margin-left: 50px; margin-right: 50px;" ><p></p> </div>
        <div id = "text_results" class="panel panel-default" style="margin-top: -30px;" ></div>
       <div id = "price" style="margin-top: 5px; margin-bottom: 10px"></div>
       </div> 
@@ -175,7 +178,7 @@
         $("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
       $('#timepicker').timepicker({ 'scrollDefault': 'now', 'timeFormat': 'H:i'});
       
-        $('#results').hide();
+        $('#results > p').hide();
   });
  
       $('#routes').prop('disabled', true);
@@ -235,13 +238,13 @@
 
 
           function disappear1(){
-        $('#results').show();
+        $('#results > p').show();
               $('#text_results').hide();
              $('#price').hide();
       }
         
          function disappear2(){
-        $('#results').hide();
+        $('#results > p').hide();
               $('#text_results').show();
              $('#price').show();
  
@@ -304,6 +307,24 @@
         icon_code += 'n';
       }
       $("#icon").attr("src","http://openweathermap.org/img/w/" + icon_code + ".png");
+        
+      	function geoLocation() {
+
+		if (navigator.geolocation) {
+
+                        navigator.geolocation.getCurrentPosition(function(position) {
+
+                                var pos = {
+
+                                        lat: position.coords.latitude,
+                                        lng: position.coords.longitude,
+                                        
+                                        }
+
+                });
+	}
+
+	}
 
       function initMap(){
 	      directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
@@ -326,7 +347,7 @@
         leapButton.style.border='2px solid #fff';
           leapButton.style.borderRadius='3px';
           leapButton.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
-      leapButton.style.marginTop = '20px';
+      leapButton.style.marginTop = '0px';
           leapButton.style.marginLeft = '10px';
            leapButton.style.marginRight = '200px';
     leapButton.title = 'Click to show leap stores';
@@ -344,7 +365,7 @@
      clearButton.style.border='2px solid #fff';
           clearButton.style.borderRadius='3px';
           clearButton.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
-     clearButton.style.marginTop = '10px';
+     clearButton.style.marginTop = '0px';
           clearButton.style.marginBottom = '2px';
           clearButton.style.marginLeft = '10px';
           clearButton.style.marginRight = '200px';
@@ -361,12 +382,23 @@
           
       controlDiv.appendChild(clearButton);
           
-         
+         controlDiv.index=2;
+           map.controls[google.maps.ControlPosition.LEFT_TOP].push(controlDiv);
           
           clearButton.addEventListener('click', function clearAll() {
 		console.log("clearing")
 		removeMarkers()
 		directionsDisplay.setMap(null);
+               $('#start_address').val("")
+		$('#end_address').val("")
+		$('#results > p').html("")
+		$('#text_results').html("")
+		$('#price').html("")
+		$('#leap_stores').prop('checked', false);
+		$('#geolocation').prop('checked', false);
+                removeMarkers()
+                using_current = false;
+                directionsDisplay.setMap(null);
 	});
           
           // https://developers.google.com/maps/documentation/javascript/examples/control-custom
@@ -621,17 +653,18 @@ var pos;
 
 
 
-	// document.getElementById("clear_all").onclick = function clearAll() {
-      //          $('#start_address').val("")
-//		$('#end_address').val("")
+	 //document.getElementById("clear_all").onclick = 
+     //    function clearAll() {
+    //            $('#start_address').val("")
+	//	$('#end_address').val("")
 //		$('#results').html("")
 //		$('#text_results').html("")
 //		$('#price').html("")
-		//$('#leap_stores').prop('checked', false);
+//		$('#leap_stores').prop('checked', false);
 //		$('#geolocation').prop('checked', false);
-  //              removeMarkers()
-    //            using_current = false;
-      //          directionsDisplay.setMap(null);
+//                removeMarkers()
+//                using_current = false;
+//                directionsDisplay.setMap(null);
 //        }
 
 
@@ -722,7 +755,7 @@ var pos;
         $('#post-form').on('submit', function(event){
           event.preventDefault();
           console.log("form submitted!");
-          $('#results').text('searching...');
+          $('#results > p').text('searching...');
           getPredictions()
         });
 
@@ -885,6 +918,7 @@ var pos;
                 results = 'Wait time: ' + data['wait'] + '<br>';
                 results += 'Travel time: ' + data['prediction'] + '<br>Price: ' + data['price'] +  leap;
                 console.log(data['prediction'], data['price'])
+                  console.log(results)
                 $('#results > p').html(results);
               }
           });

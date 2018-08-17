@@ -323,8 +323,9 @@ margin-top: 30px;
    margin-right: 100px;
    margin-top: 100px;
    padding: 10px;
-   max-width: 500px
+   max-width: 500px;
    z-index:999;
+   max-width: 500px
 }
 
 #close_modal {
@@ -338,8 +339,17 @@ margin-top: 30px;
    margin-left 20px;
 }
 
-#title {
+#info-title {
+   float: none;
+}
 
+#info-list {
+   list-style-type: circle;
+   color: black;
+   margin-left: 10px;
+   font-weight: 400;
+   line-height: 20px;
+   margin-top: 10px;
 }
 
 #datepicker {
