@@ -851,10 +851,21 @@ var pos;
                                 current_location = new google.maps.Marker({
                                         position: {lat: pos.lat, lng: pos.lng},
                                         map: map,
-                                        title: "Current Location"
+                                        title: "Current Location",
+					icon: "/static/images/green_MarkerA.png",
+					draggable: true
                 
                                 });
 
+				google.maps.event.addListener(current_location, 'dragend', async function() {
+                        
+        			        var position = current_location.getPosition()
+	               			var address = await geocodeLatLng(position)
+                			$('#start_address').val(address)
+        
+       				 });
+
+				start_marker = false;
                                 markers.push(current_location);
 
                                 var geocoder = new google.maps.Geocoder;
