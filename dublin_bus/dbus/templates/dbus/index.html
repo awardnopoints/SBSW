@@ -1071,8 +1071,18 @@ var pos;
               leap = getLeap(price)
               $("#price").html('Journey Cost: ' + price + leap)
               
-            } else {
-              $('#results > p').html("Oops, something went wrong enter a different route and please try again");
+            } else if (data["error"] == "0") {
+              $('#results > p').html("Oops, something went wrong. Enter a different route and please try again.");
+            } else if (data["error"] == "tbi") {
+              $('#results > p').html("Error: One or more routes not yet implemented.");
+            } else if (data["error"] == "uncovered") {
+              $('#results > p').html("Error: One or more routes not covered by our data.");
+            } else if (data["error"] == "nis") {
+              $('#results > p').html("Error: One or more routes not in service.");
+            } else if (data["error"] == "unsupported") {
+              $('#results > p').html("Error: One or more routes not supported by our data.");
+            } else if (data["error"] == "nim") {
+              $('#results > p').html("Error: One or more routes not implemented in our application.");
             }
           });
         };

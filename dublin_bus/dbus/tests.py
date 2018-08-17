@@ -70,7 +70,7 @@ class InputValidatorTestCase(TestCase):
         self.assertEqual('I', results[0].route_direction, msg='Start to End of circular route')
 
         results = inputValidator(end, start)
-        self.assertEqual('0', results[0].route_direction, msg='End to start of circular route')
+        self.assertEqual('O', results[0].route_direction, msg='End to start of circular route')
 
 
 class PredictionsTestCase(TestCase):
