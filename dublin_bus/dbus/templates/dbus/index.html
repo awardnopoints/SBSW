@@ -1098,8 +1098,9 @@ var pos;
           var context = await getDirections();
           output = []
           output.push(context)		
-          console.log(output)
-          context = JSON.stringify(output)		
+          console.log('context:',output)
+          context = JSON.stringify(output)
+          console.log('context:',context)		
           inputDate = getInputDate()
           if (inputDate[2] != "OK") {
             $('#text_results').html(inputDate[2]);
