@@ -503,6 +503,23 @@ def predict_address(request):
                    #print('starting new leg')
                    
                    lat1, lng1, lat2, lng2, bus_no = i[0], i[1], i[2], i[3], i[4].upper()
+
+                   if bus_no in routes_to_be_implemented:
+                           context["error"] =  "tbi"    
+                           break                    
+                   elif bus_no in routes_in_service_uncovered:
+                           context["error"] = "uncovered"
+                           break
+                   elif bus_no in routes_no_longer_in_service:
+                           context['error'] = "nis"
+                           break
+                   elif bus_no in routes_unsupported_by_data:
+                           context['error'] = "unsupported"
+                           break
+                   elif bus_no not in routes_implemented:
+                           context['error'] = "nim"
+                           break
+
                    #print("bus:",bus_no)
                    #print("start:",(lat1,lng1))
                    #print("end:",(lat2,lng2))
