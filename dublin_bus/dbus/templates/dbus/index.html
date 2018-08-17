@@ -247,7 +247,7 @@
  
       }
 
-      
+        
 	    function validateForm() {
 
 		    start = document.getElementById("start_address").value;
@@ -317,58 +317,86 @@
         var trafficLayer = new google.maps.TrafficLayer();
 	      trafficLayer.setMap(map);    
      var controlDiv = document.createElement('div');
+           var controlDiv1 = document.createElement('div');
+       var leapButton = document.createElement('div');
+           var clearButton = document.createElement('div');
           
-       var controlMarkerUI = document.createElement('div');
-           var controlMarker1UI = document.createElement('div');
-          
-      controlMarkerUI.style.cursor = 'pointer';
-      controlMarkerUI.style.backgroundColor = '#fff';
-        controlMarkerUI.style.border='2px solid #fff';
-          controlMarkerUI.style.borderRadius='3px';
-          controlMarkerUI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
-      controlMarkerUI.style.marginTop = '90px';
-          controlMarkerUI.style.marginBottom = '22px';
-          controlMarkerUI.style.marginLeft = '-160px';
-           controlMarkerUI.style.marginRight = '200px';
-      controlMarkerUI.title = 'Click to show leap stores';
-            controlMarkerUI.style.color = 'rgb(25,25,25)';
-        controlMarkerUI.style.fontFamily = 'Roboto,Arial,sans-serif';
-        controlMarkerUI.style.fontSize = '16px';
-        controlMarkerUI.style.lineHeight = '34px';
-        controlMarkerUI.style.paddingLeft = '5px';
-        controlMarkerUI.style.paddingRight = '5px';
-        controlMarkerUI.innerHTML = 'Show Leap Stores';
+      leapButton.style.cursor = 'pointer';
+      leapButton.style.backgroundColor = '#fff';
+        leapButton.style.border='2px solid #fff';
+          leapButton.style.borderRadius='3px';
+          leapButton.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
+      leapButton.style.marginTop = '20px';
+          leapButton.style.marginLeft = '10px';
+           leapButton.style.marginRight = '200px';
+    leapButton.title = 'Click to show leap stores';
+           leapButton.style.color = 'rgb(25,25,25)';
+        leapButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+        leapButton.style.fontSize = '16px';
+        leapButton.style.lineHeight = '34px';
+        leapButton.style.paddingLeft = '5px';
+        leapButton.style.paddingRight = '5px';
+        leapButton.innerHTML = 'Show Leap Stores';
           
           
-             controlMarker1UI.style.cursor = 'pointer';
-      controlMarker1UI.style.backgroundColor = '#fff';
-        controlMarker1UI.style.border='2px solid #fff';
-          controlMarker1UI.style.borderRadius='3px';
-          controlMarker1UI.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
-      controlMarker1UI.style.marginTop = '-20px';
-          controlMarker1UI.style.marginBottom = '22px';
-          controlMarker1UI.style.marginLeft = '-160px';
-          controlMarker1UI.style.marginRight = '200px';
-      controlMarker1UI.title = 'Click to clear all inputs';
-             controlMarker1UI.style.color = 'rgb(25,25,25)';
-        controlMarker1UI.style.fontFamily = 'Roboto,Arial,sans-serif';
-        controlMarker1UI.style.fontSize = '16px';
-        controlMarker1UI.style.lineHeight = '34px';
-        controlMarker1UI.style.paddingLeft = '5px';
-        controlMarker1UI.style.paddingRight = '5px';
-        controlMarker1UI.innerHTML = 'Clear All';
+             clearButton.style.cursor = 'pointer';
+      clearButton.style.backgroundColor = '#fff';
+     clearButton.style.border='2px solid #fff';
+          clearButton.style.borderRadius='3px';
+          clearButton.style.boxShadow='0 2px 6px rgba(0,0,0,.3)';
+     clearButton.style.marginTop = '10px';
+          clearButton.style.marginBottom = '2px';
+          clearButton.style.marginLeft = '10px';
+          clearButton.style.marginRight = '200px';
+    clearButton.title = 'Click to clear all inputs';
+             clearButton.style.color = 'rgb(25,25,25)';
+     clearButton.style.fontFamily = 'Roboto,Arial,sans-serif';
+        clearButton.style.fontSize = '16px';
+        clearButton.style.lineHeight = '34px';
+        clearButton.style.paddingLeft = '5px';
+      clearButton.style.paddingRight = '5px';
+        clearButton.innerHTML = 'Clear All';
           
-      controlDiv.appendChild(controlMarkerUI);
+      controlDiv.appendChild(leapButton);
           
-      controlDiv.appendChild(controlMarker1UI);
+      controlDiv.appendChild(clearButton);
           
-            controlMarkerUI.addEventListener('click', function() {
-          map.setCenter(chicago);
-        });
+         
+          
+          clearButton.addEventListener('click', function clearAll() {
+		console.log("clearing")
+		removeMarkers()
+		directionsDisplay.setMap(null);
+	});
           
           // https://developers.google.com/maps/documentation/javascript/examples/control-custom
           
-          
+  
+       leapButton.addEventListener('click',   function() {
+		//cb = this.checked;
+		//if (cb){
+			geoLocation()
+	                map.setCenter(pos);
+			removeMarkers()
+			directionsDisplay.setMap(null);
+			output = []
+          		output.push(pos)          
+          		console.log(output)
+          		context = JSON.stringify(output)   
+			
+			$.get("/leap_stores/", {context}, function(data) {
+				for (key in data) {
+					
+					marker = new google.maps.Marker({
+						position: {lat: Number(data[key]["lat"]), lng: Number(data[key]["lng"])},
+						map: map,
+						title: key,	
+						});
+					markers.push(marker);
+				}
+			});
+		});
+
 
       map.controls[google.maps.ControlPosition.TOP_LEFT].push(controlDiv);
           
@@ -454,6 +482,8 @@
 
 });
 
+          
+      
 function removeMarkers(){
           for (var i = 0; i < markers.length; i++){
             markers[i].setMap(null);
@@ -591,7 +621,18 @@ var pos;
 
 
 
-	
+	// document.getElementById("clear_all").onclick = function clearAll() {
+      //          $('#start_address').val("")
+//		$('#end_address').val("")
+//		$('#results').html("")
+//		$('#text_results').html("")
+//		$('#price').html("")
+		//$('#leap_stores').prop('checked', false);
+//		$('#geolocation').prop('checked', false);
+  //              removeMarkers()
+    //            using_current = false;
+      //          directionsDisplay.setMap(null);
+//        }
 
 
         /*$.when(
@@ -777,7 +818,30 @@ var pos;
 
 		}
 
-	
+//		document.getElementById("leap_stores").onclick = function() {
+		//cb = this.checked;
+		//if (cb){
+//			geoLocation()
+//	                map.setCenter(pos);
+//			removeMarkers()
+//			directionsDisplay.setMap(null);
+//			output = []
+  //        		output.push(pos)          
+    //      		console.log(output)
+      //    		context = JSON.stringify(output)   
+			
+	//		$.get("/leap_stores/", {context}, function(data) {
+	//			for (key in data) {
+	//				
+	//				marker = new google.maps.Marker({
+	//					position: {lat: Number(data[key]["lat"]), lng: Number(data[key]["lng"])},
+	//					map: map,
+	//					title: key,	
+	//					});
+	//				markers.push(marker);
+	//			}
+	//		});
+//		}
 
 		//else {
 
