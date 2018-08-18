@@ -538,7 +538,8 @@ def predict_address(request):
         except Exception as e:
            context["error"] =  "1"
            #print(e)
-         
+        
+        print(latlng) 
         #print(context)
         return JsonResponse(context)
 
