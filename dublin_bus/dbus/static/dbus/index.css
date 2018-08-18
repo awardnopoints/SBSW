@@ -236,9 +236,20 @@ margin-top: 30px;
     max-height: 300px;
 }
 
-#text_directions td, #text_directions tr {
+#text_directions td,  #text_directions th {
     height: 30px;
     text-align: left;
+    padding: 5px;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+
+#text_directions t {
+    height: 30px;
+    text-align: left;
+    padding: 5px;
+
 }
 
 #info {
@@ -334,16 +345,20 @@ margin-top: 30px;
    cursor: pointer;
 }
 
+
 .functions {
    margin-left 20px;
 }
 
 #info-title {
    float: none;
+    margin-left: 10px;
+    margin-bottom: 5px;
+    margin-top: 0px;
 }
 
 #info-list {
-   list-style-type: circle;
+   list-style-type: none;
    color: black;
    margin-left: 10px;
    font-weight: 400;
