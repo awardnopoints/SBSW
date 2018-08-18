@@ -1,20 +1,45 @@
 from django.test import TestCase
-from dbus.views import predictions_model, inputValidator
+from dbus.views import predictions_model, inputValidator, format_prediction, price_scrape, get_times, get_rtpi, wait_predict, getStops, getClose
 from dbus.models import StopsLatlngZone as sllz
 from dbus.models import BusStopsSequenceDistance as bssd
-# # import requests
 import datetime
+import json
+import django.db.models
 
-# #from django.test import Client
+from django.test import Client
 import unittest
-# import http.client as c
-# import urllib.request
-# import urllib.parse
 
-# class RenderTestCase(TestCase):
-#      def test_user_visit(self):
-#         response = self.client.get('http://137.43.49.47/', follow=True)
-#         self.assertRedirects(response, '/home/')
+class LoadTestCase(TestCase):
+
+    def testLoadStatus(self):
+        response = Client().post('')
+        self.assertEqual(response.status_code, 200)
+
+class GetTestCase(TestCase):
+    predict_response = Client().get('/predict_request/', {'start_stop':1499, 'end_stop':4516, 'route':'123', 'year':2018,'month':5,'day':2,'hour':10,'minute':12,'now':'true',})
+    pop_response = Client().get('/popStops/', {'start_stop':1499, 'end_stop':4516, 'route':'123'})
+
+    def testPredictStatus(self):
+        self.assertEqual(self.predict_response.status_code, 200)
+
+    def testPredictContent(self):
+        content = self.predict_response.content.decode('utf-8')
+        myjson = json.loads(content)
+        assert myjson['price']
+        assert myjson['wait']
+        assert myjson['prediction']
+
+    def testPopStopsStatus(self):
+        self.assertEqual(self.pop_response.status_code, 200)
+    
+    def testPopStopsContent(self):
+        content = self.pop_response.content.decode('utf-8')
+        myjson = json.loads(content)
+        assert myjson['stops'][0]['0']['stop']
+        self.assertEqual(myjson['error'], '0')
+        self.assertEqual(myjson['predictions'], [])
+
+    
 
 class InputValidatorTestCase(TestCase):
     
@@ -75,52 +100,67 @@ class InputValidatorTestCase(TestCase):
 
 class PredictionsTestCase(TestCase):
 
+    def getStop(self, r, s):
+        return bssd.objects.filter(route_number = r, stop_id = s)
+    
     now = datetime.datetime.now()
 
-    def test_basic(self):
-        self.assertEqual(1,1)
+    def testPredictionTrue(self):
+        start = self.getStop('15', 1151)
+        end = self.getStop('15', 1158)
+        start_stop, end_stop = inputValidator(start, end)
 
-    def test_input(self):
-        pass
-        
+        result = predictions_model(start_stop, end_stop, start_stop.route_number, 2018, 10, 5, 10)
+        self.assertIsInstance(result, float)
+
+class FormatPredictionTestCase(TestCase):
+
+    def testFormat(self):
+        prediction = format_prediction(450)
+        self.assertEqual(prediction, '7:30')
+        prediction = format_prediction(425)
+        self.assertEqual(prediction, '7:05')
+
+class PriceTestCase(TestCase):
+
+    def testPrice(self):
+        price = price_scrape('15','I',10,15)
+        self.assertEqual(price, '€2.10')
+
+class GetTimesTestCase(TestCase):
+
+    def testGetTimes(self):
+        json_parsed = {'results':[{'departureduetime':10, 'route':'123'}, {'departureduetime':4, 'route':'15'}, {'departureduetime':5, 'route':'31'}]}
+        self.assertEqual(get_times(json_parsed, '123'), 10)
+        self.assertEqual(get_times(json_parsed, '15'), 4)
+        self.assertEqual(get_times(json_parsed, '31'), 5)
+
+class GetRtpiTestCase(TestCase):
+
+    def testGetRTIP(self):
+        self.assertIsInstance(get_rtpi('15', 1151), str)
+
+class WaitPredictTestCase(TestCase):
     
-    # def test_prediction(self):
-    #     result = predictions_model('573', '579', '31', self.now.year, self.now.month, self.now.day, self.now.hour)
-    #     self.assertEqual(result, "fail")
+    def getStop(self, r, s):
+        return bssd.objects.filter(route_number = r, stop_id = s)
 
-# class TestBasic(unittest.TestCase):
+    def testWaitPredict(self):
+        stop = self.getStop('15', 1151).first()
+        self.assertIsInstance(wait_predict('15',stop,2018,10,5,10,10), str)
 
-#     def test1(self):
-#         x = 5
-#         self.assertEqual(5, x)
+class GetStopsTestCase(TestCase):
 
-# class TestResponse(unittest.TestCase):
+    def testGetStops(self):
+        self.assertEqual(set(getStops('15', '1151', '1158', '1')[0]),set(['lat', 'lon', 'rtpi', 'stop']))
 
-#     url = 'https://csi420-01-vm1.ucd.ie/'
-#     status = urllib.request.urlopen(url).getcode()
-#     now = datetime.datetime.now()
-#     print(now)
+class GetCloseTestCase(TestCase):
 
-#     def testClient(self):
-#         self.assertEqual(200, self.status)
+    def testLeap(self):
+        self.assertIsInstance(getClose(16, 15, 'leap_stores', 0.01), django.db.models.query.RawQuerySet)
 
-#     def testQuery(self):
-#         data = {'route': '46A', 
-#         'start_stop': "2041", 
-#             'end_stop': "2045", 
-#             'year': str(self.now.year()), 'month': str(self.now.month()), 'day': str(self.now.weekday()), 
-#             'hour': str(self.now.hour()), 'minute': str(self.now.minute()), 'now': "true"}
-#         url_values = urllib.parse.urlencode(data) 
-#         #print(url_values)
-#         url = self.url + '?' + url_values
-#         print(url)
-#         data = urllib.request.urlopen(url)
-#         #print(data.info())
-
-
-
+    def testStops(self):
+        self.assertIsInstance(getClose(16, 15, 'dbus_stopsv3', 0.01), django.db.models.query.RawQuerySet)
     
-
-
-# if __name__ == '__main__':
-#     unittest.main()
+    def testFalse(self):
+        self.assertFalse(getClose(16, 15, 'Wrong', 0.01))

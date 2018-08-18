@@ -98,7 +98,9 @@
  <div id="leaveNow"  style="margin-top: 10px; margin-left: -10%">Leave Now<input type="checkbox" id="checkbox" onclick="disappear()" checked style="margin-left: 5px;">
        </div>
     <div id='date_input' style="margin-left: -40px;">
- <h4>Date </h4><input type="text" id="datepicker" style="margin-left: 5px;width: 270px;">
+ <h4>Date </h4><select id="datepicker" style="margin-left: 5px;width: 270px;">
+                <option>Select Date</option>
+               </select>
         <br>
        <h4>Time </h4> <input type="text" id="timepicker" style="margin-left: 0px;width: 270px;"/>
     </div>
@@ -177,7 +179,50 @@
     <script type = "text/javascript">
          
   $(document).ready(function() {
-        $("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
+    
+    function valueifyDate(d) {
+      var year = d.getFullYear();
+      var month = d.getMonth() + 1;
+      var day = d.getDate();
+
+      if (month < 10)
+        month = '0' + month;
+      if (day < 10)
+        day = '0' + day;
+      return month + '/' + day + '/' + year;
+    }
+
+    var mydays = ["Sunday", "Monday", 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var mymonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    function stringifyDate(d) {
+      var day_int = d.getDay();
+      var date = d.getDate();
+      var month_int = d.getMonth();
+      var dow = mydays[day_int];
+      console.log(day_int, dow)
+      var month = mymonths[month_int];
+      var year = d.getFullYear();
+      var r = dow + " " + date + " " + month + " " + year
+      return r;
+    }
+
+      today = new Date()
+      day2 = new Date()
+      day2.setDate(today.getDate() + 1)
+      day3 = new Date()
+      day3.setDate(day2.getDate() + 1)
+      day4 = new Date()
+      day4.setDate(day3.getDate() + 1)
+      day5 = new Date()
+      day5.setDate(day4.getDate() + 1)
+      days = [today, day2, day3, day4, day5]
+      days.forEach(function(day){
+        $('#datepicker').append("<option value='" + valueifyDate(day) + "'>" + stringifyDate(day) + "</option>");
+      })
+
+
+        //$("#datepicker").datepicker('option',{ minDate: "-1D", maxDate: "+4D"});
       $('#timepicker').timepicker({ 'scrollDefault': 'now', 'timeFormat': 'H:i'});
       
         $('#results > p').hide();
@@ -195,45 +240,15 @@
       var placeSearch, autocomplete_start, autocomplete_end; 
       var weather_description = "{{weather.description}}";
       var current_location;
-      var c = new Date();
-      var f = new Date(c);
-      f.setDate(f.getDate() + 4);
-      console.log(c < f)
       var table;
       var geocoder;
       var click_count = 0;
       var using_current = false;
       var start_marker = true;
 
-      function stringifyDate(d) {
-        var year = d.getFullYear();
-        var month = d.getMonth() + 1;
-        var day = d.getDate();
-        var hour = d.getHours();
-        var minute = d.getMinutes();
-        var second = d.getSeconds();
-
-        if (month < 10)
-          month = '0' + month;
-        if (day < 10)
-          day = '0' + day;
-        //if (hour < 10)
-    //      hour = '0' + hour;
-        return year + '-' + month + '-' + day;
-      }
-
-      //min_string = stringifyDate(c);
-      //max_string = stringifyDate(f);
-
-   //   $('#datepicker').attr('minDate', min_string);
-     // $('#datepicker').attr('maxDate', max_string);
-
       if ($('#checkbox').is(':checked')) {
         $('#date_input').hide();
       }
-        
-  
-        
         
       function disappear(){
         $('#date_input').toggle();
@@ -790,24 +805,41 @@ var pos;
         });
 
         function getInputDate(){
+          var msg = "OK";
           if ($('#checkbox').is(':checked')){
             console.log('actual datetime')
-            return [c, true];
+            return [new Date(), true, msg];
           } else {
             console.log('input datetime')
             var time = document.getElementById('timepicker').value;
+            if (time == ""){
+              msg = "Please Select Time";
+              console.log(msg)
+              return [false, false, msg];
+            }
+            console.log('valid time')
             var timeSplit = time.split(':');
             var hr = parseInt(timeSplit[0]);
             var min = parseInt(timeSplit[1]);                      
 
-            var date = $('#datepicker').val(); 
+            var date = $('#datepicker').val();
+            if (date == "Select Date") {
+              msg = "Please Select Date";
+              return [false, false, msg];
+            }
+            console.log('date:', date) 
+            if (date)
             var dateSplit = date.split('/');
             var day=parseInt(dateSplit[1]);
             var month = parseInt(dateSplit[0])-1;
             var year = parseInt(dateSplit[2]);
 
             d=new Date(year, month, day, hr, min);
-            return [d, false];
+            if (d < new Date()) {
+              msg = "Error: Past date/time selected. Please select a future date/time.";
+              return [false, false, msg];
+            }
+            return [d, false, msg];
           }
         }
 
@@ -932,15 +964,20 @@ var pos;
           end_stop = $('#end option:selected').text().split(',')[0];
           if (route == 'Select Route' || start_stop == 'Select Start Stop' || end_stop == 'Select End Stop' || end_stop == 'Select Start Stop') {
             $('#results > p').html("Please fill out all sections");
-            return
+            return;
           }
-          date = getInputDate()[0];
+          inputDate = getInputDate()
+          if (inputDate[2] != "OK") {
+            $('#results > p').html(inputDate[2]);
+            return;
+          }
+          date = inputDate[0];
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
           hour = date.getHours();
           minute = date.getMinutes();
-          now = getInputDate()[1];
+          now = inputDate[1];
           console.log("Route =", route, "Start Stop =", start_stop, "End Stop =", end_stop, "Day =", day, "Hour =", hour, "Minute =", minute, "Now =", now);
 
           $.get('/predict_request/', {route: route, start_stop: start_stop, 
@@ -1069,10 +1106,16 @@ var pos;
           var context = await getDirections();
           output = []
           output.push(context)		
-          console.log(output)
-          context = JSON.stringify(output)		
-          
-          date = getInputDate()[0];
+          console.log('context:',output)
+          context = JSON.stringify(output)
+          console.log('context:',context)		
+          inputDate = getInputDate()
+          if (inputDate[2] != "OK") {
+            $('#text_results').html(inputDate[2]);
+            console.log('rejected input')
+            return;
+          }
+          date = inputDate[0];
           year = date.getFullYear();
           month = date.getMonth() + 1;
           day = date.getDate();
@@ -1084,6 +1127,7 @@ var pos;
 		          $("#step_"+x).html("Getting Prediction")
 		        }
             if (data["error"] == "0") {
+              
               popStops(data["stops"])
               drawRoute(data["stops"])
               $('#text_results').html(table);
@@ -1097,7 +1141,6 @@ var pos;
                 $("#"+step).html(data["prediction"][i]);
                 count += 1
               }
-	      
               for (i in data["price"]) {		
                 var price_split = data["price"][i]
                 price_split = price_split.split(".")
@@ -1106,23 +1149,20 @@ var pos;
                 total = euro + cent
                 price += total
               }
-              
               euro = Math.floor(price/100);
               cent = price%100;
               if (cent < 10)
                 cent = "0" + cent;
-
               price = "€" + euro + "." + cent
-              if (isNaN(euro)){
-		price = "Fare Calculator Unresponsive";
+              if (isNaN(euro)) {
+		            price = "Fare Calculator Unresponsive";
                 $('#price').html(price)
-	      }
-              else{
-              leap = getLeap(price)
-              
-              $("#price").html('Journey Cost: ' + price + leap)
+	            } else {
+                leap = getLeap(price)
+                $("#price").html('Journey Cost: ' + price + leap)
               }
-            } else if (data["error"] == "0") {
+
+            } else if (data["error"] == "1") {
               $('#text_results').html("Oops, something went wrong. Enter a different route and please try again.");
             } else if (data["error"] == "tbi") {
               $('#text_results').html("Error: One or more routes not yet implemented.");
